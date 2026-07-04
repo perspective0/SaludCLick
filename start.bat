@@ -35,15 +35,17 @@ timeout /t 3 /nobreak
 REM Iniciar Frontend en nueva ventana
 echo 2️⃣  Iniciando Frontend en puerto 3000...
 cd frontend
-start "SaludClick Frontend" cmd /k npm run dev
+start "SaludClick Frontend" cmd /k npm run dev -- -H 0.0.0.0
 cd ..
 
 echo.
 echo ========================================================
 echo ✓ Servicios iniciados en nuevas ventanas
 echo.
-echo 📱 Frontend: http://localhost:3000
-echo 🔌 Backend API: http://localhost:5000/api
+echo 📱 Frontend local: http://localhost:3000
+echo 📱 Desde tu movil: usa la IP IPv4 de este PC seguida de :3000
+echo    Ejemplo: http://192.168.1.25:3000
+echo 🔌 Backend API: disponible en el puerto 5000 de la red local
 echo.
 echo ========================================================
 echo.

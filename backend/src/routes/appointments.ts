@@ -7,6 +7,9 @@ import {
   updateAppointment,
   cancelAppointment,
   getAvailableSlots,
+  getTeleconsultationRoom,
+  getTeleconsultationSignals,
+  postTeleconsultationSignal,
 } from '../controllers/appointmentController';
 import { authMiddleware, roleMiddleware } from '../middleware/auth';
 
@@ -14,12 +17,12 @@ const router = Router();
 
 /**
  * POST /api/appointments
- * Create a new appointment (patient only)
+ * Create a new appointment
  */
 router.post(
   '/',
   authMiddleware,
-  roleMiddleware(['patient']),
+  roleMiddleware(['patient', 'doctor', 'secretary']),
   [
     body('doctorId').notEmpty(),
     body('appointmentDate').isDate(),
@@ -33,6 +36,10 @@ router.post(
  * Get user's appointments
  */
 router.get('/', authMiddleware, getAppointments);
+
+router.get('/teleconsulta/:roomId', authMiddleware, getTeleconsultationRoom);
+router.get('/teleconsulta/:roomId/signals', authMiddleware, getTeleconsultationSignals);
+router.post('/teleconsulta/:roomId/signals', authMiddleware, postTeleconsultationSignal);
 
 /**
  * DELETE /api/appointments/:id

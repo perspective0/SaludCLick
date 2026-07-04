@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store';
 import { appointmentAPI } from '@/utils/api';
-import { formatDate } from '@/utils/helpers';
+import { formatDate, getUserGreeting } from '@/utils/helpers';
 
 export default function DashboardPage() {
   const { user, isAuthenticated } = useAuthStore();
@@ -39,7 +39,7 @@ export default function DashboardPage() {
       <div className="container-main">
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">
-            Bienvenido, {user?.firstName}
+            {getUserGreeting(user)}
           </h1>
           <p className="text-gray-600">
             {user?.role === 'patient'
@@ -51,13 +51,13 @@ export default function DashboardPage() {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="card bg-gradient-to-br from-primary to-blue-600 text-white">
-            <h3 className="text-sm font-semibold opacity-90">Citas Próximas</h3>
+            <h3 className="text-sm font-semibold opacity-90">Citas médicas próximas</h3>
             <p className="text-3xl font-bold">
               {appointments.filter(a => a.status === 'scheduled').length}
             </p>
           </div>
           <div className="card bg-gradient-to-br from-secondary to-green-600 text-white">
-            <h3 className="text-sm font-semibold opacity-90">Citas Completadas</h3>
+            <h3 className="text-sm font-semibold opacity-90">Citas médicas completadas</h3>
             <p className="text-3xl font-bold">
               {appointments.filter(a => a.status === 'completed').length}
             </p>
@@ -72,7 +72,7 @@ export default function DashboardPage() {
 
         {/* Appointments Section */}
         <div className="card mb-8">
-          <h2 className="text-2xl font-bold mb-6">Tus Citas</h2>
+          <h2 className="text-2xl font-bold mb-6">Tus citas médicas</h2>
 
           {loading ? (
             <p>Cargando citas...</p>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useRouter } from 'next/navigation';
-import { apiRequest, saveToken } from '@/utils/api';
+import { apiRequest } from '@/utils/api';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -54,7 +54,6 @@ export default function ProfilePage() {
       const response = await apiRequest(`/profile`, {
         method: 'PUT',
         body: JSON.stringify(formData),
-        token: localStorage.getItem('token') || undefined,
       });
 
       const updatedUser = { ...user, ...formData };

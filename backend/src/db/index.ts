@@ -1,7 +1,8 @@
 import { Pool, PoolClient } from 'pg';
+import { appConfig } from '../config/appConfig';
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/saludclick',
+  connectionString: appConfig.databaseUrl,
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,

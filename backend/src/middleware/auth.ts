@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
 import { JWTPayload } from '../types';
+import { verifyToken } from '../utils/auth';
 
 // Extend Express Request to include user
 declare global {
@@ -11,9 +11,22 @@ declare global {
   }
 }
 
+function getCookie(req: Request, name: string): string | null {
+  const cookieHeader = req.headers.cookie;
+  if (!cookieHeader) return null;
+
+  const cookies = cookieHeader.split(';').map((cookie) => cookie.trim());
+  const prefix = `${name}=`;
+  const match = cookies.find((cookie) => cookie.startsWith(prefix));
+  return match ? decodeURIComponent(match.slice(prefix.length)) : null;
+}
+
 export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
+    const bearerToken = req.headers.authorization?.startsWith('Bearer ')
+      ? req.headers.authorization.split(' ')[1]
+      : null;
+    const token = bearerToken || getCookie(req, 'saludclick_session');
 
     if (!token) {
       return res.status(401).json({
@@ -22,7 +35,7 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as JWTPayload;
+    const decoded = verifyToken(token) as JWTPayload;
     req.user = decoded;
     next();
   } catch (error) {
@@ -31,6 +44,23 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
       message: 'Invalid or expired token',
     });
   }
+};
+
+export const optionalAuthMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const bearerToken = req.headers.authorization?.startsWith('Bearer ')
+      ? req.headers.authorization.split(' ')[1]
+      : null;
+    const token = bearerToken || getCookie(req, 'saludclick_session');
+
+    if (token) {
+      req.user = verifyToken(token) as JWTPayload;
+    }
+  } catch {
+    req.user = undefined;
+  }
+
+  next();
 };
 
 export const roleMiddleware = (allowedRoles: string[]) => {

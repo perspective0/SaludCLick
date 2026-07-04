@@ -5,6 +5,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { doctorAPI } from '@/utils/api';
 import { formatDate } from '@/utils/helpers';
+import { formatDoctorName, formatPersonName } from '@/utils/names';
+import PatientShell from '@/components/PatientShell';
 
 export default function DoctorDetailsPage({
   params,
@@ -63,7 +65,7 @@ export default function DoctorDetailsPage({
     );
   }
 
-  return (
+  const content = (
     <div className="min-h-screen bg-light py-12">
       <div className="container-main">
         <Link href="/doctors" className="text-primary hover:underline mb-6 inline-block">
@@ -78,7 +80,7 @@ export default function DoctorDetailsPage({
                   <div className="relative w-32 h-32 rounded-lg overflow-hidden flex-shrink-0">
                     <Image
                       src={doctor.avatar}
-                      alt={`${doctor.first_name} ${doctor.last_name}`}
+                      alt={formatPersonName(doctor.first_name, doctor.last_name)}
                       fill
                       className="object-cover"
                     />
@@ -86,7 +88,7 @@ export default function DoctorDetailsPage({
                 )}
                 <div className="flex-1">
                   <h1 className="text-3xl font-bold mb-2">
-                    Dr. {doctor.first_name} {doctor.last_name}
+                    {formatDoctorName(doctor.first_name, doctor.last_name)}
                   </h1>
                   <p className="text-lg text-secondary font-semibold mb-4">
                     {doctor.specialties?.[0] || 'Medicina General'}
@@ -94,7 +96,7 @@ export default function DoctorDetailsPage({
                   <div className="space-y-2 text-sm">
                     <p><strong>Licencia:</strong> {doctor.license_number}</p>
                     <p><strong>Experiencia:</strong> {doctor.years_experience || 0} años</p>
-                    <p><strong>Centro:</strong> {doctor.health_center_name}</p>
+                    <p><strong>Centro:</strong> {getDoctorCentersLabel(doctor)}</p>
                     <p><strong>Consulta:</strong> ${doctor.consultation_price || 50}</p>
                   </div>
                 </div>
@@ -167,4 +169,22 @@ export default function DoctorDetailsPage({
       </div>
     </div>
   );
+
+  if (user?.role === 'patient') {
+    return (
+      <PatientShell title="Perfil médico" subtitle="Revisa la información del profesional antes de agendar">
+        <div className="-mx-4 -my-6 md:-mx-8">{content}</div>
+      </PatientShell>
+    );
+  }
+
+  return content;
+}
+
+function getDoctorCentersLabel(doctor: any) {
+  const centers = doctor?.health_centers || doctor?.healthCenters || [];
+  if (Array.isArray(centers) && centers.length) {
+    return centers.map((center: any) => `${center.name}${center.city ? ` - ${center.city}` : ''}`).join(', ');
+  }
+  return `${doctor.health_center_name || 'No asignado'}${doctor.city ? ` - ${doctor.city}` : ''}`;
 }

@@ -73,6 +73,32 @@ export function getFullName(firstName: string, lastName: string): string {
 }
 
 /**
+ * Get full name from the authenticated user shape used in localStorage/store
+ */
+export function getUserFullName(user?: { firstName?: string; lastName?: string } | null, fallback: string = 'Usuario'): string {
+  const fullName = `${user?.firstName || ''} ${user?.lastName || ''}`.trim();
+  return fullName || user?.firstName || fallback;
+}
+
+/**
+ * Get greeting based on the user's local time
+ */
+export function getTimeGreeting(date: Date = new Date()): string {
+  const hour = date.getHours();
+
+  if (hour < 12) return 'Buenos días';
+  if (hour < 19) return 'Buenas tardes';
+  return 'Buenas noches';
+}
+
+/**
+ * Build a personalized greeting for dashboard headers
+ */
+export function getUserGreeting(user?: { firstName?: string; lastName?: string } | null, fallback: string = 'Usuario'): string {
+  return `${getTimeGreeting()}, ${getUserFullName(user, fallback)}`;
+}
+
+/**
  * Validate email
  */
 export function validateEmail(email: string): boolean {

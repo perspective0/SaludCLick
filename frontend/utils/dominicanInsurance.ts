@@ -1,0 +1,18 @@
+export const dominicanHealthInsurers = [
+  'ARS Humano',
+  'ARS Universal',
+  'ARS Palic',
+  'ARS Mapfre Salud',
+  'ARS Monumental',
+  'ARS Yunen',
+  'ARS Futuro',
+  'ARS MetaSalud',
+  'ARS Semma',
+  'ARS Renacer',
+  'ARS Simag',
+  'ARS CMD',
+  'ARS APS',
+  'SENASA Subsidiado',
+  'SENASA Contributivo',
+  'Seguro privado internacional',
+];

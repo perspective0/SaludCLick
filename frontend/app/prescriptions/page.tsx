@@ -1,8 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { medicalAPI } from '@/utils/api';
+import { formatDoctorName } from '@/utils/names';
+import { ArrowLeft } from 'lucide-react';
 
 export default function PrescriptionsPage() {
   const [prescriptions, setPrescriptions] = useState<any[]>([]);
@@ -72,9 +75,15 @@ export default function PrescriptionsPage() {
       <div className="min-h-screen bg-light py-12">
         <div className="container-main">
           <div className="mb-8 flex justify-between items-center">
-            <div>
-              <h1 className="text-4xl font-bold mb-2">Recetas</h1>
-              <p className="text-gray-600">Tus recetas médicas</p>
+            <div className="flex items-start gap-3">
+              <Link href={getDashboardHref(user?.role)} className="mt-1 inline-flex h-10 items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+                <ArrowLeft className="h-4 w-4" />
+                Volver
+              </Link>
+              <div>
+                <h1 className="text-4xl font-bold mb-2">Recetas</h1>
+                <p className="text-gray-600">Tus recetas médicas</p>
+              </div>
             </div>
             {user?.role === 'doctor' && (
               <button onClick={() => setShowForm(!showForm)} className="btn-primary">
@@ -178,7 +187,7 @@ export default function PrescriptionsPage() {
                     <div>
                       <h3 className="text-xl font-bold">{prescription.medication}</h3>
                       <p className="text-gray-600">
-                        Dr. {prescription.doctor_first_name} {prescription.doctor_last_name}
+                        {formatDoctorName(prescription.doctor_first_name, prescription.doctor_last_name)}
                       </p>
                     </div>
                     <span
@@ -235,4 +244,12 @@ export default function PrescriptionsPage() {
       </div>
     </ProtectedRoute>
   );
+}
+
+function getDashboardHref(role?: string) {
+  if (role === 'doctor') return '/doctor/dashboard';
+  if (role === 'patient') return '/patient/dashboard';
+  if (role === 'admin') return '/admin/dashboard';
+  if (role === 'secretary') return '/secretary/dashboard';
+  return '/dashboard';
 }

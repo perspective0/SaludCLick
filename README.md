@@ -46,7 +46,11 @@ npm run dev
 psql -U postgres -f database/init.sql
 ```
 
-## 🔐 Roles y Permisos
+## � Entorno y despliegue
+- Configura `backend/.env` y `frontend/.env.local` según tus variables de entorno.
+- Revisa `DEPLOYMENT.md` para detalles de despliegue local y producción.
+
+## �🔐 Roles y Permisos
 
 - **Paciente**: Ver médicos, agendar citas, historial médico
 - **Médico**: Gestionar citas, ver historial, crear recetas

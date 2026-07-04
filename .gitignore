@@ -11,6 +11,11 @@ node_modules/
 /build
 /.next
 /out
+**/dist/
+**/build/
+**/.next/
+**/out/
+*.tsbuildinfo
 
 # Misc
 .env
@@ -43,6 +48,8 @@ Thumbs.db
 # Local uploads
 /uploads/*
 !uploads/.gitkeep
+backend/uploads/*
+!backend/uploads/.gitkeep
 
 # Package lock files (optional, depends on your preference)
 package-lock.json

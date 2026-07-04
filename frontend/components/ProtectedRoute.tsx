@@ -2,39 +2,72 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { authAPI } from '@/utils/api';
 
 export default function ProtectedRoute({
   children,
   requiredRole,
 }: {
   children: React.ReactNode;
-  requiredRole?: string;
+  requiredRole?: string | string[];
 }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const user = localStorage.getItem('user');
+    let active = true;
 
-    if (!token || !user) {
-      router.push('/login');
-      return;
-    }
+    async function verifySession() {
+      try {
+        const storedUser = localStorage.getItem('user');
+        let userData = storedUser ? JSON.parse(storedUser) : null;
 
-    try {
-      const userData = JSON.parse(user);
-      if (requiredRole && userData.role !== requiredRole) {
-        router.push('/dashboard');
-        return;
+        if (!userData) {
+          const response = await authAPI.me();
+          userData = response?.data;
+          if (userData) {
+            localStorage.setItem('user', JSON.stringify({
+              id: userData.id,
+              email: userData.email,
+              firstName: userData.first_name || userData.firstName,
+              lastName: userData.last_name || userData.lastName,
+              role: userData.role,
+              avatar: userData.avatar,
+            }));
+          }
+        }
+
+        if (!userData) {
+          router.push('/login');
+          return;
+        }
+
+        const role = userData.role;
+        if (requiredRole) {
+          const allowed = Array.isArray(requiredRole)
+            ? requiredRole.includes(role)
+            : role === requiredRole;
+          if (!allowed) {
+            router.push('/dashboard');
+            return;
+          }
+        }
+
+        if (active) setIsAuthorized(true);
+      } catch (error) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        router.push('/login');
+      } finally {
+        if (active) setIsLoading(false);
       }
-      setIsAuthorized(true);
-    } catch (error) {
-      router.push('/login');
-    } finally {
-      setIsLoading(false);
     }
+
+    verifySession();
+    return () => {
+      active = false;
+    };
   }, [requiredRole, router]);
 
   if (isLoading) {

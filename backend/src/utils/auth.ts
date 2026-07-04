@@ -1,15 +1,16 @@
 import { sign, verify, decode, Secret } from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { JWTPayload } from '../types';
+import { requireEnv } from '../config/env';
 
-const JWT_SECRET: Secret = process.env.JWT_SECRET || 'your-secret-key';
+const JWT_SECRET: Secret = requireEnv('JWT_SECRET', 'development-only-jwt-secret-change-me');
 const JWT_EXPIRE = process.env.JWT_EXPIRE || '7d';
 
 /**
  * Generate JWT token
  */
-export const generateToken = (payload: JWTPayload): string => {
-  return sign(payload as string | Buffer | object, JWT_SECRET as Secret, { expiresIn: JWT_EXPIRE } as any);
+export const generateToken = (payload: JWTPayload, expiresIn: string = JWT_EXPIRE): string => {
+  return sign(payload as string | Buffer | object, JWT_SECRET as Secret, { expiresIn } as any);
 };
 
 /**

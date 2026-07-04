@@ -1,0 +1,1 @@
+export { doctorAPI } from '../api';
