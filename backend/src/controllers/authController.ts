@@ -13,12 +13,14 @@ import { clearCsrfCookie, setCsrfCookie } from '../middleware/csrf';
 const failedLogins = new Map<string, { count: number; blockedUntil?: number }>();
 const AUTH_COOKIE = 'saludclick_session';
 const DEFAULT_SESSION_MINUTES = 7 * 24 * 60;
+const isProduction = process.env.NODE_ENV === 'production';
+const cookieSameSite = isProduction ? 'none' : 'lax';
 
 function setAuthCookie(res: Response, token: string, maxAgeMinutes = DEFAULT_SESSION_MINUTES) {
   res.cookie(AUTH_COOKIE, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: isProduction,
+    sameSite: cookieSameSite,
     path: '/',
     maxAge: maxAgeMinutes * 60 * 1000,
   });
@@ -28,8 +30,8 @@ function setAuthCookie(res: Response, token: string, maxAgeMinutes = DEFAULT_SES
 function clearAuthCookie(res: Response) {
   res.clearCookie(AUTH_COOKIE, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: isProduction,
+    sameSite: cookieSameSite,
     path: '/',
   });
   clearCsrfCookie(res);

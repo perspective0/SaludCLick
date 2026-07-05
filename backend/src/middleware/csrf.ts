@@ -3,6 +3,8 @@ import { NextFunction, Request, Response } from 'express';
 const CSRF_COOKIE = 'saludclick_csrf';
 const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 const EXEMPT_PATHS = new Set(['/api/auth/login', '/api/auth/register']);
+const isProduction = process.env.NODE_ENV === 'production';
+const cookieSameSite = isProduction ? 'none' : 'lax';
 
 export function getCookieValue(req: Request, name: string): string | null {
   const cookieHeader = req.headers.cookie;
@@ -20,8 +22,8 @@ export function getCookieValue(req: Request, name: string): string | null {
 export function setCsrfCookie(res: Response, token: string, maxAgeMinutes: number) {
   res.cookie(CSRF_COOKIE, token, {
     httpOnly: false,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: isProduction,
+    sameSite: cookieSameSite,
     path: '/',
     maxAge: maxAgeMinutes * 60 * 1000,
   });
@@ -30,8 +32,8 @@ export function setCsrfCookie(res: Response, token: string, maxAgeMinutes: numbe
 export function clearCsrfCookie(res: Response) {
   res.clearCookie(CSRF_COOKIE, {
     httpOnly: false,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: isProduction,
+    sameSite: cookieSameSite,
     path: '/',
   });
 }
