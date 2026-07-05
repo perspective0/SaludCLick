@@ -37,7 +37,7 @@ export default function DoctorPendingApprovalPage() {
         <header className="flex items-center justify-between gap-4">
           <Link href="/" className="flex items-center">
             <Image
-              src="/SaludClick.png"
+              src="/saludclick.png"
               alt="SaludClick"
               width={190}
               height={72}

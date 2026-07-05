@@ -5,11 +5,55 @@ import { useEffect, useState } from 'react';
 type Locale = 'es' | 'en';
 
 const STORAGE_KEY = 'saludclick_locale';
+const SCRIPT_ID = 'google-translate-script';
+
+declare global {
+  interface Window {
+    google?: {
+      translate?: {
+        TranslateElement?: new (
+          options: Record<string, unknown>,
+          elementId: string
+        ) => unknown;
+      };
+    };
+    googleTranslateElementInit?: () => void;
+  }
+}
 
 function setTranslateCookie(locale: Locale) {
   const value = locale === 'en' ? '/es/en' : '/es/es';
   const expires = 'expires=Fri, 31 Dec 9999 23:59:59 GMT';
   document.cookie = `googtrans=${value}; ${expires}; path=/; SameSite=Lax`;
+  document.cookie = `googtrans=${value}; ${expires}; path=/; domain=${window.location.hostname}; SameSite=Lax`;
+}
+
+function initGoogleTranslate() {
+  if (!window.google?.translate?.TranslateElement) return;
+
+  new window.google.translate.TranslateElement(
+    {
+      pageLanguage: 'es',
+      includedLanguages: 'es,en',
+      autoDisplay: false,
+    },
+    'google_translate_element'
+  );
+}
+
+function loadGoogleTranslate() {
+  window.googleTranslateElementInit = initGoogleTranslate;
+
+  if (document.getElementById(SCRIPT_ID)) {
+    initGoogleTranslate();
+    return;
+  }
+
+  const script = document.createElement('script');
+  script.id = SCRIPT_ID;
+  script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+  script.async = true;
+  document.body.appendChild(script);
 }
 
 export default function LanguageToggle({ floating = false }: { floating?: boolean }) {
@@ -20,6 +64,7 @@ export default function LanguageToggle({ floating = false }: { floating?: boolea
     setLocale(savedLocale);
     document.documentElement.lang = savedLocale === 'en' ? 'en' : 'es';
     setTranslateCookie(savedLocale);
+    loadGoogleTranslate();
   }, []);
 
   const selectLocale = (nextLocale: Locale) => {
@@ -40,6 +85,7 @@ export default function LanguageToggle({ floating = false }: { floating?: boolea
       aria-label="Cambiar idioma"
       translate="no"
     >
+      <div id="google_translate_element" className="hidden" />
       {(['es', 'en'] as const).map((item) => (
         <button
           key={item}

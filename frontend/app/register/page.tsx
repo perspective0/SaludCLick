@@ -257,7 +257,7 @@ function RegisterContent() {
         <div className="relative z-10 flex flex-col justify-center text-white max-w-md">
           <Link href="/" className="mb-12">
             <Image
-              src="/SaludClick.png"
+              src="/saludclick.png"
               alt="SaludClick"
               width={200}
               height={80}
@@ -324,7 +324,7 @@ function RegisterContent() {
           <div className="lg:hidden mb-8 text-center">
             <Link href="/">
               <Image
-                src="/SaludClick.png"
+                src="/saludclick.png"
                 alt="SaludClick"
                 width={160}
                 height={60}
