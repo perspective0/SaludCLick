@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import NotificationBell from '@/components/NotificationBell';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { adminAPI } from '@/utils/api';
@@ -19,7 +20,6 @@ import {
   BarChart3,
   Settings,
   LogOut,
-  Bell,
   Search,
   Menu,
   X,
@@ -342,13 +342,7 @@ export default function AdminDashboardPage() {
                   <RefreshCw className={`w-5 h-5 text-gray-600 ${loading ? 'animate-spin' : ''}`} />
                 </button>
 
-                {/* Notificaciones */}
-                <button className="relative rounded-lg p-2 transition-colors hover:bg-gray-100 dark:hover:bg-slate-800">
-                  <Bell className="w-5 h-5 text-gray-600" />
-                  {stats.pendingDoctorRequests > 0 && (
-                    <span className="absolute top-1 right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-                  )}
-                </button>
+                <NotificationBell />
               </div>
             </div>
           </header>

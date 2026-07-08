@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import NotificationBell from '@/components/NotificationBell';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { adminAPI } from '@/utils/api';
@@ -18,7 +19,6 @@ import {
   BarChart3,
   Settings,
   LogOut,
-  Bell,
   Menu,
   X,
   Home,
@@ -224,12 +224,12 @@ export default function AdminHealthCentersPage() {
 
   return (
     <ProtectedRoute requiredRole="admin">
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex">
+      <div className="flex min-h-screen overflow-x-hidden bg-gradient-to-br from-gray-50 to-blue-50">
         {/* Sidebar */}
-        <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl transform transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-auto ${
+        <aside className={`fixed inset-y-0 left-0 z-50 w-[min(16rem,86vw)] bg-white shadow-xl transform transition-transform duration-300 lg:w-64 lg:translate-x-0 lg:static lg:inset-auto ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}>
-          <div className="h-full flex flex-col">
+          <div className="flex h-full min-h-0 flex-col">
             <div className="p-6 border-b border-gray-100">
               <Link href="/admin" className="flex items-center gap-2">
                 <Shield className="w-8 h-8 text-blue-600" />
@@ -337,28 +337,28 @@ export default function AdminHealthCentersPage() {
         )}
 
         {/* Contenido Principal */}
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1 overflow-x-hidden">
           {/* Header */}
           <header className="bg-white shadow-sm sticky top-0 z-30">
-            <div className="px-4 md:px-8 py-4 flex items-center justify-between">
-              <div className="flex items-center gap-4">
+            <div className="flex items-center justify-between gap-3 px-4 py-4 md:px-8">
+              <div className="flex min-w-0 items-center gap-4">
                 <button
                   onClick={() => setSidebarOpen(!sidebarOpen)}
                   className="lg:hidden p-2 hover:bg-gray-100 rounded-lg"
                 >
                   {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
                 </button>
-                <div>
-                  <h1 className="text-xl md:text-2xl font-bold text-gray-900">
+                <div className="min-w-0">
+                  <h1 className="truncate text-xl md:text-2xl font-bold text-gray-900">
                     Centros de Salud
                   </h1>
-                  <p className="text-sm text-gray-500">
+                  <p className="truncate text-sm text-gray-500">
                     Administra los centros médicos disponibles
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex shrink-0 items-center gap-2">
                 <button
                   onClick={loadCenters}
                   disabled={loading}
@@ -366,9 +366,7 @@ export default function AdminHealthCentersPage() {
                 >
                   <RefreshCw className={`w-5 h-5 text-gray-600 ${loading ? 'animate-spin' : ''}`} />
                 </button>
-                <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                  <Bell className="w-5 h-5 text-gray-600" />
-                </button>
+                <NotificationBell />
               </div>
             </div>
           </header>
@@ -409,7 +407,7 @@ export default function AdminHealthCentersPage() {
                 </div>
                 <Link
                   href="/admin/health-centers/create"
-                  className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+                  className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-white transition-colors hover:bg-blue-700"
                 >
                   <Plus className="w-4 h-4" />
                   <span className="font-medium">Nuevo Centro</span>
@@ -515,20 +513,20 @@ export default function AdminHealthCentersPage() {
                           </div>
                         )}
 
-                        <div className="flex gap-2 pt-4 border-t border-gray-100">
+                        <div className="flex flex-wrap gap-2 border-t border-gray-100 pt-4">
                           <button
                             onClick={() => {
                               setSelectedCenter(center);
                               setShowModal(true);
                             }}
-                            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
+                            className="flex min-w-[112px] flex-1 items-center justify-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-100"
                           >
                             <Eye className="w-4 h-4" />
                             Detalles
                           </button>
                           <button
                             onClick={() => openEditModal(center)}
-                            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+                            className="flex min-w-[112px] flex-1 items-center justify-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200"
                           >
                             <Edit className="w-4 h-4" />
                             Editar
@@ -538,7 +536,7 @@ export default function AdminHealthCentersPage() {
                               setDeleteId(center.id);
                               setShowDeleteModal(true);
                             }}
-                            className="flex items-center justify-center gap-2 px-3 py-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium"
+                            className="flex min-w-11 items-center justify-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-100"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>

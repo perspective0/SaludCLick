@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import NotificationBell from '@/components/NotificationBell';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { adminAPI } from '@/utils/api';
@@ -22,7 +23,6 @@ import {
   BarChart3,
   Settings,
   LogOut,
-  Bell,
   Menu,
   X,
   Home,
@@ -252,9 +252,9 @@ export default function AdminDoctorRequestsPage() {
 
   return (
     <ProtectedRoute requiredRole="admin">
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex">
+      <div className="flex min-h-screen overflow-x-hidden bg-gradient-to-br from-gray-50 to-blue-50">
         {/* Sidebar */}
-        <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl transform transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-auto ${
+        <aside className={`fixed inset-y-0 left-0 z-50 w-[min(16rem,86vw)] bg-white shadow-xl transform transition-transform duration-300 lg:w-64 lg:translate-x-0 lg:static lg:inset-auto ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}>
           <div className="h-full flex flex-col">
@@ -363,28 +363,28 @@ export default function AdminDoctorRequestsPage() {
         )}
 
         {/* Contenido Principal */}
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1 overflow-x-hidden">
           {/* Header */}
           <header className="bg-white shadow-sm sticky top-0 z-30">
-            <div className="px-4 md:px-8 py-4 flex items-center justify-between">
-              <div className="flex items-center gap-4">
+            <div className="flex items-center justify-between gap-3 px-4 py-4 md:px-8">
+              <div className="flex min-w-0 items-center gap-4">
                 <button
                   onClick={() => setSidebarOpen(!sidebarOpen)}
                   className="lg:hidden p-2 hover:bg-gray-100 rounded-lg"
                 >
                   {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
                 </button>
-                <div>
-                  <h1 className="text-xl md:text-2xl font-bold text-gray-900">
+                <div className="min-w-0">
+                  <h1 className="truncate text-xl md:text-2xl font-bold text-gray-900">
                     Solicitudes de Médicos
                   </h1>
-                  <p className="text-sm text-gray-500">
+                  <p className="truncate text-sm text-gray-500">
                     Revisa y aprueba las solicitudes de profesionales
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex shrink-0 items-center gap-2">
                 <button
                   onClick={fetchRequests}
                   disabled={loading}
@@ -392,12 +392,7 @@ export default function AdminDoctorRequestsPage() {
                 >
                   <RefreshCw className={`w-5 h-5 text-gray-600 ${loading ? 'animate-spin' : ''}`} />
                 </button>
-                <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors relative">
-                  <Bell className="w-5 h-5 text-gray-600" />
-                  {stats.pending > 0 && (
-                    <span className="absolute top-1 right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-                  )}
-                </button>
+                <NotificationBell />
               </div>
             </div>
           </header>
@@ -437,7 +432,7 @@ export default function AdminDoctorRequestsPage() {
 
             {/* Barra de búsqueda y filtros */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-6">
-              <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex flex-col gap-4 md:flex-row">
                 <div className="flex-1 relative">
                   <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
@@ -448,7 +443,7 @@ export default function AdminDoctorRequestsPage() {
                     className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   {['', 'pending', 'approved', 'rejected'].map((status) => (
                     <button
                       key={status || 'all'}
@@ -560,10 +555,10 @@ export default function AdminDoctorRequestsPage() {
                         </div>
 
                         {/* Acciones */}
-                        <div className="flex lg:flex-col gap-2 lg:min-w-[140px]">
+                        <div className="flex flex-wrap gap-2 lg:min-w-[140px] lg:flex-col">
                           <button
                             onClick={() => revalidateRequest(item.id)}
-                            className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-50 text-slate-700 rounded-xl hover:bg-slate-100 transition-colors text-sm font-medium"
+                            className="flex min-w-[132px] flex-1 items-center justify-center gap-2 rounded-xl bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 lg:min-w-0"
                           >
                             <RefreshCw className="w-4 h-4" />
                             Revalidar
@@ -572,7 +567,7 @@ export default function AdminDoctorRequestsPage() {
                           {!canApprove(item) && item.status !== 'approved' && (
                             <button
                               onClick={() => reviewVerification(item.id, 'approved')}
-                              className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-xl hover:bg-emerald-100 transition-colors text-sm font-medium"
+                              className="flex min-w-[132px] flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700 transition-colors hover:bg-emerald-100 lg:min-w-0"
                             >
                               <BadgeCheck className="w-4 h-4" />
                               Validar documentos
@@ -584,7 +579,7 @@ export default function AdminDoctorRequestsPage() {
                               setSelectedRequest(item);
                               setShowModal(true);
                             }}
-                            className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-xl hover:bg-blue-100 transition-colors text-sm font-medium"
+                            className="flex min-w-[132px] flex-1 items-center justify-center gap-2 rounded-xl bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-100 lg:min-w-0"
                           >
                             <Eye className="w-4 h-4" />
                             Detalles
@@ -594,7 +589,7 @@ export default function AdminDoctorRequestsPage() {
                             <button
                               onClick={() => approve(item.id)}
                               disabled={!canApprove(item)}
-                              className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="flex min-w-[132px] flex-1 items-center justify-center gap-2 rounded-xl bg-green-500 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-50 lg:min-w-0"
                             >
                               <CheckCircle className="w-4 h-4" />
                               Aprobar
@@ -607,7 +602,7 @@ export default function AdminDoctorRequestsPage() {
                                 setRejectId(item.id);
                                 setShowRejectModal(true);
                               }}
-                              className="flex items-center justify-center gap-2 px-4 py-2 bg-red-50 text-red-700 rounded-xl hover:bg-red-100 transition-colors text-sm font-medium"
+                              className="flex min-w-[132px] flex-1 items-center justify-center gap-2 rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-100 lg:min-w-0"
                             >
                               <Ban className="w-4 h-4" />
                               Rechazar

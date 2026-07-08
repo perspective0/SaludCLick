@@ -62,7 +62,7 @@ export default function PatientShell({
   return (
     <div className="dashboard-shell min-h-screen text-gray-950 dark:text-slate-100">
       <div className="flex min-h-screen">
-        <aside className={`dashboard-sidebar fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-300 lg:sticky lg:top-0 lg:translate-x-0 lg:inset-auto h-screen ${
+        <aside className={`dashboard-sidebar fixed inset-y-0 left-0 z-50 w-[min(18rem,86vw)] transform transition-transform duration-300 lg:sticky lg:top-0 lg:w-72 lg:translate-x-0 lg:inset-auto h-screen ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}>
           <div className="flex h-full min-h-0 flex-col">
@@ -124,7 +124,7 @@ export default function PatientShell({
           <button aria-label="Cerrar menú" className="fixed inset-0 z-40 bg-black/40 lg:hidden" onClick={() => setSidebarOpen(false)} />
         )}
 
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 overflow-x-hidden">
           <header className="dashboard-header sticky top-0 z-30">
             <div className="flex min-h-20 items-center justify-between gap-4 px-4 py-4 md:px-8">
               <div className="flex min-w-0 items-center gap-4">
