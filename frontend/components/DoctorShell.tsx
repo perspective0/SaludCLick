@@ -90,8 +90,8 @@ export default function DoctorShell({ title, subtitle, children, actions, backHr
 
   return (
     <div className="dashboard-shell min-h-screen text-gray-950 dark:text-slate-100">
-      <div className="flex min-h-screen">
-        <aside className={`dashboard-sidebar fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 lg:sticky lg:top-0 lg:translate-x-0 lg:inset-auto h-screen ${
+      <div className="flex min-h-screen overflow-x-hidden">
+        <aside className={`dashboard-sidebar fixed inset-y-0 left-0 z-50 h-dvh w-[min(16rem,86vw)] transform transition-transform duration-300 lg:w-64 lg:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}>
           <div className="h-full min-h-0 flex flex-col">
@@ -128,7 +128,7 @@ export default function DoctorShell({ title, subtitle, children, actions, backHr
               })}
             </nav>
 
-            <div className="p-3 border-t border-gray-100 shrink-0 dark:border-slate-800">
+            <div className="mt-auto p-3 border-t border-gray-100 shrink-0 dark:border-slate-800">
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 text-white flex items-center justify-center font-bold overflow-hidden">
                   {user?.avatar ? (
@@ -162,7 +162,7 @@ export default function DoctorShell({ title, subtitle, children, actions, backHr
           />
         )}
 
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 overflow-x-hidden lg:pl-64">
           <header className="dashboard-header sticky top-0 z-30">
             <div className="min-h-20 px-4 md:px-8 py-4 flex items-center justify-between gap-4">
               <div className="flex items-center gap-4 min-w-0">

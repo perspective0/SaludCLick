@@ -156,12 +156,12 @@ export default function DoctorPaymentsPage() {
 
   return (
     <ProtectedRoute requiredRole="admin">
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex">
+      <div className="flex min-h-screen overflow-x-hidden bg-gradient-to-br from-gray-50 to-blue-50">
         {/* Sidebar */}
-        <aside className={`fixed inset-y-0 left-0 z-50 w-60 bg-white shadow-xl transform transition-transform duration-300 lg:translate-x-0 ${
+        <aside className={`fixed inset-y-0 left-0 z-50 h-dvh w-[min(15rem,86vw)] bg-white shadow-xl transform transition-transform duration-300 lg:w-60 lg:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}>
-          <div className="h-screen flex flex-col overflow-hidden">
+          <div className="flex h-full min-h-0 flex-col overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-100">
               <Link href="/admin" className="flex items-center gap-2">
                 <Shield className="w-6 h-6 text-blue-600" />
@@ -245,7 +245,7 @@ export default function DoctorPaymentsPage() {
               </Link>
             </nav>
 
-            <div className="px-3 py-2 border-t border-gray-100">
+            <div className="mt-auto px-3 py-2 border-t border-gray-100">
               <div className="flex items-center gap-2 mb-1.5">
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
                   {user?.firstName?.[0] || 'A'}
@@ -276,7 +276,7 @@ export default function DoctorPaymentsPage() {
         )}
 
         {/* Contenido Principal */}
-        <div className="flex-1 min-w-0 lg:pl-60">
+        <div className="flex-1 min-w-0 overflow-x-hidden lg:pl-60">
           {/* Header */}
           <header className="bg-white shadow-sm sticky top-0 z-30">
             <div className="px-4 md:px-8 py-4 flex items-center justify-between">

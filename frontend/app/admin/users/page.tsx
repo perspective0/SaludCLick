@@ -261,12 +261,12 @@ export default function AdminUsersPage() {
 
   return (
     <ProtectedRoute requiredRole="admin">
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex">
+      <div className="flex min-h-screen overflow-x-hidden bg-gradient-to-br from-gray-50 to-blue-50">
         {/* Sidebar */}
-        <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl transform transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-auto ${
+        <aside className={`fixed inset-y-0 left-0 z-50 h-dvh w-[min(16rem,86vw)] bg-white shadow-xl transform transition-transform duration-300 lg:w-64 lg:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}>
-          <div className="h-full flex flex-col">
+          <div className="flex h-full min-h-0 flex-col">
             <div className="p-6 border-b border-gray-100">
               <Link href="/admin" className="flex items-center gap-2">
                 <Shield className="w-8 h-8 text-blue-600" />
@@ -343,7 +343,7 @@ export default function AdminUsersPage() {
               </Link>
             </nav>
 
-            <div className="p-4 border-t border-gray-100">
+            <div className="mt-auto p-4 border-t border-gray-100">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold">
                   {user?.firstName?.[0] || 'A'}
@@ -374,7 +374,7 @@ export default function AdminUsersPage() {
         )}
 
         {/* Contenido Principal */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 overflow-x-hidden lg:pl-64">
           {/* Header */}
           <header className="bg-white shadow-sm sticky top-0 z-30">
             <div className="px-4 md:px-8 py-4 flex items-center justify-between">

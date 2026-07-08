@@ -254,7 +254,7 @@ export default function AdminDoctorRequestsPage() {
     <ProtectedRoute requiredRole="admin">
       <div className="flex min-h-screen overflow-x-hidden bg-gradient-to-br from-gray-50 to-blue-50">
         {/* Sidebar */}
-        <aside className={`fixed inset-y-0 left-0 z-50 w-[min(16rem,86vw)] bg-white shadow-xl transform transition-transform duration-300 lg:w-64 lg:translate-x-0 lg:static lg:inset-auto ${
+        <aside className={`fixed inset-y-0 left-0 z-50 h-dvh w-[min(16rem,86vw)] bg-white shadow-xl transform transition-transform duration-300 lg:w-64 lg:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}>
           <div className="h-full flex flex-col">
@@ -332,7 +332,7 @@ export default function AdminDoctorRequestsPage() {
               </Link>
             </nav>
 
-            <div className="p-4 border-t border-gray-100">
+            <div className="mt-auto p-4 border-t border-gray-100">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold">
                   {user?.firstName?.[0] || 'A'}
@@ -363,7 +363,7 @@ export default function AdminDoctorRequestsPage() {
         )}
 
         {/* Contenido Principal */}
-        <div className="min-w-0 flex-1 overflow-x-hidden">
+        <div className="min-w-0 flex-1 overflow-x-hidden lg:pl-64">
           {/* Header */}
           <header className="bg-white shadow-sm sticky top-0 z-30">
             <div className="flex items-center justify-between gap-3 px-4 py-4 md:px-8">

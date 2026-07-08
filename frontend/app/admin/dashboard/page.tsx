@@ -169,9 +169,9 @@ export default function AdminDashboardPage() {
 
   return (
     <ProtectedRoute requiredRole="admin">
-      <div className="dashboard-shell flex min-h-screen text-gray-950 dark:text-slate-100">
+      <div className="dashboard-shell flex min-h-screen overflow-x-hidden text-gray-950 dark:text-slate-100">
         {/* Sidebar */}
-        <aside className={`dashboard-sidebar fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 lg:sticky lg:top-0 lg:translate-x-0 lg:inset-auto h-screen ${
+        <aside className={`dashboard-sidebar fixed inset-y-0 left-0 z-50 h-dvh w-[min(16rem,86vw)] transform transition-transform duration-300 lg:w-64 lg:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}>
           <div className="h-full min-h-0 flex flex-col">
@@ -273,7 +273,7 @@ export default function AdminDashboardPage() {
             </nav>
 
             {/* User info */}
-            <div className="p-3 border-t border-gray-100 shrink-0">
+            <div className="mt-auto p-3 border-t border-gray-100 shrink-0">
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold">
                   {user?.firstName?.[0] || 'A'}
@@ -305,7 +305,7 @@ export default function AdminDashboardPage() {
         )}
 
         {/* Contenido Principal */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 overflow-x-hidden lg:pl-64">
           {/* Header */}
           <header className="dashboard-header sticky top-0 z-30">
             <div className="px-4 md:px-8 py-4 flex items-center justify-between">
