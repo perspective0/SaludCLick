@@ -220,7 +220,11 @@ function RegisterContent() {
       const data = await response.json();
 
       if (data.data?.user) {
-        localStorage.removeItem('token');
+        if (data.data.token) {
+          localStorage.setItem('token', data.data.token);
+        } else {
+          localStorage.removeItem('token');
+        }
         localStorage.setItem('user', JSON.stringify(data.data.user));
         const role = data.data.user?.role;
         const defaultRoute =

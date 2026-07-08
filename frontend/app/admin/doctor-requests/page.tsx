@@ -76,6 +76,7 @@ export default function AdminDoctorRequestsPage() {
   const [showModal, setShowModal] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [adminMessage, setAdminMessage] = useState('');
+  const [loadError, setLoadError] = useState('');
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectId, setRejectId] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
@@ -96,10 +97,12 @@ export default function AdminDoctorRequestsPage() {
   const fetchRequests = async () => {
     setLoading(true);
     try {
+      setLoadError('');
       const data = await adminAPI.listDoctorRequests();
       setItems(data.data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching requests:', error);
+      setLoadError(error.message || 'No se pudieron cargar las solicitudes');
     }
     setLoading(false);
   };
@@ -423,6 +426,12 @@ export default function AdminDoctorRequestsPage() {
             {adminMessage && (
               <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                 {adminMessage}
+              </div>
+            )}
+
+            {loadError && (
+              <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {loadError}. Vuelve a iniciar sesion si el problema continua.
               </div>
             )}
 

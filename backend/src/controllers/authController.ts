@@ -195,6 +195,7 @@ export const register = async (req: Request, res: Response) => {
                 lastName,
                 role,
               },
+              token,
               linkedExistingPatient: true,
             },
           });
@@ -355,6 +356,7 @@ export const register = async (req: Request, res: Response) => {
             lastName,
             role: 'doctor',
           },
+          token,
           request: result,
         },
       });
@@ -404,7 +406,8 @@ export const register = async (req: Request, res: Response) => {
               lastName,
               role,
             },
-          linkedExistingPatient: true,
+            token,
+            linkedExistingPatient: true,
           },
         });
       }
@@ -440,6 +443,7 @@ export const register = async (req: Request, res: Response) => {
           lastName,
           role,
         },
+        token,
       },
     });
   } catch (error: any) {
@@ -522,6 +526,7 @@ export const login = async (req: Request, res: Response) => {
           lastName: user.last_name,
           role: user.role,
         },
+        token,
       },
     });
   } catch (error: any) {

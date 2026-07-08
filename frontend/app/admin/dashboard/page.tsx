@@ -122,6 +122,7 @@ export default function AdminDashboardPage() {
   const [user, setUser] = useState<any>(null);
   const [lastUpdate, setLastUpdate] = useState<string>('');
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [loadError, setLoadError] = useState('');
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -138,6 +139,7 @@ export default function AdminDashboardPage() {
   const loadStats = async () => {
     try {
       setLoading(true);
+      setLoadError('');
       const [statsResponse, activityResponse] = await Promise.all([
         adminAPI.stats(),
         adminAPI.activity(),
@@ -146,8 +148,9 @@ export default function AdminDashboardPage() {
       setStats(statsResponse.data || stats);
       setRecentActivity(activityResponse.data || []);
       setLastUpdate(new Date().toLocaleTimeString('es-DO'));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading stats:', error);
+      setLoadError(error.message || 'No se pudieron cargar los datos administrativos');
     } finally {
       setLoading(false);
     }
@@ -352,6 +355,12 @@ export default function AdminDashboardPage() {
 
           {/* Contenido del Dashboard */}
           <div className="p-4 md:p-8">
+            {loadError && (
+              <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {loadError}. Vuelve a iniciar sesion si el problema continua.
+              </div>
+            )}
+
             {/* Stats Grid */}
             {loading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

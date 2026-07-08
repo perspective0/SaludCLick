@@ -44,6 +44,11 @@ export function csrfMiddleware(req: Request, res: Response, next: NextFunction) 
     return;
   }
 
+  if (req.headers.authorization?.startsWith('Bearer ')) {
+    next();
+    return;
+  }
+
   const csrfCookie = getCookieValue(req, CSRF_COOKIE);
   const csrfHeader = req.headers['x-csrf-token'];
   const csrfHeaderValue = Array.isArray(csrfHeader) ? csrfHeader[0] : csrfHeader;

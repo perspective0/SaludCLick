@@ -42,21 +42,34 @@ async function ensurePatientProfileColumns() {
   await query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS insurance_number VARCHAR(255)');
 }
 
+async function ensurePatientRow(id: string) {
+  await query(
+    `INSERT INTO patients (id)
+     SELECT id FROM users WHERE id = $1 AND role = 'patient'
+     ON CONFLICT (id) DO NOTHING`,
+    [id]
+  );
+}
+
 export const getPatientDashboard = async (req: Request, res: Response) => {
   try {
     await ensurePatientProfileColumns();
     const id = patientId(req);
+    await ensurePatientRow(id);
 
-    const [profile, nextAppointment, appointments, prescriptions, cancelledAppointments] = await Promise.all([
-      queryOne(
-        `SELECT u.id, u.first_name, u.last_name, u.email, u.phone, p.date_of_birth, p.address,
-                p.document_number, p.emergency_contact, p.emergency_phone,
-                p.has_insurance, p.insurance_provider, p.insurance_number
-         FROM users u
-         JOIN patients p ON p.id = u.id
-         WHERE u.id = $1`,
-        [id]
-      ),
+    const profile = await queryOne(
+      `SELECT u.id, u.first_name, u.last_name, u.email, u.phone, p.date_of_birth, p.address,
+              p.document_number, p.emergency_contact, p.emergency_phone,
+              p.has_insurance, p.insurance_provider, p.insurance_number
+       FROM users u
+       JOIN patients p ON p.id = u.id
+       WHERE u.id = $1`,
+      [id]
+    );
+
+    if (!profile) return fail(res, 404, 'Patient profile not found');
+
+    const [nextAppointment, appointments, prescriptions, cancelledAppointments] = await Promise.all([
       queryOne(
         `SELECT a.id, a.appointment_date, a.appointment_time, a.status, a.reason_for_visit,
                 a.appointment_type, a.video_room_url, a.video_room_id,
@@ -87,7 +100,7 @@ export const getPatientDashboard = async (req: Request, res: Response) => {
          ORDER BY a.appointment_date ASC, a.appointment_time ASC
          LIMIT 1`,
         [id]
-      )),
+      )).catch(() => null),
       queryMany(
         `SELECT a.id, a.appointment_date, a.appointment_time, a.status, a.reason_for_visit,
                 a.appointment_type, a.video_room_url, a.video_room_id,
@@ -101,7 +114,7 @@ export const getPatientDashboard = async (req: Request, res: Response) => {
          ORDER BY a.appointment_date DESC, a.appointment_time DESC
          LIMIT 5`,
         [id]
-      ),
+      ).catch(() => []),
       queryMany(
         `SELECT p.id, p.medications, p.status, p.issued_at, p.expiry_date, p.validation_code, p.diagnosis,
                 u.first_name AS doctor_first_name, u.last_name AS doctor_last_name
@@ -111,7 +124,7 @@ export const getPatientDashboard = async (req: Request, res: Response) => {
          ORDER BY COALESCE(p.issued_at, p.created_at) DESC
          LIMIT 5`,
         [id]
-      ),
+      ).catch(() => []),
       queryMany(
         `SELECT id, appointment_date, appointment_time
          FROM appointments
@@ -119,10 +132,8 @@ export const getPatientDashboard = async (req: Request, res: Response) => {
          ORDER BY updated_at DESC
          LIMIT 3`,
         [id]
-      ),
+      ).catch(() => []),
     ]);
-
-    if (!profile) return fail(res, 404, 'Patient profile not found');
 
     const completeness = buildProfileCompleteness(profile);
     const notifications = [
@@ -364,6 +375,7 @@ function getPatientDocumentTitle(orderType: string) {
 export const getPatientProfile = async (req: Request, res: Response) => {
   try {
     await ensurePatientProfileColumns();
+    await ensurePatientRow(patientId(req));
     const profile = await queryOne(
       `SELECT u.id, u.first_name, u.last_name, u.email, u.phone, u.avatar,
               p.date_of_birth, p.gender, p.blood_type, p.address, p.city,

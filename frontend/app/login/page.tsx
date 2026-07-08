@@ -4,7 +4,7 @@ import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { authAPI } from '@/utils/api';
+import { authAPI, saveToken } from '@/utils/api';
 import { 
   Mail, 
   Lock, 
@@ -65,7 +65,11 @@ function LoginContent() {
       const data = await authAPI.login(formData.email, formData.password);
       
       if (data.data?.user) {
-        localStorage.removeItem('token');
+        if (data.data.token) {
+          saveToken(data.data.token);
+        } else {
+          localStorage.removeItem('token');
+        }
         localStorage.setItem('user', JSON.stringify(data.data.user));
         
         // Si "Recuérdame" está activado, guardar el email

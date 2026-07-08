@@ -38,6 +38,10 @@ export async function apiRequest(
 
   const headers = new Headers(fetchOptions.headers as HeadersInit);
   headers.set('Content-Type', 'application/json');
+  const token = getToken();
+  if (token && !headers.has('Authorization')) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
   if (isMutatingMethod(fetchOptions.method)) {
     const csrfToken = getCookie('saludclick_csrf');
     if (csrfToken) headers.set('X-CSRF-Token', csrfToken);
@@ -85,7 +89,8 @@ export async function apiRequest(
  * Get auth token from localStorage
  */
 export function getToken(): string | null {
-  return null;
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('token');
 }
 
 /**
@@ -93,7 +98,7 @@ export function getToken(): string | null {
  */
 export function saveToken(token: string): void {
   if (typeof window !== 'undefined') {
-    localStorage.removeItem('token');
+    localStorage.setItem('token', token);
   }
 }
 

@@ -20,28 +20,22 @@ export default function ProtectedRoute({
 
     async function verifySession() {
       try {
-        const storedUser = localStorage.getItem('user');
-        let userData = storedUser ? JSON.parse(storedUser) : null;
-
-        if (!userData) {
-          const response = await authAPI.me();
-          userData = response?.data;
-          if (userData) {
-            localStorage.setItem('user', JSON.stringify({
-              id: userData.id,
-              email: userData.email,
-              firstName: userData.first_name || userData.firstName,
-              lastName: userData.last_name || userData.lastName,
-              role: userData.role,
-              avatar: userData.avatar,
-            }));
-          }
-        }
+        const response = await authAPI.me();
+        const userData = response?.data;
 
         if (!userData) {
           router.push('/login');
           return;
         }
+
+        localStorage.setItem('user', JSON.stringify({
+          id: userData.id,
+          email: userData.email,
+          firstName: userData.first_name || userData.firstName,
+          lastName: userData.last_name || userData.lastName,
+          role: userData.role,
+          avatar: userData.avatar,
+        }));
 
         const role = userData.role;
         if (requiredRole) {
