@@ -20,6 +20,10 @@ function isMutatingMethod(method?: string) {
 
 export function withCsrfHeaders(headers: HeadersInit = {}) {
   const nextHeaders = new Headers(headers);
+  const token = getToken();
+  if (token && !nextHeaders.has('Authorization')) {
+    nextHeaders.set('Authorization', `Bearer ${token}`);
+  }
   const csrfToken = getCookie('saludclick_csrf');
   if (csrfToken) {
     nextHeaders.set('X-CSRF-Token', csrfToken);
