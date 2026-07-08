@@ -23,20 +23,10 @@ import {
   Lock,
   Mail,
   Phone,
-  CreditCard,
   Palette,
-  Database,
-  Upload,
-  Image,
   AlertCircle,
   CheckCircle,
-  ToggleLeft,
-  ToggleRight,
-  Eye,
-  EyeOff,
   RefreshCw,
-  Trash2,
-  Download,
   Server
 } from 'lucide-react';
 
@@ -122,16 +112,21 @@ export default function AdminSettingsPage() {
 
   const loadSettings = async () => {
     try {
+      setLoading(true);
+      setError('');
       const response = await adminAPI.getSettings();
       const settings = response.data || {};
 
-      if (settings.general) setGeneralSettings(settings.general);
-      if (settings.security) setSecuritySettings(settings.security);
-      if (settings.notifications) setNotificationSettings(settings.notifications);
-      if (settings.appearance) setAppearanceSettings(settings.appearance);
-      if (settings.system) setSystemSettings(settings.system);
-    } catch (error) {
+      if (settings.general) setGeneralSettings((current) => ({ ...current, ...settings.general }));
+      if (settings.security) setSecuritySettings((current) => ({ ...current, ...settings.security }));
+      if (settings.notifications) setNotificationSettings((current) => ({ ...current, ...settings.notifications }));
+      if (settings.appearance) setAppearanceSettings((current) => ({ ...current, ...settings.appearance }));
+      if (settings.system) setSystemSettings((current) => ({ ...current, ...settings.system }));
+    } catch (error: any) {
       console.error('Error loading settings:', error);
+      setError(error?.message || 'No se pudo cargar la configuración');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -164,8 +159,8 @@ export default function AdminSettingsPage() {
       
       setSuccess('Configuración guardada exitosamente');
       setTimeout(() => setSuccess(''), 3000);
-    } catch (error) {
-      setError('Error al guardar la configuración');
+    } catch (error: any) {
+      setError(error?.message || 'Error al guardar la configuración');
     } finally {
       setLoading(false);
     }
@@ -296,19 +291,19 @@ export default function AdminSettingsPage() {
         <div className="flex-1 min-w-0 overflow-x-hidden lg:pl-64">
           {/* Header */}
           <header className="bg-white shadow-sm sticky top-0 z-30">
-            <div className="px-4 md:px-8 py-4 flex items-center justify-between">
-              <div className="flex items-center gap-4">
+            <div className="flex items-center justify-between gap-3 px-4 py-4 md:px-8">
+              <div className="flex min-w-0 items-center gap-4">
                 <button
                   onClick={() => setSidebarOpen(!sidebarOpen)}
                   className="lg:hidden p-2 hover:bg-gray-100 rounded-lg"
                 >
                   {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
                 </button>
-                <div>
-                  <h1 className="text-xl md:text-2xl font-bold text-gray-900">
+                <div className="min-w-0">
+                  <h1 className="truncate text-xl md:text-2xl font-bold text-gray-900">
                     Configuración
                   </h1>
-                  <p className="text-sm text-gray-500">
+                  <p className="truncate text-sm text-gray-500">
                     Administra la configuración del sistema
                   </p>
                 </div>
@@ -331,7 +326,7 @@ export default function AdminSettingsPage() {
               </div>
             )}
 
-            <div className="flex gap-6">
+            <div className="flex min-w-0 flex-col gap-4 md:flex-row md:gap-6">
               {/* Tabs */}
               <div className="w-64 flex-shrink-0 hidden md:block">
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-2 space-y-1">
@@ -356,7 +351,7 @@ export default function AdminSettingsPage() {
               </div>
 
               {/* Tabs móviles */}
-              <div className="md:hidden mb-4 w-full">
+              <div className="md:hidden w-full">
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-2 flex overflow-x-auto">
                   {tabs.map((tab) => (
                     <button
@@ -375,8 +370,8 @@ export default function AdminSettingsPage() {
               </div>
 
               {/* Contenido de configuración */}
-              <div className="flex-1">
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
+              <div className="min-w-0 flex-1">
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-8">
                   {/* General Settings */}
                   {activeTab === 'general' && (
                     <div>
@@ -466,14 +461,14 @@ export default function AdminSettingsPage() {
                       </h2>
                       
                       <div className="space-y-6">
-                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                          <div>
+                        <div className="flex flex-col gap-4 rounded-xl bg-gray-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="min-w-0">
                             <p className="font-medium text-gray-900">Autenticación de Dos Factores (2FA)</p>
                             <p className="text-sm text-gray-500">Requiere verificación adicional al iniciar sesión</p>
                           </div>
                           <button
                             onClick={() => setSecuritySettings({...securitySettings, twoFactorAuth: !securitySettings.twoFactorAuth})}
-                            className={`relative w-12 h-6 rounded-full transition-colors ${
+                            className={`relative h-6 w-12 shrink-0 rounded-full transition-colors ${
                               securitySettings.twoFactorAuth ? 'bg-blue-500' : 'bg-gray-300'
                             }`}
                           >
@@ -538,8 +533,8 @@ export default function AdminSettingsPage() {
                           { key: 'newDoctorRequest', label: 'Solicitudes de Médicos', desc: 'Notificar nuevas solicitudes de registro' },
                           { key: 'systemAlerts', label: 'Alertas del Sistema', desc: 'Notificaciones de errores y mantenimiento' },
                         ].map((item) => (
-                          <div key={item.key} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                            <div>
+                          <div key={item.key} className="flex flex-col gap-4 rounded-xl bg-gray-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="min-w-0">
                               <p className="font-medium text-gray-900">{item.label}</p>
                               <p className="text-sm text-gray-500">{item.desc}</p>
                             </div>
@@ -548,7 +543,7 @@ export default function AdminSettingsPage() {
                                 ...notificationSettings,
                                 [item.key]: !notificationSettings[item.key as keyof typeof notificationSettings]
                               })}
-                              className={`relative w-12 h-6 rounded-full transition-colors ${
+                              className={`relative h-6 w-12 shrink-0 rounded-full transition-colors ${
                                 notificationSettings[item.key as keyof typeof notificationSettings]
                                   ? 'bg-blue-500' : 'bg-gray-300'
                               }`}
@@ -614,14 +609,14 @@ export default function AdminSettingsPage() {
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                          <div>
+                        <div className="flex flex-col gap-4 rounded-xl bg-gray-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="min-w-0">
                             <p className="font-medium text-gray-900">Modo Oscuro</p>
                             <p className="text-sm text-gray-500">Activar tema oscuro en la plataforma</p>
                           </div>
                           <button
                             onClick={() => setAppearanceSettings({...appearanceSettings, darkMode: !appearanceSettings.darkMode})}
-                            className={`relative w-12 h-6 rounded-full transition-colors ${
+                            className={`relative h-6 w-12 shrink-0 rounded-full transition-colors ${
                               appearanceSettings.darkMode ? 'bg-blue-500' : 'bg-gray-300'
                             }`}
                           >
@@ -643,14 +638,14 @@ export default function AdminSettingsPage() {
                       </h2>
                       
                       <div className="space-y-6">
-                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                          <div>
+                        <div className="flex flex-col gap-4 rounded-xl bg-gray-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="min-w-0">
                             <p className="font-medium text-gray-900">Modo Mantenimiento</p>
                             <p className="text-sm text-gray-500">Deshabilitar acceso a usuarios mientras se realizan actualizaciones</p>
                           </div>
                           <button
                             onClick={() => setSystemSettings({...systemSettings, maintenanceMode: !systemSettings.maintenanceMode})}
-                            className={`relative w-12 h-6 rounded-full transition-colors ${
+                            className={`relative h-6 w-12 shrink-0 rounded-full transition-colors ${
                               systemSettings.maintenanceMode ? 'bg-red-500' : 'bg-gray-300'
                             }`}
                           >
@@ -660,14 +655,14 @@ export default function AdminSettingsPage() {
                           </button>
                         </div>
 
-                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                          <div>
+                        <div className="flex flex-col gap-4 rounded-xl bg-gray-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="min-w-0">
                             <p className="font-medium text-gray-900">Modo Debug</p>
                             <p className="text-sm text-gray-500">Mostrar errores detallados (solo desarrollo)</p>
                           </div>
                           <button
                             onClick={() => setSystemSettings({...systemSettings, debugMode: !systemSettings.debugMode})}
-                            className={`relative w-12 h-6 rounded-full transition-colors ${
+                            className={`relative h-6 w-12 shrink-0 rounded-full transition-colors ${
                               systemSettings.debugMode ? 'bg-orange-500' : 'bg-gray-300'
                             }`}
                           >
@@ -702,24 +697,23 @@ export default function AdminSettingsPage() {
                           </div>
                         </div>
 
-                        <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-200">
+                        <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-4">
                           <div className="flex items-start gap-2">
                             <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-                            <div>
-                              <p className="font-medium text-yellow-800">Zona de Peligro</p>
+                            <div className="min-w-0">
+                              <p className="font-medium text-yellow-800">Mantenimiento</p>
                               <p className="text-sm text-yellow-600 mb-3">
-                                Las siguientes acciones pueden afectar el funcionamiento del sistema
+                                Recarga la configuración almacenada antes de guardar nuevos cambios.
                               </p>
-                              <div className="flex gap-3">
-                                <button className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm">
-                                  <Trash2 className="w-4 h-4" />
-                                  Limpiar Cache
-                                </button>
-                                <button className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm">
-                                  <Database className="w-4 h-4" />
-                                  Resetear Base de Datos
-                                </button>
-                              </div>
+                              <button
+                                type="button"
+                                onClick={loadSettings}
+                                disabled={loading}
+                                className="inline-flex items-center gap-2 rounded-lg bg-yellow-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-yellow-600 disabled:opacity-60"
+                              >
+                                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                                Recargar configuración
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -728,11 +722,11 @@ export default function AdminSettingsPage() {
                   )}
 
                   {/* Botón de Guardar */}
-                  <div className="mt-8 pt-6 border-t border-gray-100 flex justify-end">
+                  <div className="mt-8 flex border-t border-gray-100 pt-6 sm:justify-end">
                     <button
                       onClick={() => handleSave(activeTab)}
                       disabled={loading}
-                      className="flex items-center gap-2 px-6 py-3 bg-blue-500 text-white rounded-xl font-medium hover:bg-blue-600 transition-colors disabled:opacity-50"
+                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-500 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-600 disabled:opacity-50 sm:w-auto"
                     >
                       {loading ? (
                         <>

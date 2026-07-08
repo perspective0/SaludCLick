@@ -138,10 +138,10 @@ export const updateFeedback = async (req: Request, res: Response) => {
 
     const result = await query(
       `UPDATE feedback_items
-       SET status = $1,
+       SET status = $1::varchar,
            admin_response = $2,
            updated_at = CURRENT_TIMESTAMP,
-           resolved_at = CASE WHEN $1 = 'resolved' THEN CURRENT_TIMESTAMP ELSE resolved_at END
+           resolved_at = CASE WHEN $1::varchar = 'resolved' THEN CURRENT_TIMESTAMP ELSE resolved_at END
        WHERE id = $3
        RETURNING *`,
       [status, adminResponse, id]
