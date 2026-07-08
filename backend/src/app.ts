@@ -56,10 +56,6 @@ function isLocalNetworkFrontend(origin: string): boolean {
   }
 }
 
-// Middleware
-app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || '2mb' }));
-app.use(express.urlencoded({ limit: process.env.URLENCODED_BODY_LIMIT || '2mb', extended: true }));
-
 // CORS configuration
 app.use(
   cors({
@@ -77,6 +73,10 @@ app.use(
     allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
   })
 );
+
+// Middleware
+app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || '24mb' }));
+app.use(express.urlencoded({ limit: process.env.URLENCODED_BODY_LIMIT || '24mb', extended: true }));
 app.use(csrfMiddleware);
 
 // Public static files
