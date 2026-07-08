@@ -28,6 +28,7 @@ import labOrderRoutes from './routes/labOrders';
 import icd10Routes from './routes/icd10';
 import vademecumRoutes from './routes/vademecum';
 import fileRoutes from './routes/files';
+import reviewRoutes from './routes/reviews';
 
 const app: Express = express();
 if (appConfig.env === 'production') {
@@ -111,6 +112,7 @@ app.use('/api/icd10', icd10Routes);
 app.use('/api/vademecum', vademecumRoutes);
 app.use('/api/patient', patientRoutes);
 app.use('/api/files', fileRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 // Error handling middleware
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {

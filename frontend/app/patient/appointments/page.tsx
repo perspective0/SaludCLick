@@ -4,9 +4,9 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import PatientShell from '@/components/PatientShell';
-import { appointmentAPI, patientAPI } from '@/utils/api';
+import { appointmentAPI, patientAPI, reviewAPI } from '@/utils/api';
 import { formatDoctorName } from '@/utils/names';
-import { CalendarDays, CheckCircle2, Clock3, MapPin, Search, Stethoscope, Video, X, XCircle } from 'lucide-react';
+import { CalendarDays, CheckCircle2, Clock3, MapPin, Search, Star, Stethoscope, Video, X, XCircle } from 'lucide-react';
 
 type AppointmentFilter = 'active' | 'all' | 'scheduled' | 'confirmed' | 'completed' | 'cancelled' | 'no-show';
 const activeStatuses = ['scheduled', 'confirmed'];
@@ -23,6 +23,9 @@ export default function PatientAppointmentsPage() {
   const [saving, setSaving] = useState(false);
   const [cancelTarget, setCancelTarget] = useState<any>(null);
   const [cancelReason, setCancelReason] = useState('');
+  const [reviewTarget, setReviewTarget] = useState<any>(null);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -82,6 +85,34 @@ export default function PatientAppointmentsPage() {
       await loadAppointments();
     } catch (err: any) {
       setError(err?.status === 403 ? 'No tienes permiso para cancelar esta cita.' : 'No se pudo cancelar la cita.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const openReviewModal = (appointment: any) => {
+    setReviewTarget(appointment);
+    setReviewRating(appointment.review_rating || 5);
+    setReviewComment('');
+  };
+
+  const submitReview = async () => {
+    if (!reviewTarget) return;
+    try {
+      setSaving(true);
+      setError('');
+      await reviewAPI.create({
+        doctorId: reviewTarget.doctor_id,
+        appointmentId: reviewTarget.id,
+        rating: reviewRating,
+        comment: reviewComment.trim() || undefined,
+      });
+      setSuccess('Gracias por valorar tu atención.');
+      setReviewTarget(null);
+      setReviewComment('');
+      await loadAppointments();
+    } catch (err: any) {
+      setError(err?.status === 409 ? 'Solo puedes valorar citas completadas.' : err?.message || 'No se pudo guardar la valoración.');
     } finally {
       setSaving(false);
     }
@@ -165,6 +196,18 @@ export default function PatientAppointmentsPage() {
                             Cancelar
                           </button>
                         )}
+                        {appointment.status === 'completed' && !appointment.review_id && (
+                          <button disabled={saving} onClick={() => openReviewModal(appointment)} className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-yellow-500 px-3 text-sm font-bold text-white hover:bg-yellow-600 disabled:opacity-60">
+                            <Star className="h-4 w-4 fill-current" />
+                            Valorar médico
+                          </button>
+                        )}
+                        {appointment.review_id && (
+                          <span className="inline-flex h-10 items-center gap-2 rounded-xl bg-yellow-50 px-3 text-sm font-bold text-yellow-700">
+                            <Star className="h-4 w-4 fill-current" />
+                            Valorada {appointment.review_rating}/5
+                          </span>
+                        )}
                       </div>
                     </div>
                   </article>
@@ -174,8 +217,82 @@ export default function PatientAppointmentsPage() {
           </div>
         </section>
         <CancelModal appointment={cancelTarget} reason={cancelReason} saving={saving} onReasonChange={setCancelReason} onClose={() => setCancelTarget(null)} onSubmit={cancelAppointment} />
+        <ReviewModal appointment={reviewTarget} rating={reviewRating} comment={reviewComment} saving={saving} onRatingChange={setReviewRating} onCommentChange={setReviewComment} onClose={() => setReviewTarget(null)} onSubmit={submitReview} />
       </PatientShell>
     </ProtectedRoute>
+  );
+}
+
+function ReviewModal({
+  appointment,
+  rating,
+  comment,
+  saving,
+  onRatingChange,
+  onCommentChange,
+  onClose,
+  onSubmit,
+}: {
+  appointment: any;
+  rating: number;
+  comment: string;
+  saving: boolean;
+  onRatingChange: (value: number) => void;
+  onCommentChange: (value: string) => void;
+  onClose: () => void;
+  onSubmit: () => void;
+}) {
+  if (!appointment) return null;
+
+  return (
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/45 p-4">
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          onSubmit();
+        }}
+        className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl"
+      >
+        <div className="border-b border-gray-100 p-5">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-bold uppercase text-yellow-600">Valorar atención</p>
+              <h2 className="mt-1 text-xl font-black text-gray-950">{formatDoctorName(appointment.doctor_first_name, appointment.doctor_last_name)}</h2>
+              <p className="mt-1 text-sm text-gray-500">{formatDate(appointment.appointment_date)} · {String(appointment.appointment_time).slice(0, 5)}</p>
+            </div>
+            <button type="button" onClick={onClose} className="inline-flex h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-100" aria-label="Cerrar">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+        <div className="space-y-4 p-5">
+          <div>
+            <span className="mb-2 block text-sm font-semibold text-gray-700">Puntuación</span>
+            <div className="flex gap-2">
+              {[1, 2, 3, 4, 5].map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => onRatingChange(value)}
+                  className={`inline-flex h-11 w-11 items-center justify-center rounded-xl border ${value <= rating ? 'border-yellow-400 bg-yellow-50 text-yellow-500' : 'border-gray-200 text-gray-300 hover:bg-gray-50'}`}
+                  aria-label={`${value} estrellas`}
+                >
+                  <Star className={`h-6 w-6 ${value <= rating ? 'fill-current' : ''}`} />
+                </button>
+              ))}
+            </div>
+          </div>
+          <label className="block">
+            <span className="mb-1 block text-sm font-semibold text-gray-700">Comentario opcional</span>
+            <textarea value={comment} onChange={(event) => onCommentChange(event.target.value)} rows={4} placeholder="Cuéntanos cómo fue tu atención..." className="w-full resize-none rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500" />
+          </label>
+        </div>
+        <div className="flex flex-col-reverse gap-3 border-t border-gray-100 bg-gray-50 p-5 sm:flex-row sm:justify-end">
+          <button type="button" onClick={onClose} disabled={saving} className="h-11 rounded-xl border border-gray-200 bg-white px-4 text-sm font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-60">Cerrar</button>
+          <button type="submit" disabled={saving} className="h-11 rounded-xl bg-yellow-500 px-4 text-sm font-bold text-white hover:bg-yellow-600 disabled:opacity-60">{saving ? 'Guardando...' : 'Enviar valoración'}</button>
+        </div>
+      </form>
+    </div>
   );
 }
 

@@ -15,6 +15,7 @@ import {
   listAuditLogs,
   listDoctorRequests,
   listDoctorPayments,
+  listFeaturedDoctors,
   listHealthCenters,
   listLaboratories,
   listUsers,
@@ -30,6 +31,7 @@ import {
   updateLaboratory,
   updateUser,
   updateUserPassword,
+  updateFeaturedDoctor,
   upsertDoctorPayment,
   createLaboratory,
   deleteLaboratory,
@@ -54,10 +56,12 @@ router.post('/doctor-requests/:id/approve', authMiddleware, roleMiddleware(['adm
 router.post('/doctor-requests/:id/reject', authMiddleware, roleMiddleware(['admin']), rejectDoctorRequest);
 
 router.get('/users', authMiddleware, roleMiddleware(['admin']), listUsers);
+router.get('/featured-doctors', authMiddleware, roleMiddleware(['admin']), listFeaturedDoctors);
 router.get('/users/:id', authMiddleware, roleMiddleware(['admin']), getUserById);
 router.post('/users', authMiddleware, roleMiddleware(['admin']), createUser);
 router.put('/users/:id', authMiddleware, roleMiddleware(['admin']), updateUser);
 router.put('/users/:id/password', authMiddleware, roleMiddleware(['admin']), updateUserPassword);
+router.put('/doctors/:id/featured', authMiddleware, roleMiddleware(['admin']), updateFeaturedDoctor);
 router.delete('/users/:id', authMiddleware, roleMiddleware(['admin']), deleteUser);
 
 router.get('/health-centers', authMiddleware, roleMiddleware(['admin']), listHealthCenters);

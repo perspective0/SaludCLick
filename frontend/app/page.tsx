@@ -4,6 +4,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import type { CSSProperties } from 'react';
 import { useEffect, useRef, useState } from 'react';
+import { doctorAPI } from '@/utils/api';
+import { formatDoctorName } from '@/utils/names';
 import {
   Activity,
   ArrowRight,
@@ -73,6 +75,7 @@ export default function Home() {
   const [pointer, setPointer] = useState({ x: 50, y: 50 });
   const [scrollProgress, setScrollProgress] = useState(0);
   const [openFaq, setOpenFaq] = useState(0);
+  const [featuredDoctors, setFeaturedDoctors] = useState<any[]>([]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -84,6 +87,21 @@ export default function Home() {
     handleScroll();
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    doctorAPI.list({ featured: true, limit: 4 })
+      .then((response) => {
+        const selected = response.data || [];
+        if (selected.length) {
+          setFeaturedDoctors(selected.slice(0, 4));
+          return;
+        }
+        return doctorAPI.list({ limit: 4 }).then((fallback) => setFeaturedDoctors((fallback.data || []).slice(0, 4)));
+      })
+      .catch(() => {
+        setFeaturedDoctors([]);
+      });
   }, []);
 
   const stats = [
@@ -534,27 +552,36 @@ export default function Home() {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              {['Dra. Camila Rojas', 'Dr. Mateo Silva', 'Dra. Ana Torres', 'Dr. Lucas Vidal'].map((doctor, index) => (
-                <article key={doctor} className="home-card interactive-card rounded-2xl border border-slate-200 bg-white p-5">
+              {featuredDoctors.map((doctor, index) => (
+                <article key={doctor.id} className="home-card interactive-card rounded-2xl border border-slate-200 bg-white p-5">
                   <div className="mb-5 flex items-center gap-4">
-                    <div className="grid h-14 w-14 place-items-center rounded-2xl bg-sky-100 text-sky-700">
-                      <Stethoscope className="h-7 w-7" />
+                    <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-2xl bg-sky-100 text-sky-700">
+                      {doctor.avatar ? (
+                        <img src={doctor.avatar} alt={formatDoctorName(doctor.first_name, doctor.last_name)} className="h-full w-full object-cover" />
+                      ) : (
+                        <Stethoscope className="h-7 w-7" />
+                      )}
                     </div>
                     <div>
-                      <h3 className="font-black">{doctor}</h3>
-                      <p className="text-sm font-semibold text-slate-500">{index % 2 === 0 ? 'Medicina general' : 'Cardiologia'}</p>
+                      <h3 className="font-black">{formatDoctorName(doctor.first_name, doctor.last_name)}</h3>
+                      <p className="text-sm font-semibold text-slate-500">{doctor.specialties?.[0] || 'Medicina general'}</p>
                     </div>
                   </div>
                   <div className="mb-5 flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3 text-sm">
-                    <span className="font-semibold text-slate-600">Disponible</span>
-                    <span className="font-black text-emerald-600">{index + 2} horarios</span>
+                    <span className="font-semibold text-slate-600">{doctor.health_center_name || 'SaludClick'}</span>
+                    <span className="font-black text-emerald-600">★ {Number(doctor.average_rating || 0).toFixed(1)}</span>
                   </div>
-                  <Link href="/booking" className="flex w-full items-center justify-center gap-2 rounded-xl bg-sky-600 px-4 py-3 font-bold text-white transition hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2">
+                  <Link href={`/booking?doctorId=${doctor.id}`} className="flex w-full items-center justify-center gap-2 rounded-xl bg-sky-600 px-4 py-3 font-bold text-white transition hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2">
                     Agendar cita
                     <CalendarCheck className="h-4 w-4" />
                   </Link>
                 </article>
               ))}
+              {!featuredDoctors.length && (
+                <div className="home-card rounded-2xl border border-dashed border-slate-200 bg-white p-6 text-slate-600 sm:col-span-2">
+                  Selecciona médicos destacados desde el panel de administrador.
+                </div>
+              )}
             </div>
           </div>
         </section>

@@ -51,6 +51,20 @@ async function ensurePatientRow(id: string) {
   );
 }
 
+async function ensureReviewsTable() {
+  await query(`
+    CREATE TABLE IF NOT EXISTS reviews (
+      id UUID PRIMARY KEY,
+      patient_id UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+      doctor_id UUID NOT NULL REFERENCES doctors(id) ON DELETE CASCADE,
+      appointment_id UUID UNIQUE REFERENCES appointments(id) ON DELETE SET NULL,
+      rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+      comment TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `).catch(() => null);
+}
+
 export const getPatientDashboard = async (req: Request, res: Response) => {
   try {
     await ensurePatientProfileColumns();
@@ -179,6 +193,7 @@ export const getPatientDashboard = async (req: Request, res: Response) => {
 
 export const getPatientAppointments = async (req: Request, res: Response) => {
   try {
+    await ensureReviewsTable();
     const { status } = req.query;
     const params: any[] = [patientId(req)];
     let statusFilter = '';
@@ -189,14 +204,16 @@ export const getPatientAppointments = async (req: Request, res: Response) => {
     }
 
     const appointments = await queryMany(
-      `SELECT a.id, a.appointment_date, a.appointment_time, a.duration, a.status, a.reason_for_visit, a.notes,
+      `SELECT a.id, a.doctor_id, a.appointment_date, a.appointment_time, a.duration, a.status, a.reason_for_visit, a.notes,
               a.appointment_type, a.video_room_url, a.video_room_id,
               u.first_name AS doctor_first_name, u.last_name AS doctor_last_name,
-              d.specialties, hc.name AS health_center_name, hc.address AS health_center_address
+              d.specialties, hc.name AS health_center_name, hc.address AS health_center_address,
+              r.id AS review_id, r.rating AS review_rating
        FROM appointments a
        JOIN doctors d ON d.id = a.doctor_id
        JOIN users u ON u.id = d.id
        LEFT JOIN health_centers hc ON hc.id = a.health_center_id
+       LEFT JOIN reviews r ON r.appointment_id = a.id
        WHERE a.patient_id = $1 ${statusFilter}
        ORDER BY a.appointment_date DESC, a.appointment_time DESC`,
       params

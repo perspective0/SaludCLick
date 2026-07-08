@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { CalendarCheck, MapPin, Stethoscope } from 'lucide-react';
@@ -59,7 +58,7 @@ export default function DoctorCard({
     <article className="group rounded-2xl border border-white/70 bg-white/90 p-4 shadow-sm ring-1 ring-gray-100 backdrop-blur transition-all hover:-translate-y-1 hover:shadow-xl">
       <div className="relative mb-4 h-48 w-full overflow-hidden rounded-xl bg-gradient-to-br from-blue-100 via-cyan-100 to-emerald-100">
         {image ? (
-          <Image src={image} alt={name} width={400} height={320} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+          <img src={image} alt={name} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
         ) : (
           <div className="flex h-full w-full items-center justify-center">
             <Stethoscope className="h-14 w-14 text-blue-500" />

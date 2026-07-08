@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { doctorAPI } from '@/utils/api';
+import { doctorAPI, reviewAPI } from '@/utils/api';
 import { formatDate } from '@/utils/helpers';
 import { formatDoctorName, formatPersonName } from '@/utils/names';
 import PatientShell from '@/components/PatientShell';
@@ -35,6 +34,8 @@ export default function DoctorDetailsPage({
       setLoading(true);
       const response = await doctorAPI.getById(params.id);
       setDoctor(response.data);
+      const reviewsResponse = await reviewAPI.doctor(params.id).catch(() => ({ data: [] }));
+      setReviews(reviewsResponse.data || []);
     } catch (error) {
       console.error('Error loading doctor:', error);
     } finally {
@@ -78,11 +79,10 @@ export default function DoctorDetailsPage({
               <div className="flex flex-col sm:flex-row gap-6 mb-6">
                 {doctor.avatar && (
                   <div className="relative w-32 h-32 rounded-lg overflow-hidden flex-shrink-0">
-                    <Image
+                    <img
                       src={doctor.avatar}
                       alt={formatPersonName(doctor.first_name, doctor.last_name)}
-                      fill
-                      className="object-cover"
+                      className="h-full w-full object-cover"
                     />
                   </div>
                 )}

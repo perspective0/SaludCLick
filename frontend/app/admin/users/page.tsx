@@ -40,7 +40,8 @@ import {
   Clock,
   UserPlus,
   CreditCard,
-  KeyRound
+  KeyRound,
+  Star
 } from 'lucide-react';
 
 type UserItem = {
@@ -51,6 +52,7 @@ type UserItem = {
   role: string;
   phone?: string;
   is_active: boolean;
+  featured_on_home?: boolean;
   created_at: string;
 };
 
@@ -79,6 +81,7 @@ export default function AdminUsersPage() {
   const [passwordUser, setPasswordUser] = useState<UserItem | null>(null);
   const [newPassword, setNewPassword] = useState('');
   const [passwordSaving, setPasswordSaving] = useState(false);
+  const [featuredSavingId, setFeaturedSavingId] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [user, setUser] = useState<any>(null);
   const usersPerPage = 10;
@@ -206,6 +209,22 @@ export default function AdminUsersPage() {
       setError(err?.message || 'No se pudo actualizar la contraseña.');
     } finally {
       setPasswordSaving(false);
+    }
+  };
+
+  const toggleFeaturedDoctor = async (doctor: UserItem) => {
+    try {
+      setFeaturedSavingId(doctor.id);
+      setError('');
+      await adminAPI.updateFeaturedDoctor(doctor.id, !doctor.featured_on_home);
+      setUsers((current) => current.map((item) => (
+        item.id === doctor.id ? { ...item, featured_on_home: !doctor.featured_on_home } : item
+      )));
+    } catch (err: any) {
+      console.error(err);
+      setError(err?.message || 'No se pudo actualizar si el médico aparece en inicio.');
+    } finally {
+      setFeaturedSavingId('');
     }
   };
 
@@ -598,6 +617,20 @@ export default function AdminUsersPage() {
                                 >
                                   <KeyRound className="w-4 h-4" />
                                 </button>
+                                {user.role === 'doctor' && (
+                                  <button
+                                    onClick={() => toggleFeaturedDoctor(user)}
+                                    disabled={featuredSavingId === user.id}
+                                    className={`p-2 rounded-lg transition-colors ${
+                                      user.featured_on_home
+                                        ? 'bg-yellow-50 text-yellow-600 hover:bg-yellow-100'
+                                        : 'text-gray-500 hover:bg-yellow-50 hover:text-yellow-600'
+                                    } disabled:opacity-50`}
+                                    title={user.featured_on_home ? 'Quitar de pantalla principal' : 'Mostrar en pantalla principal'}
+                                  >
+                                    <Star className={`w-4 h-4 ${user.featured_on_home ? 'fill-current' : ''}`} />
+                                  </button>
+                                )}
                                 <button
                                   onClick={() => {
                                     setUserToDelete(user.id);

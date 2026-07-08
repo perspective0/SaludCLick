@@ -62,6 +62,10 @@ async function ensureAdminSettingsTable() {
   `);
 }
 
+async function ensureDoctorDisplayColumns() {
+  await query('ALTER TABLE doctors ADD COLUMN IF NOT EXISTS featured_on_home BOOLEAN DEFAULT false').catch(() => null);
+}
+
 async function ensureDoctorPaymentsTable() {
   await query(`
     CREATE TABLE IF NOT EXISTS doctor_payments (
@@ -399,16 +403,22 @@ export const rejectDoctorRequest = async (req: Request, res: Response) => {
 
 export const listUsers = async (req: Request, res: Response) => {
   try {
+    await ensureDoctorDisplayColumns();
     const { role } = req.query;
-    let sql = `SELECT id, email, first_name, last_name, role, phone, is_active, created_at FROM users`;
+    let sql = `
+      SELECT u.id, u.email, u.first_name, u.last_name, u.role, u.phone, u.is_active, u.created_at,
+             d.featured_on_home
+      FROM users u
+      LEFT JOIN doctors d ON d.id = u.id
+    `;
     const params: any[] = [];
 
     if (role) {
-      sql += ` WHERE role = $1`;
+      sql += ` WHERE u.role = $1`;
       params.push(role);
     }
 
-    sql += ` ORDER BY created_at DESC`;
+    sql += ` ORDER BY u.created_at DESC`;
     const result = await query(sql, params);
 
     return res.json({
@@ -539,6 +549,51 @@ export const updateUser = async (req: Request, res: Response) => {
     return res.json({ success: true, message: 'User updated successfully' });
   } catch (err: any) {
     console.error('updateUser error', err);
+    return res.status(500).json({ success: false, message: err.message || 'Server error' });
+  }
+};
+
+export const listFeaturedDoctors = async (_req: Request, res: Response) => {
+  try {
+    await ensureDoctorDisplayColumns();
+    const result = await query(
+      `SELECT d.id, d.featured_on_home, d.specialties, d.average_rating, d.consultation_price,
+              u.first_name, u.last_name, u.email, u.avatar,
+              hc.name AS health_center_name, hc.city
+       FROM doctors d
+       JOIN users u ON u.id = d.id
+       LEFT JOIN health_centers hc ON hc.id = d.health_center_id
+       WHERE u.role = 'doctor' AND d.is_verified = true
+       ORDER BY d.featured_on_home DESC, d.average_rating DESC, u.first_name ASC`
+    );
+    return res.json({ success: true, data: result.rows });
+  } catch (err: any) {
+    console.error('listFeaturedDoctors error', err);
+    return res.status(500).json({ success: false, message: err.message || 'Server error' });
+  }
+};
+
+export const updateFeaturedDoctor = async (req: Request, res: Response) => {
+  try {
+    await ensureDoctorDisplayColumns();
+    const { id } = req.params;
+    const { featuredOnHome } = req.body;
+
+    const doctor = await queryOne(
+      "SELECT d.id FROM doctors d JOIN users u ON u.id = d.id WHERE d.id = $1 AND u.role = 'doctor'",
+      [id]
+    );
+    if (!doctor) {
+      return res.status(404).json({ success: false, message: 'Doctor not found' });
+    }
+
+    const result = await query(
+      'UPDATE doctors SET featured_on_home = $1 WHERE id = $2 RETURNING id, featured_on_home',
+      [Boolean(featuredOnHome), id]
+    );
+    return res.json({ success: true, data: result.rows[0] });
+  } catch (err: any) {
+    console.error('updateFeaturedDoctor error', err);
     return res.status(500).json({ success: false, message: err.message || 'Server error' });
   }
 };

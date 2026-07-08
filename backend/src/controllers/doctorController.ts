@@ -19,6 +19,24 @@ async function ensureDoctorProfileDocumentColumns() {
   `);
 }
 
+async function ensureDoctorDisplayColumns() {
+  await query('ALTER TABLE doctors ADD COLUMN IF NOT EXISTS featured_on_home BOOLEAN DEFAULT false').catch(() => null);
+}
+
+async function ensureReviewsTable() {
+  await query(`
+    CREATE TABLE IF NOT EXISTS reviews (
+      id UUID PRIMARY KEY,
+      patient_id UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+      doctor_id UUID NOT NULL REFERENCES doctors(id) ON DELETE CASCADE,
+      appointment_id UUID UNIQUE REFERENCES appointments(id) ON DELETE SET NULL,
+      rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+      comment TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `).catch(() => null);
+}
+
 async function ensureManualPatientColumns() {
   await query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS document_number VARCHAR(30)').catch(() => null);
   await query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS has_insurance BOOLEAN DEFAULT false').catch(() => null);
@@ -106,7 +124,8 @@ function publicDoctorProfile(doctor: any) {
  */
 export const getDoctors = async (req: Request, res: Response) => {
   try {
-    const { specialty, healthCenter, page = 1, limit = 20 } = req.query;
+    await ensureDoctorDisplayColumns();
+    const { specialty, healthCenter, featured, page = 1, limit = 20 } = req.query;
     const offset = (Number(page) - 1) * Number(limit);
 
     let sql = `
@@ -115,7 +134,7 @@ export const getDoctors = async (req: Request, res: Response) => {
         u.first_name, u.last_name, u.email, u.avatar,
         d.specialties, d.bio, d.years_experience, d.consultation_price,
         d.consultation_duration, d.teleconsultation_enabled, d.vacation_mode,
-        d.average_rating, d.health_center_id, hc.name as health_center_name,
+        d.average_rating, d.featured_on_home, d.health_center_id, hc.name as health_center_name,
         hc.address, hc.city
       FROM doctors d
       JOIN users u ON d.id = u.id
@@ -140,7 +159,11 @@ export const getDoctors = async (req: Request, res: Response) => {
       params.push(healthCenter);
     }
 
-    sql += ` ORDER BY d.average_rating DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+    if (featured === 'true') {
+      sql += ' AND d.featured_on_home = true';
+    }
+
+    sql += ` ORDER BY d.featured_on_home DESC, d.average_rating DESC, u.first_name ASC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
     params.push(limit, offset);
 
     const doctors = await queryMany(sql, params);
@@ -158,6 +181,7 @@ export const getDoctors = async (req: Request, res: Response) => {
         )
       )`;
     }
+    if (featured === 'true') countSql += ' AND d.featured_on_home = true';
 
     const countParams: any[] = [];
     if (specialty) countParams.push(specialty);
@@ -190,6 +214,7 @@ export const getDoctors = async (req: Request, res: Response) => {
 export const getDoctorById = async (req: Request, res: Response) => {
   try {
     await ensureDoctorProfileDocumentColumns();
+    await ensureReviewsTable();
     const { id } = req.params;
 
     const doctor = await queryOne(

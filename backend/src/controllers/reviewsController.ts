@@ -2,11 +2,28 @@ import { Request, Response } from 'express';
 import { query, queryOne, queryMany } from '../db';
 import { v4 as uuidv4 } from 'uuid';
 
+async function ensureReviewsTable() {
+  await query(`
+    CREATE TABLE IF NOT EXISTS reviews (
+      id UUID PRIMARY KEY,
+      patient_id UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+      doctor_id UUID NOT NULL REFERENCES doctors(id) ON DELETE CASCADE,
+      appointment_id UUID UNIQUE REFERENCES appointments(id) ON DELETE SET NULL,
+      rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+      comment TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+  await query('CREATE INDEX IF NOT EXISTS idx_reviews_doctor ON reviews(doctor_id)').catch(() => null);
+  await query('CREATE INDEX IF NOT EXISTS idx_reviews_patient ON reviews(patient_id)').catch(() => null);
+}
+
 /**
  * Create a review (patients only)
  */
 export const createReview = async (req: Request, res: Response) => {
   try {
+    await ensureReviewsTable();
     const { doctorId, appointmentId, rating, comment } = req.body;
     const patientId = req.user?.id;
 
@@ -16,6 +33,37 @@ export const createReview = async (req: Request, res: Response) => {
 
     if (!rating || rating < 1 || rating > 5) {
       return res.status(400).json({ success: false, message: 'Rating must be between 1 and 5' });
+    }
+
+    if (appointmentId) {
+      const appointment = await queryOne(
+        `SELECT id, doctor_id, patient_id, status
+         FROM appointments
+         WHERE id = $1 AND patient_id = $2`,
+        [appointmentId, patientId]
+      );
+
+      if (!appointment) {
+        return res.status(404).json({ success: false, message: 'Appointment not found' });
+      }
+
+      if (appointment.doctor_id !== doctorId) {
+        return res.status(400).json({ success: false, message: 'Doctor does not match appointment' });
+      }
+
+      if (appointment.status !== 'completed') {
+        return res.status(409).json({ success: false, message: 'Only completed appointments can be reviewed' });
+      }
+    } else {
+      const completedAppointment = await queryOne(
+        `SELECT id FROM appointments
+         WHERE doctor_id = $1 AND patient_id = $2 AND status = 'completed'
+         LIMIT 1`,
+        [doctorId, patientId]
+      );
+      if (!completedAppointment) {
+        return res.status(409).json({ success: false, message: 'You need a completed appointment to review this doctor' });
+      }
     }
 
     // Check if review already exists for this appointment
@@ -60,13 +108,15 @@ export const createReview = async (req: Request, res: Response) => {
  */
 export const getDoctorReviews = async (req: Request, res: Response) => {
   try {
+    await ensureReviewsTable();
     const { doctorId } = req.params;
     const { page = 1, limit = 10 } = req.query;
     const offset = (Number(page) - 1) * Number(limit);
 
     const reviews = await queryMany(
       `SELECT r.id, r.rating, r.comment, r.created_at,
-              u.first_name, u.last_name
+              u.first_name, u.last_name,
+              TRIM(u.first_name || ' ' || u.last_name) AS patient_name
        FROM reviews r
        JOIN users u ON r.patient_id = u.id
        WHERE r.doctor_id = $1

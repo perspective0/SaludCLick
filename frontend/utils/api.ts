@@ -666,6 +666,30 @@ export const adminAPI = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+
+  listFeaturedDoctors: () =>
+    apiRequest('/admin/featured-doctors', {
+    }),
+
+  updateFeaturedDoctor: (id: string, featuredOnHome: boolean) =>
+    apiRequest(`/admin/doctors/${id}/featured`, {
+      method: 'PUT',
+      body: JSON.stringify({ featuredOnHome }),
+    }),
+};
+
+export const reviewAPI = {
+  create: (data: { doctorId: string; appointmentId?: string; rating: number; comment?: string }) =>
+    apiRequest('/reviews', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  doctor: (doctorId: string, params: Record<string, any> = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return apiRequest(`/reviews/doctor/${doctorId}${queryString ? `?${queryString}` : ''}`, {
+    });
+  },
 };
 
 export const clinicalAPI = {
