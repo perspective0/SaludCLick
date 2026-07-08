@@ -115,7 +115,8 @@ export const getDoctors = async (req: Request, res: Response) => {
         u.first_name, u.last_name, u.email, u.avatar,
         d.specialties, d.bio, d.years_experience, d.consultation_price,
         d.consultation_duration, d.teleconsultation_enabled, d.vacation_mode,
-        d.average_rating, d.health_center_id, hc.name as health_center_name
+        d.average_rating, d.health_center_id, hc.name as health_center_name,
+        hc.address, hc.city
       FROM doctors d
       JOIN users u ON d.id = u.id
       LEFT JOIN health_centers hc ON d.health_center_id = hc.id
@@ -129,9 +130,12 @@ export const getDoctors = async (req: Request, res: Response) => {
     }
 
     if (healthCenter) {
-      sql += ` AND EXISTS (
+      sql += ` AND (
+        d.health_center_id = $${params.length + 1}
+        OR EXISTS (
         SELECT 1 FROM doctor_health_centers dhc
         WHERE dhc.doctor_id = d.id AND dhc.health_center_id = $${params.length + 1}
+        )
       )`;
       params.push(healthCenter);
     }
@@ -146,9 +150,12 @@ export const getDoctors = async (req: Request, res: Response) => {
     let countSql = 'SELECT COUNT(*) as total FROM doctors d WHERE d.is_verified = true';
     if (specialty) countSql += ` AND $1 = ANY(d.specialties)`;
     if (healthCenter) {
-      countSql += ` AND EXISTS (
+      countSql += ` AND (
+        d.health_center_id = $${specialty ? 2 : 1}
+        OR EXISTS (
         SELECT 1 FROM doctor_health_centers dhc
         WHERE dhc.doctor_id = d.id AND dhc.health_center_id = $${specialty ? 2 : 1}
+        )
       )`;
     }
 
@@ -738,15 +745,31 @@ async function attachHealthCenters(doctors: any[]) {
     centersByDoctor.set(center.doctor_id, list);
   }
 
-  return doctors.map((doctor) => ({
-    ...doctor,
-    health_center_id: doctor.health_center_id || centersByDoctor.get(doctor.id)?.[0]?.id || null,
-    health_center_name: doctor.health_center_name || centersByDoctor.get(doctor.id)?.[0]?.name || null,
-    city: doctor.city || centersByDoctor.get(doctor.id)?.[0]?.city || null,
-    address: doctor.address || centersByDoctor.get(doctor.id)?.[0]?.address || null,
-    health_centers: centersByDoctor.get(doctor.id) || [],
-    healthCenters: centersByDoctor.get(doctor.id) || [],
-  }));
+  return doctors.map((doctor) => {
+    const linkedCenters = centersByDoctor.get(doctor.id) || [];
+    const primaryFallback = doctor.health_center_id
+      ? [{
+          id: doctor.health_center_id,
+          name: doctor.health_center_name,
+          address: doctor.address,
+          city: doctor.city,
+          phone: null,
+          email: null,
+          is_primary: true,
+        }]
+      : [];
+    const healthCenters = linkedCenters.length ? linkedCenters : primaryFallback;
+
+    return {
+      ...doctor,
+      health_center_id: doctor.health_center_id || healthCenters[0]?.id || null,
+      health_center_name: doctor.health_center_name || healthCenters[0]?.name || null,
+      city: doctor.city || healthCenters[0]?.city || null,
+      address: doctor.address || healthCenters[0]?.address || null,
+      health_centers: healthCenters,
+      healthCenters,
+    };
+  });
 }
 
 export const uploadDoctorAvatar = async (req: Request, res: Response) => {

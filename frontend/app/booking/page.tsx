@@ -217,11 +217,29 @@ export default function BookingPage() {
     if (!input) return;
 
     if (typeof input.showPicker === 'function') {
-      input.showPicker();
+      try {
+        input.showPicker();
+        return;
+      } catch {
+        // Some mobile browsers only open native date pickers from a direct input tap.
+      }
+    }
+
+    input.focus();
+    input.click();
+  };
+
+  const handleCalendarTap = () => {
+    const input = calendarInputRef.current;
+    if (!input || typeof input.showPicker !== 'function') {
       return;
     }
 
-    input.click();
+    try {
+      input.showPicker();
+    } catch {
+      input.focus();
+    }
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -427,10 +445,11 @@ export default function BookingPage() {
                           type="date"
                           value={formData.appointmentDate}
                           onChange={handleCalendarChange}
+                          onClick={handleCalendarTap}
                           min={getTodayISO()}
                           tabIndex={-1}
-                          aria-hidden="true"
-                          className="pointer-events-none absolute right-2 top-1/2 h-9 w-9 -translate-y-1/2 opacity-0"
+                          aria-label="Seleccionar fecha"
+                          className="absolute right-2 top-1/2 h-9 w-9 -translate-y-1/2 cursor-pointer opacity-0"
                         />
                       </div>
                     </label>

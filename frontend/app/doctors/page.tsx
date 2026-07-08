@@ -73,7 +73,7 @@ export default function DoctorsPage() {
     try {
       const response = await patientAPI.profile();
       const patient = response.data || {};
-      const suggestedLocation = [patient.city, patient.address].filter(Boolean).join(', ');
+      const suggestedLocation = patient.city || '';
       if (suggestedLocation) {
         setLocation(suggestedLocation);
         setRecommendByLocation(true);
@@ -233,7 +233,7 @@ export default function DoctorsPage() {
               <input
                 value={location}
                 onChange={(event) => setLocation(event.target.value)}
-                placeholder="Tu ciudad o sector para recomendar centros cercanos..."
+                placeholder="Escribe tu pueblo o ciudad, no la dirección completa"
                 className="h-11 w-full rounded-xl border border-gray-200 bg-white pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -252,7 +252,7 @@ export default function DoctorsPage() {
               <Building2 className="h-4 w-4" />
               {recognizedLocation && recommendedCount
                 ? `${recommendedCount} médicos ordenados por cercanía aproximada a ${location}`
-                : `No reconozco esa ubicación todavía; mostrando mejores coincidencias por valoración`}
+                : `Usa solo el pueblo o ciudad, por ejemplo: Santiago, Moca, Baní o Santo Domingo.`}
             </div>
           )}
         </section>
