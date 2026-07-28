@@ -1,3 +1,4 @@
+import { headers } from 'next/headers';
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
@@ -8,7 +9,24 @@ export const size = {
 };
 export const contentType = 'image/png';
 
+function getRequestOrigin() {
+  const requestHeaders = headers();
+  const host =
+    requestHeaders.get('x-forwarded-host') ||
+    requestHeaders.get('host') ||
+    'salud-c-lick.vercel.app';
+  const protocol =
+    requestHeaders.get('x-forwarded-proto') ||
+    (host.startsWith('localhost') || host.startsWith('127.0.0.1')
+      ? 'http'
+      : 'https');
+
+  return `${protocol}://${host}`;
+}
+
 export default function OpenGraphImage() {
+  const logoUrl = new URL('/saludclick.png', getRequestOrigin()).toString();
+
   return new ImageResponse(
     (
       <div
@@ -61,38 +79,20 @@ export default function OpenGraphImage() {
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 24,
             }}
           >
-            <div
+            <img
+              src={logoUrl}
+              alt="SaludClick"
+              width="500"
+              height="161"
               style={{
-                width: 108,
-                height: 108,
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: '#55baf0',
-                color: '#ffffff',
-                fontSize: 54,
-                boxShadow: '0 18px 42px rgba(14, 165, 233, 0.2)',
+                width: 500,
+                height: 161,
+                objectFit: 'contain',
+                objectPosition: 'left center',
               }}
-            >
-              ♥
-            </div>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'baseline',
-                fontSize: 68,
-                fontWeight: 800,
-                letterSpacing: -3,
-                color: '#0ea5e9',
-              }}
-            >
-              Salud
-              <span style={{ color: '#075cc9' }}>Click</span>
-            </div>
+            />
           </div>
 
           <div
