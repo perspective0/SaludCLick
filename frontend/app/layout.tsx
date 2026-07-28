@@ -5,18 +5,93 @@ import PageTransition from '@/components/PageTransition';
 import RuntimeSettings from '@/components/RuntimeSettings';
 import './globals.css';
 
+const productionSiteUrl = new URL('https://salud-c-lick.vercel.app');
+
+function getSiteUrl() {
+  const configuredUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (!configuredUrl) return productionSiteUrl;
+
+  try {
+    const url = new URL(configuredUrl);
+    const isLocalUrl = ['localhost', '127.0.0.1'].includes(url.hostname);
+
+    return process.env.NODE_ENV === 'production' && isLocalUrl
+      ? productionSiteUrl
+      : url;
+  } catch {
+    return productionSiteUrl;
+  }
+}
+
+const siteUrl = getSiteUrl();
+
+const siteTitle = 'SaludClick | Citas médicas y salud digital';
+const siteDescription =
+  'Encuentra médicos, agenda citas presenciales o teleconsultas y gestiona tu información de salud de forma fácil y segura.';
+
 export const metadata: Metadata = {
-  title: 'SaludClick - Gestión de Citas Médicas',
-  description: 'Plataforma de telemedicina para agendar citas con médicos especializados. Conecta pacientes, médicos y secretarias en una sola plataforma.',
-  keywords: 'médicos, citas, telemedicina, salud, doctor',
+  metadataBase: siteUrl,
+  applicationName: 'SaludClick',
+  title: {
+    default: siteTitle,
+    template: '%s | SaludClick',
+  },
+  description: siteDescription,
+  keywords: [
+    'SaludClick',
+    'citas médicas',
+    'médicos',
+    'telemedicina',
+    'teleconsulta',
+    'salud digital',
+    'agenda médica',
+  ],
+  authors: [{ name: 'SaludClick', url: siteUrl }],
+  creator: 'SaludClick',
+  publisher: 'SaludClick',
+  category: 'health',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   openGraph: {
-    title: 'SaludClick - Plataforma de Citas Médicas',
-    description: 'Agenda tus citas médicas de forma fácil y segura',
-    images: ['/og-image.png'],
+    type: 'website',
+    url: '/',
+    locale: 'es_DO',
+    siteName: 'SaludClick',
+    title: siteTitle,
+    description: siteDescription,
+    images: [
+      {
+        url: '/opengraph-image',
+        width: 1200,
+        height: 630,
+        alt: 'SaludClick, tu salud a un clic de distancia',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: siteTitle,
+    description: siteDescription,
+    images: ['/opengraph-image'],
+  },
+  icons: {
+    icon: [{ url: '/icono.png', type: 'image/png' }],
+    shortcut: ['/icono.png'],
+    apple: [{ url: '/icono.png', type: 'image/png' }],
   },
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+      'max-video-preview': -1,
+    },
   },
 };
 
@@ -30,9 +105,6 @@ export default function RootLayout({
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" type="image/png" href="/icono.png" />
-        <link rel="shortcut icon" type="image/png" href="/icono.png" />
-        <link rel="apple-touch-icon" href="/icono.png" />
         <script
           dangerouslySetInnerHTML={{
             __html: `

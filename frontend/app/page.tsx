@@ -176,8 +176,8 @@ export default function Home() {
             '@type': 'MedicalOrganization',
             name: 'SaludClick',
             description: 'Plataforma de salud digital que conecta pacientes con medicos especializados.',
-            url: 'https://saludclick.com',
-            logo: 'https://saludclick.com/saludclick.png',
+            url: 'https://salud-c-lick.vercel.app',
+            logo: 'https://salud-c-lick.vercel.app/saludclick.png',
           }),
         }}
       />
