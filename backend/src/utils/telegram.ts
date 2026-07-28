@@ -11,8 +11,13 @@ const COMPROMISED_TELEGRAM_TOKENS = new Set([
   '8954084768:AAER7Ryd1c3Ac3rMPRLoCWzUjTxUcBw-L6g',
 ]);
 
-function escapeMarkdown(value: string) {
-  return value.replace(/([_*\[\]()~`>#+\-=|{}.!])/g, '\\$1');
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function getDoctorRequestsUrl() {
@@ -46,19 +51,19 @@ export async function notifyDoctorRequestTelegram(payload: DoctorRequestTelegram
   const doctorRequestsUrl = getDoctorRequestsUrl();
 
   const message = [
-    '*NUEVA SOLICITUD DE MEDICO - SaludClick*',
+    '<b>NUEVA SOLICITUD DE MÉDICO - SaludClick</b>',
     '',
-    `Dr(a). ${escapeMarkdown(`${payload.firstName} ${payload.lastName}`.trim())}`,
+    `Dr(a). ${escapeHtml(`${payload.firstName} ${payload.lastName}`.trim())}`,
     '',
-    '*Informacion de contacto:*',
-    `Email: ${escapeMarkdown(payload.email)}`,
-    `Telefono: ${escapeMarkdown(payload.phone || 'No proporcionado')}`,
-    `Exequatur: ${escapeMarkdown(payload.exequatur || 'Pendiente')}`,
-    `Especialidad: ${escapeMarkdown(payload.specialty || 'No indicada')}`,
+    '<b>Información de contacto:</b>',
+    `Email: ${escapeHtml(payload.email)}`,
+    `Teléfono: ${escapeHtml(payload.phone || 'No proporcionado')}`,
+    `Exequatur: ${escapeHtml(payload.exequatur || 'Pendiente')}`,
+    `Especialidad: ${escapeHtml(payload.specialty || 'No indicada')}`,
     '',
-    `Solicitado: ${escapeMarkdown(requestedAt)}`,
+    `Solicitado: ${escapeHtml(requestedAt)}`,
     '',
-    'Accion requerida: Revisar documentacion y aprobar/rechazar solicitud',
+    'Acción requerida: Revisar documentación y aprobar o rechazar la solicitud.',
   ].join('\n');
 
   const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
@@ -67,7 +72,7 @@ export async function notifyDoctorRequestTelegram(payload: DoctorRequestTelegram
     body: JSON.stringify({
       chat_id: chatId,
       text: message,
-      parse_mode: 'MarkdownV2',
+      parse_mode: 'HTML',
       reply_markup: {
         inline_keyboard: [
           [
