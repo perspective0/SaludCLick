@@ -38,7 +38,7 @@ describe('Telegram doctor request notifications', () => {
     global.fetch = fetchMock as unknown as typeof fetch;
 
     await notifyDoctorRequestTelegram({
-      firstName: 'Ana',
+      firstName: 'Ana <Prueba>',
       lastName: 'Pérez',
       email: 'ana@example.com',
       specialty: 'Cardiología',
@@ -50,6 +50,11 @@ describe('Telegram doctor request notifications', () => {
     const requestOptions = fetchMock.mock.calls[0][1] as RequestInit;
     const body = JSON.parse(String(requestOptions.body));
 
+    expect(body.parse_mode).toBe('HTML');
+    expect(body.text).toContain(
+      '<b>NUEVA SOLICITUD DE MÉDICO - SaludClick</b>'
+    );
+    expect(body.text).toContain('Ana &lt;Prueba&gt; Pérez');
     expect(body.reply_markup.inline_keyboard).toEqual([
       [
         {
