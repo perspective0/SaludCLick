@@ -1,7 +1,8 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import LanguageToggle from '@/components/LanguageToggle';
 import ThemeToggle from '@/components/ThemeToggle';
 import PageTransition from '@/components/PageTransition';
+import PWARegistration from '@/components/PWARegistration';
 import RuntimeSettings from '@/components/RuntimeSettings';
 import './globals.css';
 
@@ -32,6 +33,7 @@ const siteDescription =
 export const metadata: Metadata = {
   metadataBase: siteUrl,
   applicationName: 'SaludClick',
+  manifest: '/manifest.webmanifest',
   title: {
     default: siteTitle,
     template: '%s | SaludClick',
@@ -80,7 +82,18 @@ export const metadata: Metadata = {
   icons: {
     icon: [{ url: '/icono.png', type: 'image/png' }],
     shortcut: ['/icono.png'],
-    apple: [{ url: '/icono.png', type: 'image/png' }],
+    apple: [
+      {
+        url: '/icons/apple-touch-icon.png',
+        sizes: '180x180',
+        type: 'image/png',
+      },
+    ],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'SaludClick',
   },
   robots: {
     index: true,
@@ -95,6 +108,16 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#f8fafc' },
+    { media: '(prefers-color-scheme: dark)', color: '#020617' },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -104,7 +127,6 @@ export default function RootLayout({
     <html lang="es" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -120,6 +142,7 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-light text-dark">
+        <PWARegistration />
         <RuntimeSettings />
         <PageTransition>{children}</PageTransition>
         <ThemeToggle />
