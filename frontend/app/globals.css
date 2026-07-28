@@ -152,7 +152,12 @@
 }
 
 .page-transition {
-  animation: pageEnter 280ms ease-out both;
+  /*
+   * `both` conservaba transform/filter después de la animación y convertía
+   * este contenedor en la referencia de los elementos fixed. Con `backwards`
+   * el efecto solo se aplica al entrar y luego vuelve a transform: none.
+   */
+  animation: pageEnter 280ms ease-out backwards;
   min-height: 100vh;
 }
 
