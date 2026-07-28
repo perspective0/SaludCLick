@@ -15,6 +15,19 @@ function escapeMarkdown(value: string) {
   return value.replace(/([_*\[\]()~`>#+\-=|{}.!])/g, '\\$1');
 }
 
+function getDoctorRequestsUrl() {
+  const configuredUrl =
+    process.env.FRONTEND_URL ||
+    process.env.PUBLIC_APP_URL ||
+    'https://salud-c-lick.vercel.app';
+
+  try {
+    return new URL('/admin/doctor-requests', configuredUrl).toString();
+  } catch {
+    return 'https://salud-c-lick.vercel.app/admin/doctor-requests';
+  }
+}
+
 export async function notifyDoctorRequestTelegram(payload: DoctorRequestTelegramPayload) {
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_DOCTOR_REQUESTS_CHAT_ID;
@@ -30,6 +43,7 @@ export async function notifyDoctorRequestTelegram(payload: DoctorRequestTelegram
   const requestedAt = new Date().toLocaleString('es-DO', {
     timeZone: 'America/Santo_Domingo',
   });
+  const doctorRequestsUrl = getDoctorRequestsUrl();
 
   const message = [
     '*NUEVA SOLICITUD DE MEDICO - SaludClick*',
@@ -54,6 +68,16 @@ export async function notifyDoctorRequestTelegram(payload: DoctorRequestTelegram
       chat_id: chatId,
       text: message,
       parse_mode: 'MarkdownV2',
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: 'Revisar solicitud',
+              url: doctorRequestsUrl,
+            },
+          ],
+        ],
+      },
     }),
   });
 

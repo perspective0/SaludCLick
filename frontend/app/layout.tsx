@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import LanguageToggle from '@/components/LanguageToggle';
 import ThemeToggle from '@/components/ThemeToggle';
 import PageTransition from '@/components/PageTransition';
+import InstallAppNotice from '@/components/InstallAppNotice';
 import PWARegistration from '@/components/PWARegistration';
 import RuntimeSettings from '@/components/RuntimeSettings';
 import './globals.css';
@@ -143,6 +144,7 @@ export default function RootLayout({
       </head>
       <body className="bg-light text-dark">
         <PWARegistration />
+        <InstallAppNotice />
         <RuntimeSettings />
         <PageTransition>{children}</PageTransition>
         <ThemeToggle />
