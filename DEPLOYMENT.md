@@ -48,6 +48,8 @@ When adding or changing `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`, create a new
 Vercel deployment because the verification metadata is generated during the
 frontend build. Google also supports an HTML verification file placed in
 `frontend/public/`, which becomes available at the root of the public domain.
+The Bing Webmaster Tools verification value is emitted globally as the
+`msvalidate.01` metadata entry.
 
 ## Run locally
 
