@@ -6,7 +6,7 @@ import { sendEmail } from '../utils/mailer';
 import { getPublicSettings, getSettings as getRuntimeSettings, invalidateSettings } from '../services/settingsService';
 import { createStripeCustomer, createDoctorSubscription } from '../utils/stripe';
 import { ensureDoctorVerificationColumns, verifyDoctorExequatur } from '../utils/doctorVerification';
-import { getWhatsAppConfigStatus, sendWhatsAppTemplate } from '../services/whatsappService';
+import { getWhatsAppConfigStatus, sendWhatsAppNotification } from '../services/whatsappService';
 
 async function getOrCreateDefaultCenter(client: any) {
   const centerResult = await client.query('SELECT id FROM health_centers LIMIT 1');
@@ -1497,7 +1497,16 @@ export const sendWhatsAppTestMessage = async (req: Request, res: Response) => {
     const to = String(req.body?.to || process.env.WHATSAPP_TEST_RECIPIENT || '').trim();
     const templateName = String(req.body?.templateName || 'hello_world').trim();
     const languageCode = String(req.body?.languageCode || 'en_US').trim();
-    const result = await sendWhatsAppTemplate({ to, templateName, languageCode });
+    const text = String(
+      req.body?.text ||
+      'Mensaje de prueba de SaludClick. La conexión de WhatsApp funciona correctamente.'
+    ).trim();
+    const result = await sendWhatsAppNotification({
+      to,
+      text,
+      templateName,
+      languageCode,
+    });
 
     res.json({
       success: true,

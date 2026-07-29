@@ -5,41 +5,25 @@ import PageTransition from '@/components/PageTransition';
 import InstallAppNotice from '@/components/InstallAppNotice';
 import PWARegistration from '@/components/PWARegistration';
 import RuntimeSettings from '@/components/RuntimeSettings';
+import {
+  getSiteUrl,
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_TITLE,
+} from '@/lib/seo';
 import './globals.css';
-
-const productionSiteUrl = new URL('https://salud-c-lick.vercel.app');
-
-function getSiteUrl() {
-  const configuredUrl = process.env.NEXT_PUBLIC_APP_URL;
-  if (!configuredUrl) return productionSiteUrl;
-
-  try {
-    const url = new URL(configuredUrl);
-    const isLocalUrl = ['localhost', '127.0.0.1'].includes(url.hostname);
-
-    return process.env.NODE_ENV === 'production' && isLocalUrl
-      ? productionSiteUrl
-      : url;
-  } catch {
-    return productionSiteUrl;
-  }
-}
 
 const siteUrl = getSiteUrl();
 
-const siteTitle = 'SaludClick | Citas médicas y salud digital';
-const siteDescription =
-  'Encuentra médicos, agenda citas presenciales o teleconsultas y gestiona tu información de salud de forma fácil y segura.';
-
 export const metadata: Metadata = {
   metadataBase: siteUrl,
-  applicationName: 'SaludClick',
+  applicationName: SITE_NAME,
   manifest: '/manifest.webmanifest',
   title: {
-    default: siteTitle,
+    default: SITE_TITLE,
     template: '%s | SaludClick',
   },
-  description: siteDescription,
+  description: SITE_DESCRIPTION,
   keywords: [
     'SaludClick',
     'citas médicas',
@@ -63,8 +47,8 @@ export const metadata: Metadata = {
     url: '/',
     locale: 'es_DO',
     siteName: 'SaludClick',
-    title: siteTitle,
-    description: siteDescription,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
     images: [
       {
         url: '/opengraph-image',
@@ -76,8 +60,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: siteTitle,
-    description: siteDescription,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
     images: ['/opengraph-image'],
   },
   icons: {
@@ -107,6 +91,12 @@ export const metadata: Metadata = {
       'max-video-preview': -1,
     },
   },
+  alternates: {
+    canonical: '/',
+  },
+  verification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+    ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
+    : undefined,
 };
 
 export const viewport: Viewport = {
@@ -127,7 +117,6 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
-        <meta charSet="utf-8" />
         <script
           dangerouslySetInnerHTML={{
             __html: `

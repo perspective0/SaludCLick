@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import webpush from 'web-push';
 import { query, queryOne } from '../db';
 import { auditClinicalAction } from '../utils/audit';
+import { processDueWhatsAppAppointmentReminders } from '../services/whatsappReminderService';
 
 const generatedKeys = webpush.generateVAPIDKeys();
 const vapidPublicKey = process.env.VAPID_PUBLIC_KEY || generatedKeys.publicKey;
@@ -227,6 +228,36 @@ export const archiveNotification = async (req: Request, res: Response) => {
   } catch (err: any) {
     console.error('archiveNotification error', err);
     return res.status(500).json({ success: false, message: err.message || 'Server error' });
+  }
+};
+
+export const runWhatsAppAppointmentReminders = async (req: Request, res: Response) => {
+  const configuredSecret = String(process.env.WHATSAPP_CRON_SECRET || '');
+  const authorization = String(req.headers.authorization || '');
+  const providedSecret = authorization.startsWith('Bearer ')
+    ? authorization.slice('Bearer '.length).trim()
+    : '';
+
+  if (!configuredSecret) {
+    return res.status(503).json({
+      success: false,
+      message: 'WhatsApp reminder cron is not configured.',
+    });
+  }
+
+  if (!providedSecret || providedSecret !== configuredSecret) {
+    return res.status(401).json({ success: false, message: 'Unauthorized' });
+  }
+
+  try {
+    const result = await processDueWhatsAppAppointmentReminders();
+    return res.json({ success: true, data: result });
+  } catch (err: any) {
+    console.error('runWhatsAppAppointmentReminders error', err);
+    return res.status(500).json({
+      success: false,
+      message: err.message || 'Could not process WhatsApp reminders.',
+    });
   }
 };
 

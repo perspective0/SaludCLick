@@ -40,6 +40,8 @@ CREATE TABLE patients (
   has_insurance BOOLEAN DEFAULT false,
   insurance_provider VARCHAR(255),
   insurance_number VARCHAR(255),
+  whatsapp_reminders_enabled BOOLEAN NOT NULL DEFAULT false,
+  whatsapp_consent_at TIMESTAMPTZ,
   manual_patient_created_by_doctor_id UUID,
   manual_patient_created_at TIMESTAMP,
   account_claimed_at TIMESTAMP
@@ -332,6 +334,8 @@ ALTER TABLE patients ADD COLUMN IF NOT EXISTS document_number VARCHAR(30);
 ALTER TABLE patients ADD COLUMN IF NOT EXISTS has_insurance BOOLEAN DEFAULT false;
 ALTER TABLE patients ADD COLUMN IF NOT EXISTS insurance_provider VARCHAR(255);
 ALTER TABLE patients ADD COLUMN IF NOT EXISTS insurance_number VARCHAR(255);
+ALTER TABLE patients ADD COLUMN IF NOT EXISTS whatsapp_reminders_enabled BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE patients ADD COLUMN IF NOT EXISTS whatsapp_consent_at TIMESTAMPTZ;
 ALTER TABLE patients ADD COLUMN IF NOT EXISTS manual_patient_created_by_doctor_id UUID REFERENCES doctors(id) ON DELETE SET NULL;
 ALTER TABLE patients ADD COLUMN IF NOT EXISTS manual_patient_created_at TIMESTAMP;
 ALTER TABLE patients ADD COLUMN IF NOT EXISTS account_claimed_at TIMESTAMP;

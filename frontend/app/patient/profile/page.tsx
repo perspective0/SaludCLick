@@ -19,6 +19,7 @@ export default function PatientProfilePage() {
     hasInsurance: false,
     insuranceProvider: '',
     insuranceNumber: '',
+    whatsappRemindersEnabled: false,
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -44,6 +45,7 @@ export default function PatientProfilePage() {
         hasInsurance: Boolean(response.data.has_insurance || response.data.insurance_provider),
         insuranceProvider: response.data.insurance_provider || '',
         insuranceNumber: response.data.insurance_number || '',
+        whatsappRemindersEnabled: Boolean(response.data.whatsapp_reminders_enabled),
       });
     } catch (err: any) {
       setError(err?.status === 403 ? 'No tienes permiso para acceder a este perfil.' : 'No se pudo cargar tu perfil.');
@@ -171,6 +173,25 @@ export default function PatientProfilePage() {
                       />
                     </div>
                   )}
+                </div>
+                <div className="md:col-span-2 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+                  <label className="flex items-center justify-between gap-4">
+                    <span>
+                      <span className="block font-bold text-emerald-950">Recordatorios de citas por WhatsApp</span>
+                      <span className="mt-1 block text-sm text-emerald-800">
+                        SaludClick podrá avisarte antes de tus citas usando el teléfono indicado arriba. Puedes desactivarlo cuando quieras.
+                      </span>
+                    </span>
+                    <input
+                      type="checkbox"
+                      checked={form.whatsappRemindersEnabled}
+                      onChange={(event) => setForm({
+                        ...form,
+                        whatsappRemindersEnabled: event.target.checked,
+                      })}
+                      className="h-5 w-5 shrink-0 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500"
+                    />
+                  </label>
                 </div>
                 <Field label="Contacto emergencia" value={form.emergencyContact} onChange={(value) => setForm({ ...form, emergencyContact: value })} />
                 <Field label="Teléfono emergencia" value={form.emergencyPhone} onChange={(value) => setForm({ ...form, emergencyPhone: value })} type="tel" />

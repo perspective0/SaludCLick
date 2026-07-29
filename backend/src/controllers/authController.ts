@@ -7,6 +7,7 @@ import { ensureDoctorVerificationColumns, verifyDoctorExequatur } from '../utils
 import { UserRole } from '../types';
 import { getSettings } from '../services/settingsService';
 import { notifyDoctorRequestTelegram } from '../utils/telegram';
+import { notifyDoctorRequestWhatsApp } from '../services/whatsappNotifications';
 import crypto from 'crypto';
 import { clearCsrfCookie, setCsrfCookie } from '../middleware/csrf';
 
@@ -343,6 +344,16 @@ export const register = async (req: Request, res: Response) => {
         exequatur,
       }).catch((error) => {
         console.error('Telegram doctor request notification error:', error);
+      });
+      notifyDoctorRequestWhatsApp({
+        firstName,
+        lastName,
+        email,
+        specialty: especialidad,
+        phone,
+        exequatur,
+      }).catch((error) => {
+        console.error('WhatsApp doctor request notification error:', error);
       });
 
       return res.status(201).json({

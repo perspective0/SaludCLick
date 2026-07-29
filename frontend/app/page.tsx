@@ -3,9 +3,10 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import type { CSSProperties } from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { doctorAPI } from '@/utils/api';
 import { formatDoctorName } from '@/utils/names';
+import { absoluteUrl } from '@/lib/seo';
 import {
   Activity,
   ArrowRight,
@@ -18,56 +19,11 @@ import {
   HeartPulse,
   ShieldCheck,
   Sparkles,
-  Star,
   Stethoscope,
-  Users,
   Video,
 } from 'lucide-react';
 
-type AnimatedCounterProps = {
-  end: number;
-  suffix?: string;
-  duration?: number;
-};
-
 type Audience = 'paciente' | 'medico';
-
-function AnimatedCounter({ end, suffix = '', duration = 1800 }: AnimatedCounterProps) {
-  const [count, setCount] = useState(0);
-  const [hasAnimated, setHasAnimated] = useState(false);
-  const ref = useRef<HTMLSpanElement | null>(null);
-
-  useEffect(() => {
-    const node = ref.current;
-    if (!node) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting || hasAnimated) return;
-
-        setHasAnimated(true);
-        const startTime = Date.now();
-
-        const animate = () => {
-          const elapsed = Date.now() - startTime;
-          const progress = Math.min(elapsed / duration, 1);
-          const eased = 1 - Math.pow(1 - progress, 4);
-          setCount(Math.floor(end * eased));
-
-          if (progress < 1) requestAnimationFrame(animate);
-        };
-
-        requestAnimationFrame(animate);
-      },
-      { threshold: 0.25 }
-    );
-
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [duration, end, hasAnimated]);
-
-  return <span ref={ref}>{count}{suffix}</span>;
-}
 
 export default function Home() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -105,16 +61,16 @@ export default function Home() {
   }, []);
 
   const stats = [
-    { end: 500, label: 'medicos verificados', suffix: '+', icon: Users },
-    { end: 10, label: 'citas gestionadas', suffix: 'K+', icon: CalendarCheck },
-    { end: 99, label: 'satisfaccion', suffix: '%', icon: Star },
+    { value: 'Verificados', label: 'perfiles médicos', icon: ShieldCheck },
+    { value: 'Simple', label: 'agenda digital', icon: CalendarCheck },
+    { value: 'Flexible', label: 'presencial o virtual', icon: Video },
   ];
 
   const features = [
     {
       icon: CalendarCheck,
-      title: 'Agenda sin friccion',
-      description: 'Encuentra disponibilidad, confirma tu hora y recibe recordatorios automaticos desde una sola experiencia.',
+      title: 'Agenda sin fricción',
+      description: 'Encuentra disponibilidad, confirma tu hora y recibe recordatorios automáticos desde una sola experiencia.',
       tone: 'from-sky-500 to-cyan-500',
     },
     {
@@ -133,36 +89,36 @@ export default function Home() {
 
   const steps = audience === 'paciente'
     ? [
-        'Busca por especialidad o centro medico',
+        'Busca por especialidad o centro médico',
         'Elige el horario que mejor calza contigo',
         'Recibe confirmacion, recordatorio e historial',
       ]
     : [
         'Recibe solicitudes de pacientes ordenadas',
         'Administra agenda, ficha y consulta en un lugar',
-        'Mantiene seguimiento profesional despues de atender',
+        'Mantiene seguimiento profesional después de atender',
       ];
 
   const faqs = [
     {
-      question: '¿Necesito registrarme para buscar medicos?',
-      answer: 'Puedes explorar medicos y especialidades desde la pantalla principal. Para agendar, confirmar citas y ver tu historial, necesitas crear una cuenta de paciente.',
+      question: '¿Necesito registrarme para buscar médicos?',
+      answer: 'Puedes explorar médicos y especialidades desde la pantalla principal. Para agendar, confirmar citas y ver tu historial, necesitas crear una cuenta de paciente.',
     },
     {
-      question: '¿SaludClick ofrece consultas medicas directamente?',
-      answer: 'SaludClick conecta pacientes con profesionales y centros de salud. La atencion, diagnostico y tratamiento siempre dependen del medico que selecciones.',
+      question: '¿SaludClick ofrece consultas médicas directamente?',
+      answer: 'SaludClick conecta pacientes con profesionales y centros de salud. La atención, el diagnóstico y el tratamiento siempre dependen del médico que selecciones.',
     },
     {
       question: '¿Puedo agendar citas presenciales y teleconsultas?',
-      answer: 'Si. La disponibilidad depende de cada medico o centro, y en la cita podras ver si la atencion es presencial, virtual o ambas modalidades.',
+      answer: 'Sí. La disponibilidad depende de cada médico o centro, y en la cita podrás ver si la atención es presencial, virtual o ambas modalidades.',
     },
     {
-      question: '¿Donde veo mis recetas e historial?',
-      answer: 'Al iniciar sesion como paciente tendras acceso a tus citas, recetas, perfil e informacion medica organizada desde tu dashboard.',
+      question: '¿Dónde veo mis recetas e historial?',
+      answer: 'Al iniciar sesión como paciente tendrás acceso a tus citas, recetas, perfil e información médica organizada desde tu panel.',
     },
     {
       question: '¿Mis datos personales y de seguro son visibles para todos?',
-      answer: 'No. Esa informacion se muestra solo al medico y al personal autorizado relacionado con tu cita, para facilitar la atencion y la gestion administrativa.',
+      answer: 'No. Esa información se muestra solo al médico y al personal autorizado relacionado con tu cita, para facilitar la atención y la gestión administrativa.',
     },
   ];
 
@@ -173,11 +129,39 @@ export default function Home() {
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             '@context': 'https://schema.org',
-            '@type': 'MedicalOrganization',
-            name: 'SaludClick',
-            description: 'Plataforma de salud digital que conecta pacientes con medicos especializados.',
-            url: 'https://salud-c-lick.vercel.app',
-            logo: 'https://salud-c-lick.vercel.app/saludclick.png',
+            '@graph': [
+              {
+                '@type': 'MedicalOrganization',
+                '@id': `${absoluteUrl('/')}#organization`,
+                name: 'SaludClick',
+                description: 'Plataforma de salud digital que conecta pacientes con médicos y centros de salud.',
+                url: absoluteUrl('/'),
+                logo: absoluteUrl('/saludclick.png'),
+                areaServed: {
+                  '@type': 'Country',
+                  name: 'República Dominicana',
+                },
+              },
+              {
+                '@type': 'WebSite',
+                '@id': `${absoluteUrl('/')}#website`,
+                name: 'SaludClick',
+                url: absoluteUrl('/'),
+                inLanguage: 'es-DO',
+                publisher: { '@id': `${absoluteUrl('/')}#organization` },
+              },
+              {
+                '@type': 'FAQPage',
+                mainEntity: faqs.map((faq) => ({
+                  '@type': 'Question',
+                  name: faq.question,
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: faq.answer,
+                  },
+                })),
+              },
+            ],
           }),
         }}
       />
@@ -319,7 +303,7 @@ export default function Home() {
         className={`sticky top-0 z-50 border-b transition-all duration-300 ${
           isScrolled ? 'border-slate-200 bg-white/88 shadow-sm backdrop-blur-xl' : 'border-transparent bg-white/60 backdrop-blur'
         }`}
-        aria-label="Navegacion principal"
+        aria-label="Navegación principal"
       >
         <div className="container-main flex items-center justify-between py-3">
           <Link href="/" aria-label="Ir al inicio de SaludClick" className="rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2">
@@ -333,7 +317,7 @@ export default function Home() {
               <Link href="/developer" className="hover:text-sky-700">Desarrollador</Link>
             </div>
             <Link href="/login" className="rounded-lg bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-700 ring-1 ring-sky-100 transition hover:bg-sky-100 focus:outline-none focus:ring-2 focus:ring-sky-500">
-              Iniciar sesion
+              Iniciar sesión
             </Link>
             <Link href="/register" className="inline-flex items-center gap-2 rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-slate-950/15 transition hover:-translate-y-0.5 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2">
               Registrarse
@@ -381,10 +365,10 @@ export default function Home() {
                 Salud digital simple, segura y conectada
               </div>
               <h1 className="home-hero-title max-w-4xl text-5xl font-black leading-[1.02] text-slate-950 sm:text-6xl lg:text-7xl">
-                Tu salud, tu agenda y tus medicos en un solo lugar
+                Tu salud, tu agenda y tus médicos en un solo lugar
               </h1>
               <p className="home-hero-copy mt-6 max-w-2xl text-lg leading-8 text-slate-600 sm:text-xl">
-                SaludClick une pacientes, doctores y centros de salud con reservas rapidas, historial digital y una experiencia clara desde la primera busqueda.
+                SaludClick une pacientes, doctores y centros de salud con reservas rápidas, historial digital y una experiencia clara desde la primera búsqueda.
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -394,7 +378,7 @@ export default function Home() {
                 </Link>
                 <Link href="/doctors" className="home-secondary-button inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-4 font-bold text-slate-800 shadow-sm transition hover:-translate-y-1 hover:border-sky-300 hover:text-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2">
                   <Stethoscope className="h-5 w-5" />
-                  Ver medicos
+                  Ver médicos
                 </Link>
               </div>
 
@@ -405,7 +389,7 @@ export default function Home() {
                     <div key={stat.label} className="home-surface rounded-xl border border-white bg-white/75 p-4 shadow-sm backdrop-blur">
                       <Icon className="mb-3 h-5 w-5 text-sky-600" />
                       <div className="text-2xl font-black text-slate-950 sm:text-3xl">
-                        <AnimatedCounter end={stat.end} suffix={stat.suffix} />
+                        {stat.value}
                       </div>
                       <div className="mt-1 text-xs font-semibold uppercase text-slate-500">{stat.label}</div>
                     </div>
@@ -439,15 +423,15 @@ export default function Home() {
                   <div className="scan-line pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-cyan-300/0 via-cyan-300/20 to-cyan-300/0" />
                   <div className="mb-6 flex items-center justify-between">
                     <Image src="/icono.png" alt="" width={42} height={42} className="rounded-xl bg-white p-1" />
-                    <span className="rounded-full bg-emerald-400/15 px-3 py-1 text-xs font-bold text-emerald-200">En linea</span>
+                    <span className="rounded-full bg-emerald-400/15 px-3 py-1 text-xs font-bold text-emerald-200">En línea</span>
                   </div>
 
                   <div className="grid gap-4">
                     <div className="home-card rounded-2xl bg-white p-4 text-slate-950">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-semibold text-slate-500">Busca atencion</p>
-                          <h2 className="mt-1 text-2xl font-black">Encuentra un medico</h2>
+                          <p className="text-sm font-semibold text-slate-500">Busca atención</p>
+                          <h2 className="mt-1 text-2xl font-black">Encuentra un médico</h2>
                         </div>
                         <HeartPulse className="h-10 w-10 text-rose-500" />
                       </div>
@@ -467,7 +451,7 @@ export default function Home() {
                       <div className="rounded-2xl bg-sky-500 p-4">
                         <Activity className="mb-4 h-7 w-7" />
                         <p className="text-sm text-sky-100">Especialidades</p>
-                        <p className="text-2xl font-black">+25</p>
+                        <p className="text-2xl font-black">Variadas</p>
                       </div>
                       <div className="rounded-2xl bg-cyan-400 p-4 text-slate-950">
                         <BellRing className="mb-4 h-7 w-7" />
@@ -487,7 +471,7 @@ export default function Home() {
             <div className="mb-10 flex flex-col justify-between gap-5 md:flex-row md:items-end">
               <div>
                 <p className="font-bold uppercase text-sky-700">Experiencia completa</p>
-                <h2 className="mt-2 max-w-2xl text-4xl font-black text-slate-950 md:text-5xl">Mas que agendar: todo el recorrido medico se siente ordenado</h2>
+                <h2 className="mt-2 max-w-2xl text-4xl font-black text-slate-950 md:text-5xl">Más que agendar: todo el recorrido médico se siente ordenado</h2>
               </div>
               <div className="inline-grid grid-cols-2 rounded-xl border border-slate-200 bg-slate-100 p-1">
                 {(['paciente', 'medico'] as Audience[]).map((item) => (
@@ -499,7 +483,7 @@ export default function Home() {
                       audience === item ? 'bg-white text-sky-700 shadow-sm' : 'text-slate-600 hover:text-slate-950'
                     }`}
                   >
-                    {item}
+                    {item === 'medico' ? 'Médico' : 'Paciente'}
                   </button>
                 ))}
               </div>
@@ -596,7 +580,7 @@ export default function Home() {
                 <p className="font-bold uppercase text-sky-700">Preguntas frecuentes</p>
                 <h2 className="mt-2 max-w-xl text-4xl font-black text-slate-950 md:text-5xl">Respuestas claras antes de dar el siguiente paso</h2>
                 <p className="mt-5 max-w-lg text-lg leading-8 text-slate-600">
-                  Lo esencial sobre busqueda, citas, teleconsulta, historial y privacidad en SaludClick.
+                  Lo esencial sobre búsqueda, citas, teleconsulta, historial y privacidad en SaludClick.
                 </p>
               </div>
 
@@ -657,22 +641,22 @@ export default function Home() {
           <div className="md:col-span-2">
             <Image src="/saludclick.png" alt="SaludClick" width={220} height={90} className="h-12 w-auto rounded bg-white px-2 py-1" />
             <p className="mt-5 max-w-md leading-7 text-slate-400">
-              Plataforma de salud digital para conectar pacientes, medicos y centros de atencion con una experiencia moderna.
+              Plataforma de salud digital para conectar pacientes, médicos y centros de atención con una experiencia moderna.
             </p>
           </div>
           <div>
             <h3 className="font-black text-white">Pacientes</h3>
             <div className="mt-4 grid gap-3 text-sm text-slate-400">
-              <Link href="/doctors" className="hover:text-white">Buscar medicos</Link>
-              <Link href="/appointments" className="hover:text-white">Mis citas</Link>
-              <Link href="/medical-records" className="hover:text-white">Historial medico</Link>
+              <Link href="/doctors" className="hover:text-white">Buscar médicos</Link>
+              <Link href="/booking" className="hover:text-white">Agendar cita</Link>
+              <Link href="/faq" className="hover:text-white">Preguntas frecuentes</Link>
             </div>
           </div>
           <div>
             <h3 className="font-black text-white">Cuenta</h3>
             <div className="mt-4 grid gap-3 text-sm text-slate-400">
-              <Link href="/login" className="hover:text-white">Iniciar sesion</Link>
-              <Link href="/register?type=doctor" className="hover:text-white">Registro medico</Link>
+              <Link href="/login" className="hover:text-white">Iniciar sesión</Link>
+              <Link href="/register?type=doctor" className="hover:text-white">Registro médico</Link>
               <Link href="/privacy" className="hover:text-white">Privacidad</Link>
             </div>
           </div>
