@@ -94,9 +94,12 @@ export const metadata: Metadata = {
   alternates: {
     canonical: '/',
   },
-  verification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
-    ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
-    : undefined,
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+    other: {
+      'msvalidate.01': 'CD69EF50D8126383D3096AB83EFE93FD',
+    },
+  },
 };
 
 export const viewport: Viewport = {
