@@ -29,7 +29,20 @@ Create a `.env` file inside `backend/` with the following values:
 Create a `.env.local` file inside `frontend/` with the following values:
 
 - `NEXT_PUBLIC_API_URL=http://localhost:5000/api`
+- `NEXT_PUBLIC_APP_URL=http://localhost:3000`
 - `NEXTAUTH_URL=http://localhost:3000`
+
+In Vercel, use the public production values:
+
+- `NEXT_PUBLIC_API_URL=https://YOUR-RENDER-SERVICE/api`
+- `NEXT_PUBLIC_APP_URL=https://YOUR-PUBLIC-DOMAIN`
+- `SEO_API_URL=https://YOUR-RENDER-SERVICE/api` (optional if `NEXT_PUBLIC_API_URL` is already absolute)
+- `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=YOUR-GOOGLE-VERIFICATION-CODE` (optional)
+
+`NEXT_PUBLIC_APP_URL` is the single source for canonical links, Open Graph,
+structured data, `robots.txt`, and the sitemap. After deploying, register the
+public domain in Google Search Console and submit:
+`https://YOUR-PUBLIC-DOMAIN/sitemap.xml`.
 
 ## Run locally
 

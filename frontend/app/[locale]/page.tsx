@@ -1,5 +1,7 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { createPageMetadata } from '@/lib/seo';
 
 interface LocalePageProps {
   params: {
@@ -13,6 +15,19 @@ type Locale = (typeof locales)[number];
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
+}
+
+export function generateMetadata({ params }: LocalePageProps): Metadata {
+  const isEnglish = params.locale === 'en';
+
+  return createPageMetadata({
+    title: isEnglish ? 'SaludClick in English' : 'SaludClick en español',
+    description: isEnglish
+      ? 'Temporary language landing page for SaludClick.'
+      : 'Página temporal de idioma de SaludClick.',
+    path: `/${params.locale}`,
+    noIndex: true,
+  });
 }
 
 export default function LocalePage({ params }: LocalePageProps) {

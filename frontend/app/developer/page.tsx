@@ -57,7 +57,7 @@ export default function DeveloperPage() {
               <Link href="/contact" className="hover:text-sky-700">Contacto</Link>
               <Link href="/developer" className="text-sky-700">Desarrollador</Link>
             </div>
-            <Link href="/login" className="rounded-lg bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-700 ring-1 ring-sky-100 hover:bg-sky-100">Iniciar sesion</Link>
+            <Link href="/login" className="rounded-lg bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-700 ring-1 ring-sky-100 hover:bg-sky-100">Iniciar sesión</Link>
             <Link href="/register" className="rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-slate-950/15 hover:bg-sky-700">Registrarse</Link>
           </div>
         </div>
@@ -82,7 +82,7 @@ export default function DeveloperPage() {
             Ingeniero en Sistemas
           </p>
           <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-600">
-            SaludClick es un proyecto pensado, construido y mantenido con foco en resolver problemas reales de gestion medica: solicitudes, validaciones, agenda, centros, recetas, notificaciones y experiencia para pacientes.
+            SaludClick es un proyecto pensado, construido y mantenido con foco en resolver problemas reales de gestión médica: solicitudes, validaciones, agenda, centros, recetas, notificaciones y experiencia para pacientes.
           </p>
         </div>
 
@@ -90,19 +90,19 @@ export default function DeveloperPage() {
           <UserRound className="mb-4 h-8 w-8 text-sky-600" />
           <h2 className="text-2xl font-black text-slate-950">Sobre mi</h2>
           <p className="mt-4 max-w-3xl leading-8 text-slate-600">
-            Soy Francisco Leocadio, ingeniero en sistemas y desarrollador de SaludClick. Mi enfoque es construir soluciones utiles, claras y mantenibles para procesos reales, especialmente donde la tecnologia puede ahorrar tiempo y reducir friccion.
+            Soy Francisco Leocadio, ingeniero en sistemas y desarrollador de SaludClick. Mi enfoque es construir soluciones útiles, claras y mantenibles para procesos reales, especialmente donde la tecnología puede ahorrar tiempo y reducir fricción.
           </p>
         </div>
 
         <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Tech icon={Code2} title="Producto a medida" text="Flujos adaptados a SaludClick, no una plantilla generica." />
-          <Tech icon={Database} title="Datos organizados" text="Pacientes, medicos, citas, centros y documentos bajo una estructura clara." />
+          <Tech icon={Database} title="Datos organizados" text="Pacientes, médicos, citas, centros y documentos bajo una estructura clara." />
           <Tech icon={Smartphone} title="Experiencia practica" text="Pantallas pensadas para uso diario en web y movil." />
-          <Tech icon={Shield} title="Cuidado de acceso" text="Roles, validaciones y permisos para proteger informacion sensible." />
+          <Tech icon={Shield} title="Cuidado de acceso" text="Roles, validaciones y permisos para proteger información sensible." />
         </div>
 
         <div className="mt-8 grid gap-4 md:grid-cols-2">
-          <Tech icon={Layers} title="Lo que construye SaludClick" text="Registro medico, validacion de documentos, centros multiples, disponibilidad por sede, reservas, recetas e historial." />
+          <Tech icon={Layers} title="Lo que construye SaludClick" text="Registro médico, validación de documentos, centros múltiples, disponibilidad por sede, reservas, recetas e historial." />
           <Tech icon={HeartHandshake} title="Lo que viene" text="Recordatorios por WhatsApp, mejoras de aprobacion, reportes administrativos y mas herramientas para operacion diaria." />
         </div>
 
@@ -110,7 +110,7 @@ export default function DeveloperPage() {
           <HeartHandshake className="mb-4 h-8 w-8 text-sky-600" />
           <h2 className="text-2xl font-black text-slate-950">Nota del desarrollador</h2>
           <p className="mt-4 max-w-3xl leading-8 text-slate-600">
-            Este espacio puede crecer con enlaces profesionales, portafolio, redes, roadmap publico, version del sistema y formas de contacto directo para colaboraciones o soporte.
+            Este espacio puede crecer con enlaces profesionales, portafolio, redes, hoja de ruta pública, versión del sistema y formas de contacto directo para colaboraciones o soporte.
           </p>
         </div>
       </section>

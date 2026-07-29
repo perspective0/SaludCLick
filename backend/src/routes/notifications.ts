@@ -6,6 +6,7 @@ import {
   markAllNotificationsRead,
   markNotificationRead,
   subscribeToPush,
+  runWhatsAppAppointmentReminders,
 } from '../controllers/notificationController';
 import { authMiddleware } from '../middleware/auth';
 
@@ -13,6 +14,7 @@ const router = Router();
 
 router.get('/vapid-public-key', getVapidPublicKey);
 router.post('/subscriptions', authMiddleware, subscribeToPush);
+router.post('/whatsapp/reminders/run', runWhatsAppAppointmentReminders);
 router.get('/', authMiddleware, listNotifications);
 router.put('/read-all', authMiddleware, markAllNotificationsRead);
 router.put('/read', authMiddleware, markAllNotificationsRead);

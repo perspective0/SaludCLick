@@ -40,6 +40,8 @@ async function ensurePatientProfileColumns() {
   await query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS has_insurance BOOLEAN DEFAULT false');
   await query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS insurance_provider VARCHAR(255)');
   await query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS insurance_number VARCHAR(255)');
+  await query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS whatsapp_reminders_enabled BOOLEAN NOT NULL DEFAULT false');
+  await query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS whatsapp_consent_at TIMESTAMPTZ');
 }
 
 async function ensurePatientRow(id: string) {
@@ -74,7 +76,8 @@ export const getPatientDashboard = async (req: Request, res: Response) => {
     const profile = await queryOne(
       `SELECT u.id, u.first_name, u.last_name, u.email, u.phone, p.date_of_birth, p.address,
               p.document_number, p.emergency_contact, p.emergency_phone,
-              p.has_insurance, p.insurance_provider, p.insurance_number
+              p.has_insurance, p.insurance_provider, p.insurance_number,
+              p.whatsapp_reminders_enabled, p.whatsapp_consent_at
        FROM users u
        JOIN patients p ON p.id = u.id
        WHERE u.id = $1`,
@@ -397,7 +400,8 @@ export const getPatientProfile = async (req: Request, res: Response) => {
       `SELECT u.id, u.first_name, u.last_name, u.email, u.phone, u.avatar,
               p.date_of_birth, p.gender, p.blood_type, p.address, p.city,
               p.document_number, p.emergency_contact, p.emergency_phone,
-              p.has_insurance, p.insurance_provider, p.insurance_number
+              p.has_insurance, p.insurance_provider, p.insurance_number,
+              p.whatsapp_reminders_enabled, p.whatsapp_consent_at
        FROM users u
        JOIN patients p ON p.id = u.id
        WHERE u.id = $1`,
@@ -429,14 +433,29 @@ export const updatePatientProfile = async (req: Request, res: Response) => {
   try {
     await ensurePatientProfileColumns();
     const id = patientId(req);
-    const { phone, address, dateOfBirth, documentNumber, emergencyContact, emergencyPhone, hasInsurance, insuranceProvider, insuranceNumber } = req.body;
+    const {
+      phone,
+      address,
+      dateOfBirth,
+      documentNumber,
+      emergencyContact,
+      emergencyPhone,
+      hasInsurance,
+      insuranceProvider,
+      insuranceNumber,
+      whatsappRemindersEnabled,
+    } = req.body;
 
     const validationError = validatePatientProfileUpdate({ phone, emergencyPhone, dateOfBirth });
     if (validationError) return fail(res, 400, validationError);
+    if (whatsappRemindersEnabled && !String(phone || '').replace(/\D/g, '')) {
+      return fail(res, 400, 'Agrega un teléfono antes de activar los recordatorios por WhatsApp.');
+    }
 
     const previous = await queryOne(
       `SELECT u.phone, p.address, p.date_of_birth, p.document_number, p.emergency_contact, p.emergency_phone,
-              p.has_insurance, p.insurance_provider, p.insurance_number
+              p.has_insurance, p.insurance_provider, p.insurance_number,
+              p.whatsapp_reminders_enabled, p.whatsapp_consent_at
        FROM users u JOIN patients p ON p.id = u.id WHERE u.id = $1`,
       [id]
     );
@@ -453,8 +472,14 @@ export const updatePatientProfile = async (req: Request, res: Response) => {
              emergency_phone = $5,
              has_insurance = $6,
              insurance_provider = $7,
-             insurance_number = $8
-         WHERE id = $9
+             insurance_number = $8,
+             whatsapp_reminders_enabled = $9,
+             whatsapp_consent_at = CASE
+               WHEN $9 = true AND whatsapp_reminders_enabled = false THEN CURRENT_TIMESTAMP
+               WHEN $9 = false THEN NULL
+               ELSE whatsapp_consent_at
+             END
+         WHERE id = $10
          RETURNING *`,
         [
           address || null,
@@ -465,6 +490,7 @@ export const updatePatientProfile = async (req: Request, res: Response) => {
           Boolean(hasInsurance),
           hasInsurance ? insuranceProvider || null : null,
           hasInsurance ? insuranceNumber || null : null,
+          Boolean(whatsappRemindersEnabled),
           id,
         ]
       );

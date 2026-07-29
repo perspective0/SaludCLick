@@ -25,7 +25,9 @@ function getRequestOrigin() {
 }
 
 export default function OpenGraphImage() {
-  const logoUrl = new URL('/saludclick.png', getRequestOrigin()).toString();
+  const requestOrigin = getRequestOrigin();
+  const logoUrl = new URL('/saludclick.png', requestOrigin).toString();
+  const siteHost = new URL(requestOrigin).hostname.replace(/^www\./, '');
 
   return new ImageResponse(
     (
@@ -146,7 +148,7 @@ export default function OpenGraphImage() {
                 background: '#10b981',
               }}
             />
-            salud-c-lick.vercel.app
+            {siteHost}
           </div>
         </div>
       </div>

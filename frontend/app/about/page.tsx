@@ -17,7 +17,7 @@ export default function AboutPage() {
               <Link href="/contact" className="hover:text-sky-700">Contacto</Link>
               <Link href="/developer" className="hover:text-sky-700">Desarrollador</Link>
             </div>
-            <Link href="/login" className="rounded-lg bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-700 ring-1 ring-sky-100 hover:bg-sky-100">Iniciar sesion</Link>
+            <Link href="/login" className="rounded-lg bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-700 ring-1 ring-sky-100 hover:bg-sky-100">Iniciar sesión</Link>
             <Link href="/register" className="rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-slate-950/15 hover:bg-sky-700">Registrarse</Link>
           </div>
         </div>
@@ -35,9 +35,9 @@ export default function AboutPage() {
             <HeartPulse className="h-4 w-4" />
             Sobre nosotros
           </div>
-          <h1 className="text-4xl font-black md:text-5xl">SaludClick nace para hacer mas simple la atencion medica digital</h1>
+          <h1 className="text-4xl font-black md:text-5xl">SaludClick nace para hacer más simple la atención médica digital</h1>
           <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-600">
-            La plataforma ayuda a pacientes a encontrar medicos, agendar citas y mantener informacion importante organizada. Para profesionales, ofrece una forma clara de administrar perfil, centros, horarios, consultas y seguimiento.
+            La plataforma ayuda a pacientes a encontrar médicos, agendar citas y mantener información importante organizada. Para profesionales, ofrece una forma clara de administrar perfil, centros, horarios, consultas y seguimiento.
           </p>
         </div>
 
@@ -45,14 +45,14 @@ export default function AboutPage() {
           <HeartPulse className="mb-4 h-8 w-8 text-sky-600" />
           <h2 className="text-2xl font-black text-slate-950">Nuestra idea central</h2>
           <p className="mt-4 leading-7 text-slate-600">
-            Reducir friccion en los procesos de salud: menos llamadas perdidas, menos informacion dispersa y mas claridad para pacientes, doctores y administradores.
+            Reducir fricción en los procesos de salud: menos llamadas perdidas, menos información dispersa y más claridad para pacientes, doctores y administradores.
           </p>
         </div>
 
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           <Value icon={CalendarCheck} title="Agenda clara" text="Citas, horarios y centros se organizan en un flujo facil de revisar." />
-          <Value icon={ShieldCheck} title="Validacion responsable" text="Los medicos pasan por revision de credenciales antes de activar su cuenta." />
-          <Value icon={Users} title="Conexion real" text="Pacientes, medicos, secretarias y administracion trabajan sobre la misma informacion." />
+          <Value icon={ShieldCheck} title="Validación responsable" text="Los médicos pasan por revisión de credenciales antes de activar su cuenta." />
+          <Value icon={Users} title="Conexión real" text="Pacientes, médicos, secretarias y administración trabajan sobre la misma información." />
         </div>
       </section>
     </main>

@@ -41,7 +41,7 @@ export default function ContactPage() {
               <Link href="/contact" className="text-sky-700">Contacto</Link>
               <Link href="/developer" className="hover:text-sky-700">Desarrollador</Link>
             </div>
-            <Link href="/login" className="rounded-lg bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-700 ring-1 ring-sky-100 hover:bg-sky-100">Iniciar sesion</Link>
+            <Link href="/login" className="rounded-lg bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-700 ring-1 ring-sky-100 hover:bg-sky-100">Iniciar sesión</Link>
             <Link href="/register" className="rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-slate-950/15 hover:bg-sky-700">Registrarse</Link>
           </div>
         </div>
@@ -61,7 +61,7 @@ export default function ContactPage() {
           </div>
           <h1 className="text-4xl font-black md:text-5xl">Hablemos de SaludClick</h1>
           <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
-            Para soporte, solicitudes medicas, centros de salud o colaboraciones, puedes escribirnos por los canales principales.
+            Para soporte, solicitudes médicas, centros de salud o colaboraciones, puedes escribirnos por los canales principales.
           </p>
         </div>
 
@@ -87,7 +87,7 @@ export default function ContactPage() {
                   defaultValue="Soporte"
                 >
                   <option>Soporte</option>
-                  <option>Solicitud medica</option>
+                  <option>Solicitud médica</option>
                   <option>Centro de salud</option>
                   <option>Alianza o colaboracion</option>
                   <option>Otro</option>

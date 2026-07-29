@@ -51,6 +51,9 @@ Thumbs.db
 backend/uploads/*
 !backend/uploads/.gitkeep
 
+# Descarga local de Evolution API (no forma parte de SaludClick)
+/evolution-api-*/
+
 # Package lock files (optional, depends on your preference)
 package-lock.json
 yarn.lock

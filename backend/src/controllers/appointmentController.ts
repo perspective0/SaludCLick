@@ -771,6 +771,12 @@ export const updateAppointment = async (req: Request, res: Response) => {
       `UPDATE appointments SET ${updates.join(', ')} WHERE id = $${params.length}`,
       params
     );
+    if (appointmentDate || appointmentTime) {
+      await query(
+        'DELETE FROM whatsapp_reminder_deliveries WHERE appointment_id = $1',
+        [id]
+      ).catch(() => null);
+    }
 
     notifyAppointmentUsers(id, {
       title: status === 'completed' ? 'Cita medica completada' : appointmentDate || appointmentTime ? 'Cita reagendada' : 'Cita medica actualizada',
