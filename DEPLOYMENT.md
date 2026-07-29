@@ -44,6 +44,11 @@ structured data, `robots.txt`, and the sitemap. After deploying, register the
 public domain in Google Search Console and submit:
 `https://YOUR-PUBLIC-DOMAIN/sitemap.xml`.
 
+When adding or changing `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`, create a new
+Vercel deployment because the verification metadata is generated during the
+frontend build. Google also supports an HTML verification file placed in
+`frontend/public/`, which becomes available at the root of the public domain.
+
 ## Run locally
 
 ### Backend
