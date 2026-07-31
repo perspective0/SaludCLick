@@ -24,6 +24,9 @@ export const metadata: Metadata = {
     template: '%s | SaludClick',
   },
   description: SITE_DESCRIPTION,
+  other: {
+    'mobile-web-app-capable': 'yes',
+  },
   keywords: [
     'SaludClick',
     'citas médicas',

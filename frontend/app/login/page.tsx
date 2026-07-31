@@ -196,6 +196,7 @@ function LoginContent() {
                   <input
                     type="email"
                     name="email"
+                    autoComplete="username"
                     value={formData.email}
                     onChange={handleChange}
                     required
@@ -214,6 +215,7 @@ function LoginContent() {
                   <input
                     type={showPassword ? 'text' : 'password'}
                     name="password"
+                    autoComplete="current-password"
                     value={formData.password}
                     onChange={handleChange}
                     required
