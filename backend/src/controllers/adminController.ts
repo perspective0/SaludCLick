@@ -558,12 +558,12 @@ export const listFeaturedDoctors = async (_req: Request, res: Response) => {
     await ensureDoctorDisplayColumns();
     const result = await query(
       `SELECT d.id, d.featured_on_home, d.specialties, d.average_rating, d.consultation_price,
-              u.first_name, u.last_name, u.email, u.avatar,
+              u.first_name, u.last_name, u.email, u.avatar, u.is_active,
               hc.name AS health_center_name, hc.city
        FROM doctors d
        JOIN users u ON u.id = d.id
        LEFT JOIN health_centers hc ON hc.id = d.health_center_id
-       WHERE u.role = 'doctor' AND d.is_verified = true
+       WHERE u.role = 'doctor' AND d.is_verified = true AND u.is_active = true
        ORDER BY d.featured_on_home DESC, d.average_rating DESC, u.first_name ASC`
     );
     return res.json({ success: true, data: result.rows });
@@ -579,17 +579,39 @@ export const updateFeaturedDoctor = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { featuredOnHome } = req.body;
 
+    if (typeof featuredOnHome !== 'boolean') {
+      return res.status(400).json({ success: false, message: 'featuredOnHome must be a boolean' });
+    }
+
     const doctor = await queryOne(
-      "SELECT d.id FROM doctors d JOIN users u ON u.id = d.id WHERE d.id = $1 AND u.role = 'doctor'",
+      `SELECT d.id, d.featured_on_home
+       FROM doctors d
+       JOIN users u ON u.id = d.id
+       WHERE d.id = $1 AND u.role = 'doctor' AND d.is_verified = true AND u.is_active = true`,
       [id]
     );
     if (!doctor) {
-      return res.status(404).json({ success: false, message: 'Doctor not found' });
+      return res.status(404).json({ success: false, message: 'Médico activo y verificado no encontrado' });
+    }
+
+    if (featuredOnHome && !doctor.featured_on_home) {
+      const selected = await queryOne(
+        `SELECT COUNT(*)::int AS total
+         FROM doctors d
+         JOIN users u ON u.id = d.id
+         WHERE d.featured_on_home = true AND d.is_verified = true AND u.is_active = true`
+      );
+      if (Number(selected?.total || 0) >= 4) {
+        return res.status(400).json({
+          success: false,
+          message: 'Solo puedes seleccionar hasta 4 especialistas destacados',
+        });
+      }
     }
 
     const result = await query(
       'UPDATE doctors SET featured_on_home = $1 WHERE id = $2 RETURNING id, featured_on_home',
-      [Boolean(featuredOnHome), id]
+      [featuredOnHome, id]
     );
     return res.json({ success: true, data: result.rows[0] });
   } catch (err: any) {
