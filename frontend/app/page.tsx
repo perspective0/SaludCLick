@@ -48,12 +48,7 @@ export default function Home() {
   useEffect(() => {
     doctorAPI.list({ featured: true, limit: 4 })
       .then((response) => {
-        const selected = response.data || [];
-        if (selected.length) {
-          setFeaturedDoctors(selected.slice(0, 4));
-          return;
-        }
-        return doctorAPI.list({ limit: 4 }).then((fallback) => setFeaturedDoctors((fallback.data || []).slice(0, 4)));
+        setFeaturedDoctors((response.data || []).slice(0, 4));
       })
       .catch(() => {
         setFeaturedDoctors([]);

@@ -322,6 +322,13 @@ export default function AdminUsersPage() {
                 Solicitudes Médicos
               </Link>
               <Link
+                href="/admin/featured-doctors"
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                <Star className="w-5 h-5" />
+                Especialistas destacados
+              </Link>
+              <Link
                 href="/admin/appointments"
                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 transition-colors"
               >

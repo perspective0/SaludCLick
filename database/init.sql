@@ -101,6 +101,7 @@ CREATE TABLE doctors (
   prescription_logo TEXT,
   documents_submitted_at TIMESTAMP,
   is_verified BOOLEAN DEFAULT false,
+  featured_on_home BOOLEAN DEFAULT false,
   specialties TEXT[], -- Array of specialties
   average_rating DECIMAL(3, 2) DEFAULT 0
 );

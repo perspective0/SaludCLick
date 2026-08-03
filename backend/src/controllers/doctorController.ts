@@ -139,7 +139,7 @@ export const getDoctors = async (req: Request, res: Response) => {
       FROM doctors d
       JOIN users u ON d.id = u.id
       LEFT JOIN health_centers hc ON d.health_center_id = hc.id
-      WHERE d.is_verified = true
+      WHERE d.is_verified = true AND u.is_active = true
     `;
     const params: any[] = [];
 
