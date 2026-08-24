@@ -4,6 +4,37 @@ import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
 import { hashPassword } from '../utils/auth';
 import { auditClinicalAction } from '../utils/audit';
+import { v2 as cloudinary } from 'cloudinary';
+
+const cloudinaryEnabled = Boolean(
+  process.env.CLOUDINARY_CLOUD_NAME &&
+  process.env.CLOUDINARY_API_KEY &&
+  process.env.CLOUDINARY_API_SECRET,
+);
+
+if (cloudinaryEnabled) {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+}
+
+function uploadAvatarToCloudinary(buffer: Buffer, userId: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const upload = cloudinary.uploader.upload_stream(
+      { folder: 'saludclick/avatars', public_id: userId, overwrite: true, resource_type: 'image' },
+      (error, result) => {
+        if (error || !result) {
+          reject(error || new Error('Cloudinary upload failed'));
+          return;
+        }
+        resolve(result.secure_url);
+      },
+    );
+    upload.end(buffer);
+  });
+}
 
 async function ensureDoctorProfileDocumentColumns() {
   await query(`
@@ -808,7 +839,9 @@ export const uploadDoctorAvatar = async (req: Request, res: Response) => {
     }
 
     const baseUrl = `${req.protocol}://${req.get('host')}`;
-    const avatarUrl = `${baseUrl}/uploads/avatars/${req.file.filename}`;
+    const avatarUrl = cloudinaryEnabled && req.file.buffer
+      ? await uploadAvatarToCloudinary(req.file.buffer, id)
+      : `${baseUrl}/uploads/avatars/${req.file.filename}`;
     await query('UPDATE users SET avatar = $1 WHERE id = $2', [avatarUrl, id]);
 
     res.json({ success: true, data: { avatar: avatarUrl } });

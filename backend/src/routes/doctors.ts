@@ -11,12 +11,17 @@ const uploadDir = process.env.UPLOAD_DIR || path.join(__dirname, '../../uploads'
 const avatarDir = path.join(uploadDir, 'avatars');
 const prescriptionLogoDir = path.join(uploadDir, 'prescription-logos');
 const prescriptionSealDir = path.join(uploadDir, 'prescription-seals');
+const cloudinaryEnabled = Boolean(
+  process.env.CLOUDINARY_CLOUD_NAME &&
+  process.env.CLOUDINARY_API_KEY &&
+  process.env.CLOUDINARY_API_SECRET,
+);
 fs.mkdirSync(avatarDir, { recursive: true });
 fs.mkdirSync(prescriptionLogoDir, { recursive: true });
 fs.mkdirSync(prescriptionSealDir, { recursive: true });
 
 const avatarUpload = multer({
-  storage: multer.diskStorage({
+  storage: cloudinaryEnabled ? multer.memoryStorage() : multer.diskStorage({
     destination: (_req, _file, cb) => cb(null, avatarDir),
     filename: (_req, file, cb) => {
       const safeExt = path.extname(file.originalname).toLowerCase() || '.jpg';
