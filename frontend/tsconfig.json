@@ -17,7 +17,6 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "preserve",
-    "baseUrl": ".",
     "paths": {
       "@/*": [
         "./*"
@@ -40,7 +39,7 @@
     },
     "allowJs": true,
     "incremental": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "plugins": [
       {
         "name": "next"
