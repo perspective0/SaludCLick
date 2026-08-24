@@ -33,6 +33,7 @@ import fileRoutes from './routes/files';
 import reviewRoutes from './routes/reviews';
 
 const app: Express = express();
+const uploadDir = process.env.UPLOAD_DIR || path.join(__dirname, '../uploads');
 if (appConfig.env === 'production') {
   app.set('trust proxy', 1);
 }
@@ -107,8 +108,8 @@ app.use(express.urlencoded({ limit: process.env.URLENCODED_BODY_LIMIT || '24mb',
 app.use(csrfMiddleware);
 
 // Public static files
-app.use('/uploads/avatars', express.static(path.join(__dirname, '../uploads/avatars')));
-app.use('/uploads/prescription-logos', express.static(path.join(__dirname, '../uploads/prescription-logos')));
+app.use('/uploads/avatars', express.static(path.join(uploadDir, 'avatars')));
+app.use('/uploads/prescription-logos', express.static(path.join(uploadDir, 'prescription-logos')));
 app.use(requestLogger);
 app.use(maintenanceMiddleware);
 

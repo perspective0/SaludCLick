@@ -7,9 +7,10 @@ import { authMiddleware, optionalAuthMiddleware, roleMiddleware } from '../middl
 import { getSettings } from '../services/settingsService';
 
 const router = Router();
-const avatarDir = path.join(__dirname, '../../uploads/avatars');
-const prescriptionLogoDir = path.join(__dirname, '../../uploads/prescription-logos');
-const prescriptionSealDir = path.join(__dirname, '../../uploads/prescription-seals');
+const uploadDir = process.env.UPLOAD_DIR || path.join(__dirname, '../../uploads');
+const avatarDir = path.join(uploadDir, 'avatars');
+const prescriptionLogoDir = path.join(uploadDir, 'prescription-logos');
+const prescriptionSealDir = path.join(uploadDir, 'prescription-seals');
 fs.mkdirSync(avatarDir, { recursive: true });
 fs.mkdirSync(prescriptionLogoDir, { recursive: true });
 fs.mkdirSync(prescriptionSealDir, { recursive: true });

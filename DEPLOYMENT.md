@@ -9,6 +9,7 @@ Create a `.env` file inside `backend/` with the following values:
 - `JWT_EXPIRE=7d`
 - `FRONTEND_URL=http://localhost:3000`
 - `PUBLIC_APP_URL=https://your-production-domain.example`
+- `UPLOAD_DIR=/var/data/uploads` when using a Render Persistent Disk mounted at `/var/data`.
 - `SMTP_HOST=smtp.example.com`
 - `SMTP_PORT=587`
 - `SMTP_USER=your-email-user`
@@ -43,6 +44,10 @@ In Vercel, use the public production values:
 structured data, `robots.txt`, and the sitemap. After deploying, register the
 public domain in Google Search Console and submit:
 `https://YOUR-PUBLIC-DOMAIN/sitemap.xml`.
+
+Render deployments use an ephemeral filesystem by default. Add a Persistent Disk
+to the backend service, mount it at `/var/data`, and set `UPLOAD_DIR=/var/data/uploads`.
+This preserves avatars, prescription logos, and seals across deploys.
 
 When adding or changing `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`, create a new
 Vercel deployment because the verification metadata is generated during the
