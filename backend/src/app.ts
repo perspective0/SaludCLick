@@ -2,6 +2,8 @@ import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import { appConfig } from './config/appConfig';
 import { requestLogger } from './middleware/requestLogger';
 import { maintenanceMiddleware } from './middleware/runtimeSettings';
@@ -76,6 +78,26 @@ app.use(
 );
 
 // Middleware
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" } // Allow cross-origin resource sharing for static files
+}));
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many requests, please try again later.' }
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, 
+  max: 20, 
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many login attempts, please try again later.' }
+});
+
 app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || '24mb' }));
 app.use(express.urlencoded({ limit: process.env.URLENCODED_BODY_LIMIT || '24mb', extended: true }));
 app.use(csrfMiddleware);
@@ -96,6 +118,8 @@ app.get('/api/health', (req: Request, res: Response) => {
 });
 
 // Routes
+app.use('/api', apiLimiter);
+app.use('/api/auth', authLimiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/doctors', doctorRoutes);
 app.use('/api/appointments', appointmentRoutes);
