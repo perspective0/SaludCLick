@@ -33,6 +33,7 @@ import fileRoutes from './routes/files';
 import reviewRoutes from './routes/reviews';
 
 const app: Express = express();
+const uploadDir = process.env.UPLOAD_DIR || path.join(__dirname, '../uploads');
 if (appConfig.env === 'production') {
   app.set('trust proxy', 1);
 }
@@ -88,7 +89,7 @@ const isDev = appConfig.env !== 'production';
 
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: isDev ? 1000 : 100, 
+  max: isDev ? 1000 : 1000,
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, message: 'Too many requests, please try again later.' }
@@ -96,7 +97,7 @@ const apiLimiter = rateLimit({
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, 
-  max: isDev ? 1000 : 20, 
+  max: isDev ? 1000 : 20,
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, message: 'Too many login attempts, please try again later.' }
@@ -107,8 +108,8 @@ app.use(express.urlencoded({ limit: process.env.URLENCODED_BODY_LIMIT || '24mb',
 app.use(csrfMiddleware);
 
 // Public static files
-app.use('/uploads/avatars', express.static(path.join(__dirname, '../uploads/avatars')));
-app.use('/uploads/prescription-logos', express.static(path.join(__dirname, '../uploads/prescription-logos')));
+app.use('/uploads/avatars', express.static(path.join(uploadDir, 'avatars')));
+app.use('/uploads/prescription-logos', express.static(path.join(uploadDir, 'prescription-logos')));
 app.use(requestLogger);
 app.use(maintenanceMiddleware);
 
@@ -123,7 +124,7 @@ app.get('/api/health', (req: Request, res: Response) => {
 
 // Routes
 app.use('/api', apiLimiter);
-app.use('/api/auth', authLimiter);
+app.use('/api/auth/login', authLimiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/doctors', doctorRoutes);
 app.use('/api/appointments', appointmentRoutes);
