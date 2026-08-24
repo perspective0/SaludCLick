@@ -88,7 +88,7 @@ const isDev = appConfig.env !== 'production';
 
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: isDev ? 1000 : 100, 
+  max: isDev ? 1000 : 1000,
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, message: 'Too many requests, please try again later.' }
@@ -96,7 +96,7 @@ const apiLimiter = rateLimit({
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, 
-  max: isDev ? 1000 : 20, 
+  max: isDev ? 1000 : 20,
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, message: 'Too many login attempts, please try again later.' }
@@ -123,7 +123,7 @@ app.get('/api/health', (req: Request, res: Response) => {
 
 // Routes
 app.use('/api', apiLimiter);
-app.use('/api/auth', authLimiter);
+app.use('/api/auth/login', authLimiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/doctors', doctorRoutes);
 app.use('/api/appointments', appointmentRoutes);
