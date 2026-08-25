@@ -22,10 +22,14 @@ declare global {
 }
 
 function setTranslateCookie(locale: Locale) {
-  const value = locale === 'en' ? '/es/en' : '/es/es';
-  const expires = 'expires=Fri, 31 Dec 9999 23:59:59 GMT';
-  document.cookie = `googtrans=${value}; ${expires}; path=/; SameSite=Lax`;
-  document.cookie = `googtrans=${value}; ${expires}; path=/; domain=${window.location.hostname}; SameSite=Lax`;
+  try {
+    const value = locale === 'en' ? '/es/en' : '/es/es';
+    const expires = 'expires=Fri, 31 Dec 9999 23:59:59 GMT';
+    document.cookie = `googtrans=${value}; ${expires}; path=/; SameSite=Lax`;
+    document.cookie = `googtrans=${value}; ${expires}; path=/; domain=${window.location.hostname}; SameSite=Lax`;
+  } catch {
+    // El navegador puede bloquear cookies en algunos modos móviles.
+  }
 }
 
 function initGoogleTranslate() {
@@ -42,34 +46,48 @@ function initGoogleTranslate() {
 }
 
 function loadGoogleTranslate() {
-  window.googleTranslateElementInit = initGoogleTranslate;
+  try {
+    window.googleTranslateElementInit = initGoogleTranslate;
 
-  if (document.getElementById(SCRIPT_ID)) {
-    initGoogleTranslate();
-    return;
+    if (document.getElementById(SCRIPT_ID)) {
+      initGoogleTranslate();
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.id = SCRIPT_ID;
+    script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+    script.async = true;
+    document.body.appendChild(script);
+  } catch {
+    // Algunos navegadores móviles bloquean la inyección del script.
   }
-
-  const script = document.createElement('script');
-  script.id = SCRIPT_ID;
-  script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
-  script.async = true;
-  document.body.appendChild(script);
 }
 
 export default function LanguageToggle({ floating = false }: { floating?: boolean }) {
   const [locale, setLocale] = useState<Locale>('es');
 
   useEffect(() => {
-    const savedLocale = (localStorage.getItem(STORAGE_KEY) as Locale | null) || 'es';
-    setLocale(savedLocale);
-    document.documentElement.lang = savedLocale === 'en' ? 'en' : 'es';
-    setTranslateCookie(savedLocale);
-    loadGoogleTranslate();
+    try {
+      const savedLocale = (localStorage.getItem(STORAGE_KEY) as Locale | null) || 'es';
+      const normalizedLocale = savedLocale === 'en' ? 'en' : 'es';
+      setLocale(normalizedLocale);
+      document.documentElement.lang = normalizedLocale;
+      setTranslateCookie(normalizedLocale);
+      loadGoogleTranslate();
+    } catch {
+      setLocale('es');
+      document.documentElement.lang = 'es';
+    }
   }, []);
 
   const selectLocale = (nextLocale: Locale) => {
     setLocale(nextLocale);
-    localStorage.setItem(STORAGE_KEY, nextLocale);
+    try {
+      localStorage.setItem(STORAGE_KEY, nextLocale);
+    } catch {
+      // El almacenamiento puede estar deshabilitado en móvil.
+    }
     document.documentElement.lang = nextLocale === 'en' ? 'en' : 'es';
     setTranslateCookie(nextLocale);
     window.location.reload();

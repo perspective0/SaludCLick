@@ -26,8 +26,14 @@ function wasRecentlyDismissed() {
 }
 
 function isAppAlreadyInstalled() {
-  const standalone = window.matchMedia('(display-mode: standalone)').matches;
+  if (typeof window === 'undefined') return false;
+
+  const standalone =
+    typeof window.matchMedia === 'function'
+      ? window.matchMedia('(display-mode: standalone)').matches
+      : false;
   const iosStandalone =
+    typeof navigator !== 'undefined' &&
     'standalone' in navigator &&
     Boolean((navigator as Navigator & { standalone?: boolean }).standalone);
 
@@ -35,6 +41,8 @@ function isAppAlreadyInstalled() {
 }
 
 function isIosDevice() {
+  if (typeof navigator === 'undefined') return false;
+
   const userAgent = navigator.userAgent.toLowerCase();
   const touchEnabledIpad =
     navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;

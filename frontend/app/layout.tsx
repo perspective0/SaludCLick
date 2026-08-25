@@ -127,9 +127,15 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               try {
-                var savedTheme = localStorage.getItem('saludclick_theme');
-                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                var theme = savedTheme || (prefersDark ? 'dark' : 'light');
+                var savedTheme = null;
+                try {
+                  savedTheme = localStorage.getItem('saludclick_theme');
+                } catch (_) {}
+                var prefersDark = false;
+                try {
+                  prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                } catch (_) {}
+                var theme = (savedTheme === 'dark' || savedTheme === 'light') ? savedTheme : (prefersDark ? 'dark' : 'light');
                 document.documentElement.classList.toggle('dark', theme === 'dark');
                 document.documentElement.style.colorScheme = theme;
               } catch (_) {}
