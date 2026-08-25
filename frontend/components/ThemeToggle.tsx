@@ -12,22 +12,41 @@ function applyTheme(theme: Theme) {
   document.documentElement.style.colorScheme = theme;
 }
 
+function getStoredTheme(): Theme | null {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY) as Theme | null;
+    return saved === 'light' || saved === 'dark' ? saved : null;
+  } catch {
+    return null;
+  }
+}
+
 export default function ThemeToggle() {
   const [theme, setTheme] = useState<Theme>('light');
 
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY) as Theme | null;
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const initialTheme = saved || (prefersDark ? 'dark' : 'light');
+    try {
+      const saved = getStoredTheme();
+      const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)')?.matches ?? false;
+      const initialTheme = saved || (prefersDark ? 'dark' : 'light');
 
-    setTheme(initialTheme);
-    applyTheme(initialTheme);
+      setTheme(initialTheme);
+      applyTheme(initialTheme);
+    } catch {
+      const fallbackTheme: Theme = 'light';
+      setTheme(fallbackTheme);
+      applyTheme(fallbackTheme);
+    }
   }, []);
 
   const toggleTheme = () => {
     const nextTheme = theme === 'dark' ? 'light' : 'dark';
     setTheme(nextTheme);
-    localStorage.setItem(STORAGE_KEY, nextTheme);
+    try {
+      localStorage.setItem(STORAGE_KEY, nextTheme);
+    } catch {
+      // Algunos navegadores móviles bloquean el almacenamiento local.
+    }
     applyTheme(nextTheme);
   };
 
