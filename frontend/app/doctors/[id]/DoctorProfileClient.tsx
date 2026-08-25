@@ -108,6 +108,19 @@ export default function DoctorProfileClient({
                 </div>
               </div>
 
+              {doctor.accepted_insurances?.length > 0 && (
+                <div className="mb-6 rounded-lg bg-emerald-50 p-4">
+                  <h2 className="text-lg font-bold text-emerald-950 mb-2">Seguros aceptados</h2>
+                  <div className="flex flex-wrap gap-2">
+                    {doctor.accepted_insurances.map((insurer: string) => (
+                      <span key={insurer} className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-emerald-800">
+                        {insurer}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="mb-6 pb-6 border-b">
                 <div className="flex items-center gap-2">
                   <span className="text-3xl font-bold text-secondary">{doctor.average_rating || 4.5}</span>

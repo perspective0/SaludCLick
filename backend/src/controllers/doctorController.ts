@@ -21,6 +21,8 @@ async function ensureDoctorProfileDocumentColumns() {
 
 async function ensureDoctorDisplayColumns() {
   await query('ALTER TABLE doctors ADD COLUMN IF NOT EXISTS featured_on_home BOOLEAN DEFAULT false').catch(() => null);
+  await query("ALTER TABLE doctors ADD COLUMN IF NOT EXISTS accepted_insurances TEXT[] DEFAULT '{}'").catch(() => null);
+  await query('ALTER TABLE doctors ADD COLUMN IF NOT EXISTS insured_consultation_price DECIMAL(10, 2)').catch(() => null);
 }
 
 async function ensureReviewsTable() {
@@ -214,14 +216,16 @@ export const getDoctors = async (req: Request, res: Response) => {
 export const getDoctorById = async (req: Request, res: Response) => {
   try {
     await ensureDoctorProfileDocumentColumns();
+    await ensureDoctorDisplayColumns();
     await ensureReviewsTable();
     const { id } = req.params;
 
     const doctor = await queryOne(
       `SELECT 
-        d.id, d.license_number, d.bio, d.years_experience, d.consultation_price,
+        d.id, d.license_number, d.bio, d.years_experience, d.consultation_price, d.insured_consultation_price,
         d.consultation_duration, d.teleconsultation_enabled, d.vacation_mode,
         d.average_rating, d.specialties, d.health_center_id,
+        d.accepted_insurances,
         d.document_number,
         d.prescription_logo,
         d.prescription_seal,
@@ -370,10 +374,12 @@ export const getDoctorPatients = async (req: Request, res: Response) => {
 export const updateDoctorProfile = async (req: Request, res: Response) => {
   try {
     await ensureDoctorProfileDocumentColumns();
+    await ensureDoctorDisplayColumns();
     const { id } = req.params;
     const {
       bio,
       consultationPrice,
+      insuredConsultationPrice,
       yearsExperience,
       specialties,
       avatar,
@@ -391,6 +397,7 @@ export const updateDoctorProfile = async (req: Request, res: Response) => {
       specialtyProofImage,
       prescriptionLogo,
       prescriptionSeal,
+      acceptedInsurances,
     } = req.body;
 
     // Verify ownership
@@ -422,7 +429,7 @@ export const updateDoctorProfile = async (req: Request, res: Response) => {
     }
 
     // Update doctor profile
-    if (bio !== undefined || consultationPrice !== undefined || yearsExperience !== undefined || specialties !== undefined || healthCenterId !== undefined || healthCenterIds !== undefined || newHealthCenter !== undefined || consultationDuration !== undefined || teleconsultationEnabled !== undefined || vacationMode !== undefined || documentNumber !== undefined || idFrontImage !== undefined || idBackImage !== undefined || exequaturImage !== undefined || specialtyProofImage !== undefined || prescriptionLogo !== undefined || prescriptionSeal !== undefined) {
+    if (bio !== undefined || consultationPrice !== undefined || insuredConsultationPrice !== undefined || yearsExperience !== undefined || specialties !== undefined || acceptedInsurances !== undefined || healthCenterId !== undefined || healthCenterIds !== undefined || newHealthCenter !== undefined || consultationDuration !== undefined || teleconsultationEnabled !== undefined || vacationMode !== undefined || documentNumber !== undefined || idFrontImage !== undefined || idBackImage !== undefined || exequaturImage !== undefined || specialtyProofImage !== undefined || prescriptionLogo !== undefined || prescriptionSeal !== undefined) {
       const updates: string[] = [];
       const params: any[] = [];
 
@@ -434,6 +441,10 @@ export const updateDoctorProfile = async (req: Request, res: Response) => {
         updates.push(`consultation_price = $${params.length + 1}`);
         params.push(consultationPrice);
       }
+      if (insuredConsultationPrice !== undefined) {
+        updates.push(`insured_consultation_price = $${params.length + 1}`);
+        params.push(insuredConsultationPrice === null || insuredConsultationPrice === '' ? null : Number(insuredConsultationPrice));
+      }
       if (yearsExperience !== undefined) {
         updates.push(`years_experience = $${params.length + 1}`);
         params.push(yearsExperience);
@@ -441,6 +452,10 @@ export const updateDoctorProfile = async (req: Request, res: Response) => {
       if (specialties !== undefined && Array.isArray(specialties)) {
         updates.push(`specialties = $${params.length + 1}`);
         params.push(specialties);
+      }
+      if (acceptedInsurances !== undefined && Array.isArray(acceptedInsurances)) {
+        updates.push(`accepted_insurances = $${params.length + 1}`);
+        params.push(Array.from(new Set(acceptedInsurances.map((value) => String(value).trim()).filter(Boolean))));
       }
       if (consultationDuration !== undefined) {
         updates.push(`consultation_duration = $${params.length + 1}`);

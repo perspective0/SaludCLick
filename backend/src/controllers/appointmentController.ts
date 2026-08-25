@@ -93,6 +93,11 @@ async function ensurePatientAppointmentFields() {
   await query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS insurance_number VARCHAR(255)');
 }
 
+async function ensureAppointmentPriceFields() {
+  await query('ALTER TABLE appointments ADD COLUMN IF NOT EXISTS consultation_price DECIMAL(10, 2)').catch(() => null);
+  await query('ALTER TABLE appointments ADD COLUMN IF NOT EXISTS insurance_price_applied BOOLEAN DEFAULT false').catch(() => null);
+}
+
 function createJitsiJwt(params: {
   roomId: string;
   userId: string;
@@ -196,6 +201,7 @@ export const createAppointment = async (req: Request, res: Response) => {
   }
 
   try {
+    await ensureAppointmentPriceFields();
     const { doctorId, patientId: requestedPatientId, appointmentDate, appointmentTime, reasonForVisit, appointmentType = 'presencial', healthCenterId, videoRoomUrl } = req.body;
     const userId = req.user?.id;
     const userRole = req.user?.role;
@@ -229,6 +235,8 @@ export const createAppointment = async (req: Request, res: Response) => {
     }
 
     const patient = await queryOne('SELECT id FROM patients WHERE id = $1', [patientId]);
+    const patientInsuranceResult = await query('SELECT insurance_provider FROM patients WHERE id = $1', [patientId]);
+    const patientInsurance = patientInsuranceResult.rows?.[0];
     if (!patient) {
       return res.status(400).json({
         success: false,
@@ -258,6 +266,11 @@ export const createAppointment = async (req: Request, res: Response) => {
       'SELECT health_center_id, teleconsultation_enabled, vacation_mode FROM doctors WHERE id = $1',
       [appointmentDoctorId]
     );
+    const doctorPricingResult = await query(
+      'SELECT consultation_price, insured_consultation_price, accepted_insurances FROM doctors WHERE id = $1',
+      [appointmentDoctorId]
+    );
+    const doctorPricing = doctorPricingResult.rows?.[0];
 
     if (!doctor) {
       return res.status(404).json({ success: false, message: 'Doctor not found' });
@@ -284,6 +297,18 @@ export const createAppointment = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: 'La hora seleccionada no esta dentro del horario de consulta del medico.' });
     }
 
+    const patientInsurer = String(patientInsurance?.insurance_provider || '').trim().toLowerCase();
+    const acceptedInsurers = Array.isArray(doctorPricing?.accepted_insurances) ? doctorPricing.accepted_insurances : [];
+    const insurancePriceApplied = Boolean(
+      patientInsurer &&
+      doctorPricing?.insured_consultation_price !== null &&
+      doctorPricing?.insured_consultation_price !== undefined &&
+      acceptedInsurers.some((insurer: string) => String(insurer).trim().toLowerCase() === patientInsurer)
+    );
+    const consultationPrice = insurancePriceApplied
+      ? doctorPricing.insured_consultation_price
+      : doctorPricing?.consultation_price;
+
     // Check for conflicts
     const conflict = await queryOne(
       `SELECT id FROM appointments 
@@ -308,9 +333,9 @@ export const createAppointment = async (req: Request, res: Response) => {
     const nextVideoRoomUrl = externalVideoRoomUrl || (videoRoomId ? `/teleconsulta/${videoRoomId}` : null);
     await query(
       `INSERT INTO appointments 
-       (id, patient_id, doctor_id, health_center_id, appointment_date, appointment_time, appointment_type, video_room_id, video_room_url, reason_for_visit, status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'scheduled')`,
-      [appointmentId, patientId, appointmentDoctorId, selectedHealthCenterId, appointmentDate, appointmentTime, normalizedType, videoRoomId, nextVideoRoomUrl, reasonForVisit || null]
+      (id, patient_id, doctor_id, health_center_id, appointment_date, appointment_time, appointment_type, video_room_id, video_room_url, reason_for_visit, consultation_price, insurance_price_applied, status)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'scheduled')`,
+          [appointmentId, patientId, appointmentDoctorId, selectedHealthCenterId, appointmentDate, appointmentTime, normalizedType, videoRoomId, nextVideoRoomUrl, reasonForVisit || null, consultationPrice, insurancePriceApplied]
     );
 
     notifyAppointmentUsers(appointmentId, {
@@ -328,7 +353,7 @@ export const createAppointment = async (req: Request, res: Response) => {
     res.status(201).json({
       success: true,
       message: 'Appointment scheduled successfully',
-      data: { id: appointmentId, status: 'scheduled', appointmentType: normalizedType, videoRoomId, videoRoomUrl: nextVideoRoomUrl },
+      data: { id: appointmentId, status: 'scheduled', appointmentType: normalizedType, consultationPrice, insurancePriceApplied, videoRoomId, videoRoomUrl: nextVideoRoomUrl },
     });
   } catch (error: any) {
     console.error('Create appointment error:', error);
@@ -357,7 +382,7 @@ export const getAppointments = async (req: Request, res: Response) => {
     if (userRole === 'patient') {
       sql = `
         SELECT a.id, a.appointment_date, a.appointment_time, a.status, a.reason_for_visit,
-               a.appointment_type, a.video_room_url, a.video_room_id,
+               a.appointment_type, a.video_room_url, a.video_room_id, a.consultation_price, a.insurance_price_applied,
                u.first_name, u.last_name, d.specialties, hc.name as health_center_name
         FROM appointments a
         JOIN doctors d ON a.doctor_id = d.id
@@ -369,7 +394,7 @@ export const getAppointments = async (req: Request, res: Response) => {
     } else if (userRole === 'doctor') {
       sql = `
         SELECT a.id, a.appointment_date, a.appointment_time, a.status, a.reason_for_visit,
-               a.appointment_type, a.video_room_url, a.video_room_id,
+               a.appointment_type, a.video_room_url, a.video_room_id, a.consultation_price, a.insurance_price_applied,
                u.first_name, u.last_name, u.email, u.phone, p.id as patient_id,
                p.document_number, p.has_insurance, p.insurance_provider, p.insurance_number
         FROM appointments a

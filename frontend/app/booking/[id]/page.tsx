@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store';
-import { doctorAPI, appointmentAPI } from '@/utils/api';
+import { doctorAPI, appointmentAPI, patientAPI } from '@/utils/api';
 import { formatDoctorName } from '@/utils/names';
 
 const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
@@ -52,6 +52,7 @@ export default function BookingPage() {
   const doctorId = params.id as string;
 
   const [doctor, setDoctor] = useState<any>(null);
+  const [patientProfile, setPatientProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [booking, setBooking] = useState({
     date: '',
@@ -70,6 +71,9 @@ export default function BookingPage() {
       return;
     }
     loadDoctor();
+    patientAPI.profile()
+      .then((response) => setPatientProfile(response.data))
+      .catch(() => setPatientProfile(null));
   }, [isAuthenticated]);
 
   const loadDoctor = async () => {
@@ -146,6 +150,17 @@ export default function BookingPage() {
     );
   }
   const healthCenters = getDoctorCenters(doctor);
+  const patientInsurer = String(patientProfile?.insurance_provider || '').trim().toLowerCase();
+  const acceptedInsurers = Array.isArray(doctor?.accepted_insurances) ? doctor.accepted_insurances : [];
+  const hasInsuranceMatch = Boolean(
+    patientInsurer &&
+    doctor?.insured_consultation_price !== null &&
+    doctor?.insured_consultation_price !== undefined &&
+    acceptedInsurers.some((insurer: string) => String(insurer).trim().toLowerCase() === patientInsurer)
+  );
+  const consultationPrice = hasInsuranceMatch
+    ? doctor.insured_consultation_price
+    : doctor?.consultation_price;
   const consultationDays = getConsultationDays(doctor, booking.healthCenterId || healthCenters[0]?.id);
 
   if (!doctor) {
@@ -186,12 +201,19 @@ export default function BookingPage() {
                   {doctor.average_rating?.toFixed(1)}
                 </p>
                 <p>
-                  <span className="font-semibold">Tarifa:</span> ${doctor.consultation_price}
+                  <span className="font-semibold">Tarifa:</span> ${consultationPrice}
                 </p>
+                {hasInsuranceMatch && <p className="text-emerald-700">Precio asegurado aplicado para {patientProfile.insurance_provider}.</p>}
                 <p>
                   <span className="font-semibold">Centro:</span>{' '}
                   {healthCenters.map((center) => `${center.name}${center.city ? ` - ${center.city}` : ''}`).join(', ') || doctor.health_center_name}
                 </p>
+                {doctor.accepted_insurances?.length > 0 && (
+                  <p>
+                    <span className="font-semibold">Seguros aceptados:</span>{' '}
+                    {doctor.accepted_insurances.join(', ')}
+                  </p>
+                )}
                 <p>
                   <span className="font-semibold">Días de consulta:</span>{' '}
                   {formatConsultationDays(consultationDays)}
