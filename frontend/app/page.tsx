@@ -17,6 +17,8 @@ import {
   Clock3,
   HelpCircle,
   HeartPulse,
+  Mail,
+  ArrowUpRight,
   ShieldCheck,
   Sparkles,
   Stethoscope,
@@ -631,28 +633,56 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="bg-slate-950 py-12 text-white">
-        <div className="container-main grid gap-8 md:grid-cols-4">
-          <div className="md:col-span-2">
-            <Image src="/saludclick.png" alt="SaludClick" width={220} height={90} className="h-12 w-auto rounded bg-white px-2 py-1" />
-            <p className="mt-5 max-w-md leading-7 text-slate-400">
-              Plataforma de salud digital para conectar pacientes, médicos y centros de atención con una experiencia moderna.
-            </p>
-          </div>
-          <div>
-            <h3 className="font-black text-white">Pacientes</h3>
-            <div className="mt-4 grid gap-3 text-sm text-slate-400">
-              <Link href="/doctors" className="hover:text-white">Buscar médicos</Link>
-              <Link href="/booking" className="hover:text-white">Agendar cita</Link>
-              <Link href="/faq" className="hover:text-white">Preguntas frecuentes</Link>
+      <footer className="border-t border-slate-800 bg-slate-950 text-white">
+        <div className="container-main py-14">
+          <div className="grid gap-12 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
+            <div>
+              <Link href="/" className="inline-flex rounded-xl bg-white px-3 py-2 shadow-lg shadow-sky-950/20">
+                <Image src="/saludclick.png" alt="SaludClick" width={220} height={90} className="h-10 w-auto" />
+              </Link>
+              <p className="mt-5 max-w-sm text-sm leading-7 text-slate-400">
+                La forma más clara de encontrar atención médica, organizar tus citas y mantener tu salud en movimiento.
+              </p>
+              <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs font-semibold text-emerald-300">
+                <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                Atención conectada y segura
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-black uppercase tracking-wide text-white">Para pacientes</h3>
+              <div className="mt-5 grid gap-3 text-sm text-slate-400">
+                <Link href="/doctors" className="inline-flex items-center gap-1 transition hover:text-cyan-300">Buscar médicos <ArrowUpRight className="h-3.5 w-3.5" /></Link>
+                <Link href="/booking" className="transition hover:text-cyan-300">Agendar cita</Link>
+                <Link href="/faq" className="transition hover:text-cyan-300">Preguntas frecuentes</Link>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-black uppercase tracking-wide text-white">Profesionales</h3>
+              <div className="mt-5 grid gap-3 text-sm text-slate-400">
+                <Link href="/register?type=doctor" className="transition hover:text-cyan-300">Unirme como médico</Link>
+                <Link href="/login" className="transition hover:text-cyan-300">Acceso profesional</Link>
+                <Link href="/about" className="transition hover:text-cyan-300">Conoce SaludClick</Link>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-black uppercase tracking-wide text-white">Estamos para ayudarte</h3>
+              <p className="mt-5 text-sm leading-6 text-slate-400">¿Tienes una pregunta sobre tu cuenta o una cita?</p>
+              <a href="mailto:francisco.leocadio@saludclick.com.do" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-cyan-300 transition hover:text-white">
+                <Mail className="h-4 w-4" />
+                Escríbenos
+              </a>
             </div>
           </div>
-          <div>
-            <h3 className="font-black text-white">Cuenta</h3>
-            <div className="mt-4 grid gap-3 text-sm text-slate-400">
-              <Link href="/login" className="hover:text-white">Iniciar sesión</Link>
-              <Link href="/register?type=doctor" className="hover:text-white">Registro médico</Link>
-              <Link href="/privacy" className="hover:text-white">Privacidad</Link>
+
+          <div className="mt-12 flex flex-col gap-4 border-t border-slate-800 pt-6 text-xs text-slate-500 md:flex-row md:items-center md:justify-between">
+            <p>© {new Date().getFullYear()} SaludClick. Todos los derechos reservados.</p>
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+              <Link href="/privacy" className="transition hover:text-slate-200">Privacidad</Link>
+              <Link href="/terms" className="transition hover:text-slate-200">Términos de uso</Link>
+              <Link href="/contact" className="inline-flex items-center gap-1 transition hover:text-slate-200"><HeartPulse className="h-3.5 w-3.5" /> Contacto</Link>
             </div>
           </div>
         </div>
