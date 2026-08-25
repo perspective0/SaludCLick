@@ -90,6 +90,7 @@ CREATE TABLE doctors (
   years_experience INT,
   bio TEXT,
   consultation_price DECIMAL(10, 2),
+  insured_consultation_price DECIMAL(10, 2),
   consultation_duration INT DEFAULT 30,
   teleconsultation_enabled BOOLEAN DEFAULT false,
   vacation_mode BOOLEAN DEFAULT false,
@@ -103,6 +104,7 @@ CREATE TABLE doctors (
   is_verified BOOLEAN DEFAULT false,
   featured_on_home BOOLEAN DEFAULT false,
   specialties TEXT[], -- Array of specialties
+  accepted_insurances TEXT[] DEFAULT '{}',
   average_rating DECIMAL(3, 2) DEFAULT 0
 );
 
@@ -150,6 +152,8 @@ CREATE TABLE appointments (
   video_room_url TEXT,
   video_room_id UUID,
   reason_for_visit TEXT,
+  consultation_price DECIMAL(10, 2),
+  insurance_price_applied BOOLEAN DEFAULT false,
   notes TEXT,
   canceled_at TIMESTAMP,
   canceled_by UUID,

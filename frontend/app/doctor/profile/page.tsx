@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import DoctorShell from '@/components/DoctorShell';
 import { doctorAPI } from '@/utils/api';
+import { dominicanHealthInsurers } from '@/utils/dominicanInsurance';
 import { BadgeDollarSign, Building2, Camera, Clock, Eye, FileText, Save, Star, Trash2, Upload, Video } from 'lucide-react';
 
 const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
@@ -81,11 +82,13 @@ export default function DoctorProfilePage() {
   const [form, setForm] = useState({
     bio: '',
     consultationPrice: '',
+    insuredConsultationPrice: '',
     yearsExperience: '',
     avatar: '',
     prescriptionLogo: '',
     prescriptionSeal: '',
     specialtiesText: '',
+    acceptedInsurances: [] as string[],
     healthCenterId: '',
     selectedHealthCenterIds: [] as string[],
     healthCenterMode: 'existing',
@@ -149,11 +152,13 @@ export default function DoctorProfilePage() {
       setForm({
         bio: data?.bio || '',
         consultationPrice: data?.consultation_price ? String(data.consultation_price) : '',
+        insuredConsultationPrice: data?.insured_consultation_price ? String(data.insured_consultation_price) : '',
         yearsExperience: data?.years_experience ? String(data.years_experience) : '',
         avatar: data?.avatar || '',
         prescriptionLogo: data?.prescription_logo || '',
         prescriptionSeal: data?.prescription_seal || '',
         specialtiesText: Array.isArray(data?.specialties) ? data.specialties.join(', ') : '',
+        acceptedInsurances: Array.isArray(data?.accepted_insurances) ? data.accepted_insurances : [],
         healthCenterId: data?.health_center_id || '',
         selectedHealthCenterIds,
         healthCenterMode: 'existing',
@@ -236,6 +241,7 @@ export default function DoctorProfilePage() {
       await doctorAPI.update(user.id, {
         bio: form.bio,
         consultationPrice: Number(form.consultationPrice || 0),
+        insuredConsultationPrice: form.insuredConsultationPrice ? Number(form.insuredConsultationPrice) : null,
         yearsExperience: Number(form.yearsExperience || 0),
         consultationDuration: Number(settings.consultationDuration || 30),
         teleconsultationEnabled: settings.teleconsultation,
@@ -265,6 +271,7 @@ export default function DoctorProfilePage() {
           .split(',')
           .map((item) => item.trim())
           .filter(Boolean),
+        acceptedInsurances: form.acceptedInsurances,
         availability: activeAvailability
           .map((slot) => ({
             dayOfWeek: slot.dayOfWeek,
@@ -672,6 +679,17 @@ export default function DoctorProfilePage() {
                     />
                   </div>
                   <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Precio con seguro</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={form.insuredConsultationPrice}
+                      onChange={(event) => setForm({ ...form, insuredConsultationPrice: event.target.value })}
+                      className="w-full h-11 rounded-xl border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Opcional"
+                    />
+                  </div>
+                  <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1">Especialidades</label>
                     <input
                       value={form.specialtiesText}
@@ -679,6 +697,31 @@ export default function DoctorProfilePage() {
                       className="w-full h-11 rounded-xl border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="Cardiologia, Medicina General"
                     />
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5">
+                  <div className="mb-3">
+                    <h3 className="text-base font-bold text-emerald-950">Seguros que aceptas</h3>
+                    <p className="text-sm text-emerald-700">Esta información se mostrará a los pacientes antes de reservar.</p>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {dominicanHealthInsurers.map((insurer) => (
+                      <label key={insurer} className="flex items-center gap-3 rounded-xl bg-white px-3 py-2 text-sm text-emerald-950 shadow-sm">
+                        <input
+                          type="checkbox"
+                          checked={form.acceptedInsurances.includes(insurer)}
+                          onChange={() => setForm((current) => ({
+                            ...current,
+                            acceptedInsurances: current.acceptedInsurances.includes(insurer)
+                              ? current.acceptedInsurances.filter((value) => value !== insurer)
+                              : [...current.acceptedInsurances, insurer],
+                          }))}
+                          className="h-4 w-4 rounded border-emerald-200 text-emerald-600 focus:ring-emerald-500"
+                        />
+                        {insurer}
+                      </label>
+                    ))}
                   </div>
                 </div>
 

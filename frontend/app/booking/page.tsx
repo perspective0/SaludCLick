@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { appointmentAPI, doctorAPI } from '@/utils/api';
+import { appointmentAPI, doctorAPI, patientAPI } from '@/utils/api';
 import { formatDoctorName } from '@/utils/names';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Link from 'next/link';
@@ -107,6 +107,7 @@ export default function BookingPage() {
   const calendarInputRef = useRef<HTMLInputElement>(null);
   const [doctorId, setDoctorId] = useState<string | null>(null);
   const [doctor, setDoctor] = useState<any>(null);
+  const [patientProfile, setPatientProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [availableSlots, setAvailableSlots] = useState<AppointmentSlot[]>([]);
@@ -126,6 +127,9 @@ export default function BookingPage() {
     const id = params.get('doctorId');
     setDoctorId(id);
     if (!id) router.push('/doctors');
+    patientAPI.profile()
+      .then((response) => setPatientProfile(response.data))
+      .catch(() => setPatientProfile(null));
   }, [router]);
 
   useEffect(() => {
@@ -265,7 +269,17 @@ export default function BookingPage() {
 
   const selectedTypeLabel = formData.appointmentType === 'teleconsulta' ? 'Teleconsulta' : 'Presencial';
   const doctorName = useMemo(() => doctor ? formatDoctorName(doctor.first_name, doctor.last_name) : 'Médico', [doctor]);
-  const consultationPrice = formatCurrencyRD(doctor?.consultation_price);
+  const patientInsurer = String(patientProfile?.insurance_provider || '').trim().toLowerCase();
+  const acceptedInsurers = Array.isArray(doctor?.accepted_insurances) ? doctor.accepted_insurances : [];
+  const hasInsuranceMatch = Boolean(
+    patientInsurer &&
+    doctor?.insured_consultation_price !== null &&
+    doctor?.insured_consultation_price !== undefined &&
+    acceptedInsurers.some((insurer: string) => String(insurer).trim().toLowerCase() === patientInsurer)
+  );
+  const consultationPrice = formatCurrencyRD(
+    hasInsuranceMatch ? doctor?.insured_consultation_price : doctor?.consultation_price
+  );
   const consultationDuration = `${doctor?.consultation_duration || 30} minutos`;
   const specialty = doctor?.specialties?.[0] || 'Medicina General';
   const healthCenters = getDoctorCenters(doctor);
@@ -511,6 +525,13 @@ export default function BookingPage() {
                       <SummaryItem label="Duración" value={consultationDuration} />
                       <SummaryItem label="Costo" value={consultationPrice} />
                     </dl>
+                    <p className="mt-3 text-xs text-blue-700">
+                      {hasInsuranceMatch
+                        ? `Precio aplicado por ${patientProfile.insurance_provider}.`
+                        : patientProfile?.insurance_provider
+                          ? 'No hay coincidencia con los seguros aceptados por este médico; se muestra la tarifa normal.'
+                          : 'Puedes registrar tu seguro en tu perfil para verificar si aplica el precio asegurado.'}
+                    </p>
                     <div className="mt-3 rounded-xl bg-white/70 p-3 text-sm">
                       <p className="font-semibold text-blue-900">Motivo</p>
                       <p className="mt-1 text-blue-700">{formData.reasonForVisit.trim() || 'Sin motivo indicado todavía.'}</p>
