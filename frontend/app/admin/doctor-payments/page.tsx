@@ -172,7 +172,7 @@ export default function DoctorPaymentsPage() {
               </Link>
             </div>
 
-            <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-hidden">
+            <nav className="min-h-0 flex-1 overflow-y-auto px-3 py-2 space-y-0.5">
               <p className="text-[10px] font-semibold text-gray-400 uppercase mb-1 px-2">
                 Principal
               </p>
