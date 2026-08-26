@@ -1,12 +1,11 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import AdminSidebar from '@/components/AdminSidebar';
 import { adminAPI } from '@/utils/api';
 import {
   AlertCircle,
-  ArrowLeft,
   Beaker,
   CheckCircle2,
   Edit,
@@ -173,14 +172,12 @@ export default function AdminLaboratoriesPage() {
 
   return (
     <ProtectedRoute requiredRole="admin">
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-        <header className="bg-white border-b border-gray-100 sticky top-0 z-30">
+      <div className="dashboard-shell flex min-h-screen overflow-x-hidden text-gray-950">
+        <AdminSidebar />
+        <div className="min-w-0 flex-1 overflow-x-hidden lg:pl-64">
+        <header className="dashboard-header sticky top-0 z-30">
           <div className="px-4 md:px-8 py-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <Link href="/admin/dashboard" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-2">
-                <ArrowLeft className="w-4 h-4" />
-                Panel administrativo
-              </Link>
               <h1 className="text-2xl font-bold text-gray-900">Laboratorios</h1>
               <p className="text-sm text-gray-500">Administra laboratorios clínicos y sus servicios disponibles.</p>
             </div>
@@ -385,6 +382,7 @@ export default function AdminLaboratoriesPage() {
             </div>
           </div>
         )}
+        </div>
       </div>
     </ProtectedRoute>
   );
