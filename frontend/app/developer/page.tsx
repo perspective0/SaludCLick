@@ -1,10 +1,18 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { Code2, Database, HeartHandshake, House, Layers, Shield, Smartphone, UserRound } from 'lucide-react';
+import { useI18n } from '@/i18n';
 
 export default function DeveloperPage() {
+  const { locale, ready } = useI18n();
+  const en = locale === 'en';
+
+  if (!ready) return null;
+
   return (
-    <main className="min-h-screen overflow-hidden bg-slate-950 text-slate-950">
+    <main className="min-h-screen overflow-hidden bg-white text-slate-950 dark:bg-slate-950 dark:text-slate-100">
       <style>{`
         @keyframes codeDrift {
           0%, 100% { transform: translate3d(0, 0, 0); opacity: .22; }
@@ -35,13 +43,13 @@ export default function DeveloperPage() {
         <div className="dev-grid absolute inset-0 bg-[linear-gradient(rgba(56,189,248,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(56,189,248,0.12)_1px,transparent_1px)] bg-[size:48px_48px]" />
         <div className="absolute left-[-10%] top-[-20%] h-96 w-96 rounded-full bg-sky-500/20 blur-3xl" />
         <div className="absolute bottom-[-20%] right-[-10%] h-96 w-96 rounded-full bg-cyan-400/20 blur-3xl" />
-        <div className="dev-code-float absolute left-8 top-36 hidden rounded-2xl border border-sky-300/20 bg-white/5 px-5 py-4 font-mono text-sm text-cyan-100 backdrop-blur md:block">
+        <div className="dev-code-float absolute left-8 top-36 hidden rounded-2xl border border-sky-300/30 bg-slate-900/5 px-5 py-4 font-mono text-sm text-slate-700 backdrop-blur dark:border-sky-300/20 dark:bg-white/5 dark:text-cyan-100 md:block">
           const product = &quot;SaludClick&quot;;
         </div>
-        <div className="dev-code-float absolute right-10 top-64 hidden rounded-2xl border border-sky-300/20 bg-white/5 px-5 py-4 font-mono text-sm text-cyan-100 backdrop-blur lg:block">
+        <div className="dev-code-float absolute right-10 top-64 hidden rounded-2xl border border-sky-300/30 bg-slate-900/5 px-5 py-4 font-mono text-sm text-slate-700 backdrop-blur dark:border-sky-300/20 dark:bg-white/5 dark:text-cyan-100 lg:block">
           deploy(&quot;healthcare&quot;)
         </div>
-        <div className="dev-code-float absolute bottom-24 left-20 hidden rounded-2xl border border-sky-300/20 bg-white/5 px-5 py-4 font-mono text-sm text-cyan-100 backdrop-blur md:block">
+        <div className="dev-code-float absolute bottom-24 left-20 hidden rounded-2xl border border-sky-300/30 bg-slate-900/5 px-5 py-4 font-mono text-sm text-slate-700 backdrop-blur dark:border-sky-300/20 dark:bg-white/5 dark:text-cyan-100 md:block">
           SELECT care, trust FROM platform;
         </div>
       </div>
@@ -54,26 +62,26 @@ export default function DeveloperPage() {
             <div className="hidden items-center gap-4 text-sm font-semibold text-slate-600 lg:flex">
               <Link href="/" className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-2 text-slate-700 hover:bg-sky-50 hover:text-sky-700">
                 <House className="h-4 w-4" />
-                Volver al inicio
+                {en ? 'Back to home' : 'Volver al inicio'}
               </Link>
-              <Link href="/about" className="hover:text-sky-700">Sobre nosotros</Link>
+              <Link href="/about" className="hover:text-sky-700">{en ? 'About us' : 'Sobre nosotros'}</Link>
               <Link href="/faq" className="hover:text-sky-700">FAQ</Link>
-              <Link href="/contact" className="hover:text-sky-700">Contacto</Link>
-              <Link href="/developer" className="text-sky-700">Desarrollador</Link>
+              <Link href="/contact" className="hover:text-sky-700">{en ? 'Contact' : 'Contacto'}</Link>
+              <Link href="/developer" className="text-sky-700">{en ? 'Developer' : 'Desarrollador'}</Link>
             </div>
-            <Link href="/login" className="rounded-lg bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-700 ring-1 ring-sky-100 hover:bg-sky-100">Iniciar sesión</Link>
-            <Link href="/register" className="rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-slate-950/15 hover:bg-sky-700">Registrarse</Link>
+            <Link href="/login" className="rounded-lg bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-700 ring-1 ring-sky-100 hover:bg-sky-100">{en ? 'Sign in' : 'Iniciar sesión'}</Link>
+            <Link href="/register" className="rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-slate-950/15 hover:bg-sky-700">{en ? 'Create account' : 'Registrarse'}</Link>
           </div>
         </div>
         <nav className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-4 pb-3 text-sm font-semibold text-slate-600 md:px-8 lg:hidden">
           <Link href="/" className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-2 text-slate-700 hover:bg-sky-50 hover:text-sky-700">
             <House className="h-4 w-4" />
-            Volver al inicio
+            {en ? 'Back to home' : 'Volver al inicio'}
           </Link>
-          <Link href="/about" className="shrink-0 rounded-lg px-3 py-2 hover:bg-slate-100 hover:text-sky-700">Sobre nosotros</Link>
+          <Link href="/about" className="shrink-0 rounded-lg px-3 py-2 hover:bg-slate-100 hover:text-sky-700">{en ? 'About us' : 'Sobre nosotros'}</Link>
           <Link href="/faq" className="shrink-0 rounded-lg px-3 py-2 hover:bg-slate-100 hover:text-sky-700">FAQ</Link>
-          <Link href="/contact" className="shrink-0 rounded-lg px-3 py-2 hover:bg-slate-100 hover:text-sky-700">Contacto</Link>
-          <Link href="/developer" className="shrink-0 rounded-lg px-3 py-2 bg-sky-50 text-sky-700">Desarrollador</Link>
+          <Link href="/contact" className="shrink-0 rounded-lg px-3 py-2 hover:bg-slate-100 hover:text-sky-700">{en ? 'Contact' : 'Contacto'}</Link>
+          <Link href="/developer" className="shrink-0 rounded-lg px-3 py-2 bg-sky-50 text-sky-700">{en ? 'Developer' : 'Desarrollador'}</Link>
         </nav>
       </header>
 
@@ -81,44 +89,44 @@ export default function DeveloperPage() {
         <div className="mb-8 rounded-3xl border border-white/10 bg-white/95 p-6 shadow-2xl shadow-sky-950/20 backdrop-blur">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-sky-100 px-3 py-1 text-sm font-bold text-sky-700">
             <Code2 className="h-4 w-4" />
-            Desarrollador
+            {en ? 'Developer' : 'Desarrollador'}
           </div>
           <h1 className="text-4xl font-black md:text-5xl">
             Francisco Leocadio<span className="dev-cursor text-sky-600">_</span>
           </h1>
           <p className="mt-3 inline-flex rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-cyan-100">
-            Ingeniero en Sistemas
+            {en ? 'Systems Engineer' : 'Ingeniero en Sistemas'}
           </p>
           <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-600">
-            SaludClick es un proyecto pensado, construido y mantenido con foco en resolver problemas reales de gestión médica: solicitudes, validaciones, agenda, centros, recetas, notificaciones y experiencia para pacientes.
+            {en ? 'SaludClick is a project designed, built and maintained to solve real healthcare management challenges: requests, verification, scheduling, centers, prescriptions, notifications and patient experience.' : 'SaludClick es un proyecto pensado, construido y mantenido con foco en resolver problemas reales de gestión médica: solicitudes, validaciones, agenda, centros, recetas, notificaciones y experiencia para pacientes.'}
           </p>
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-white/95 p-6 shadow-sm backdrop-blur">
           <UserRound className="mb-4 h-8 w-8 text-sky-600" />
-          <h2 className="text-2xl font-black text-slate-950">Sobre mi</h2>
+          <h2 className="text-2xl font-black text-slate-950">{en ? 'About me' : 'Sobre mí'}</h2>
           <p className="mt-4 max-w-3xl leading-8 text-slate-600">
-            Soy Francisco Leocadio, ingeniero en sistemas y desarrollador de SaludClick. Mi enfoque es construir soluciones útiles, claras y mantenibles para procesos reales, especialmente donde la tecnología puede ahorrar tiempo y reducir fricción.
+            {en ? 'I am Francisco Leocadio, systems engineer and SaludClick developer. My focus is building useful, clear and maintainable solutions for real processes, especially where technology can save time and reduce friction.' : 'Soy Francisco Leocadio, ingeniero en sistemas y desarrollador de SaludClick. Mi enfoque es construir soluciones útiles, claras y mantenibles para procesos reales, especialmente donde la tecnología puede ahorrar tiempo y reducir fricción.'}
           </p>
         </div>
 
         <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Tech icon={Code2} title="Producto a medida" text="Flujos adaptados a SaludClick, no una plantilla generica." />
-          <Tech icon={Database} title="Datos organizados" text="Pacientes, médicos, citas, centros y documentos bajo una estructura clara." />
-          <Tech icon={Smartphone} title="Experiencia practica" text="Pantallas pensadas para uso diario en web y movil." />
-          <Tech icon={Shield} title="Cuidado de acceso" text="Roles, validaciones y permisos para proteger información sensible." />
+          <Tech icon={Code2} title={en ? 'Custom product' : 'Producto a medida'} text={en ? 'Workflows tailored to SaludClick, not a generic template.' : 'Flujos adaptados a SaludClick, no una plantilla generica.'} />
+          <Tech icon={Database} title={en ? 'Organized data' : 'Datos organizados'} text={en ? 'Patients, doctors, appointments, centers and documents under a clear structure.' : 'Pacientes, médicos, citas, centros y documentos bajo una estructura clara.'} />
+          <Tech icon={Smartphone} title={en ? 'Practical experience' : 'Experiencia practica'} text={en ? 'Screens designed for daily use on web and mobile.' : 'Pantallas pensadas para uso diario en web y movil.'} />
+          <Tech icon={Shield} title={en ? 'Access protection' : 'Cuidado de acceso'} text={en ? 'Roles, verification and permissions to protect sensitive information.' : 'Roles, validaciones y permisos para proteger información sensible.'} />
         </div>
 
         <div className="mt-8 grid gap-4 md:grid-cols-2">
-          <Tech icon={Layers} title="Lo que construye SaludClick" text="Registro médico, validación de documentos, centros múltiples, disponibilidad por sede, reservas, recetas e historial." />
-          <Tech icon={HeartHandshake} title="Lo que viene" text="Recordatorios por WhatsApp, mejoras de aprobacion, reportes administrativos y mas herramientas para operacion diaria." />
+          <Tech icon={Layers} title={en ? 'What SaludClick builds' : 'Lo que construye SaludClick'} text={en ? 'Medical records, document verification, multiple centers, availability by location, bookings, prescriptions and history.' : 'Registro médico, validación de documentos, centros múltiples, disponibilidad por sede, reservas, recetas e historial.'} />
+          <Tech icon={HeartHandshake} title={en ? 'What is coming' : 'Lo que viene'} text={en ? 'WhatsApp reminders, approval improvements, administrative reports and more tools for daily operations.' : 'Recordatorios por WhatsApp, mejoras de aprobacion, reportes administrativos y mas herramientas para operacion diaria.'} />
         </div>
 
         <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <HeartHandshake className="mb-4 h-8 w-8 text-sky-600" />
-          <h2 className="text-2xl font-black text-slate-950">Nota del desarrollador</h2>
+          <h2 className="text-2xl font-black text-slate-950">{en ? 'Developer note' : 'Nota del desarrollador'}</h2>
           <p className="mt-4 max-w-3xl leading-8 text-slate-600">
-            Este espacio puede crecer con enlaces profesionales, portafolio, redes, hoja de ruta pública, versión del sistema y formas de contacto directo para colaboraciones o soporte.
+            {en ? 'This space can grow with professional links, a portfolio, social networks, a public roadmap, system version and direct contact options for partnerships or support.' : 'Este espacio puede crecer con enlaces profesionales, portafolio, redes, hoja de ruta pública, versión del sistema y formas de contacto directo para colaboraciones o soporte.'}
           </p>
         </div>
       </section>

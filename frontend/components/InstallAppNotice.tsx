@@ -2,6 +2,7 @@
 
 import { Download, Share2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useI18n } from '@/i18n';
 
 const DISMISSED_AT_KEY = 'saludclick_install_notice_dismissed_at';
 const DISMISS_FOR_MS = 14 * 24 * 60 * 60 * 1000;
@@ -14,6 +15,12 @@ type InstallChoice = {
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<InstallChoice>;
+}
+
+declare global {
+  interface Window {
+    saludclickInstallPrompt?: Event;
+  }
 }
 
 function wasRecentlyDismissed() {
@@ -51,6 +58,7 @@ function isIosDevice() {
 }
 
 export default function InstallAppNotice() {
+  const { t } = useI18n();
   const [installPrompt, setInstallPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
   const [showNotice, setShowNotice] = useState(false);
@@ -60,9 +68,11 @@ export default function InstallAppNotice() {
     if (isAppAlreadyInstalled() || wasRecentlyDismissed()) return;
 
     const handleInstallAvailable = (event: Event) => {
-      event.preventDefault();
       setInstallPrompt(event as BeforeInstallPromptEvent);
       setShowNotice(true);
+    };
+    const handleInstallAvailableEvent = () => {
+      if (window.saludclickInstallPrompt) handleInstallAvailable(window.saludclickInstallPrompt);
     };
 
     const handleInstalled = () => {
@@ -75,7 +85,10 @@ export default function InstallAppNotice() {
       }
     };
 
-    window.addEventListener('beforeinstallprompt', handleInstallAvailable);
+    if (window.saludclickInstallPrompt) {
+      handleInstallAvailable(window.saludclickInstallPrompt);
+    }
+    window.addEventListener('saludclick:install-available', handleInstallAvailableEvent);
     window.addEventListener('appinstalled', handleInstalled);
 
     let iosTimer: ReturnType<typeof setTimeout> | undefined;
@@ -85,11 +98,8 @@ export default function InstallAppNotice() {
     }
 
     return () => {
-      window.removeEventListener(
-        'beforeinstallprompt',
-        handleInstallAvailable
-      );
       window.removeEventListener('appinstalled', handleInstalled);
+      window.removeEventListener('saludclick:install-available', handleInstallAvailableEvent);
       if (iosTimer) clearTimeout(iosTimer);
     };
   }, []);
@@ -134,7 +144,7 @@ export default function InstallAppNotice() {
         type="button"
         onClick={dismissNotice}
         className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-100"
-        aria-label="Cerrar aviso"
+        aria-label={t('closeNotice')}
       >
         <X className="h-5 w-5" />
       </button>
@@ -150,12 +160,10 @@ export default function InstallAppNotice() {
 
         <div>
           <h2 id="install-app-title" className="text-lg font-bold">
-            Lleva SaludClick contigo
+            {t('installTitle')}
           </h2>
           <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">
-            {showIosInstructions
-              ? 'Puedes guardarlo en tu iPhone. Toca Compartir y luego elige “Añadir a pantalla de inicio”.'
-              : 'Guárdalo en tu dispositivo y abre SaludClick como cualquier otra aplicación.'}
+            {showIosInstructions ? t('installIos') : t('installDevice')}
           </p>
         </div>
       </div>
@@ -167,7 +175,7 @@ export default function InstallAppNotice() {
           className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-700 focus:outline-none focus:ring-4 focus:ring-sky-200 dark:focus:ring-sky-900"
         >
           <Download className="h-5 w-5" />
-          Instalar SaludClick
+          {t('installButton')}
         </button>
       )}
     </aside>

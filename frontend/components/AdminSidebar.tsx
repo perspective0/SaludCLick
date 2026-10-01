@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useI18n } from '@/i18n';
 import {
   BarChart3,
   Beaker,
@@ -35,6 +36,8 @@ const navigation = [
 ];
 
 export default function AdminSidebar() {
+  const { locale } = useI18n();
+  const en = locale === 'en';
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -72,7 +75,7 @@ export default function AdminSidebar() {
               <Shield className="h-7 w-7 shrink-0 text-blue-600" />
               <div className="min-w-0">
                 <h1 className="text-base font-bold text-slate-900">SaludClick</h1>
-                <p className="text-xs text-slate-500">Panel Admin</p>
+                <p className="text-xs text-slate-500">{en ? 'Admin panel' : 'Panel Admin'}</p>
               </div>
             </Link>
             <button type="button" onClick={() => setOpen(false)} className="rounded-lg p-2 hover:bg-slate-100 lg:hidden" aria-label="Cerrar menú administrativo">
@@ -81,9 +84,18 @@ export default function AdminSidebar() {
           </div>
 
           <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto p-3">
-            <p className="px-2 pb-2 text-[11px] font-semibold uppercase text-slate-400">Administración</p>
+            <p className="px-2 pb-2 text-[11px] font-semibold uppercase text-slate-400">{en ? 'Administration' : 'Administración'}</p>
             {navigation.map(({ href, label, icon: Icon }) => {
               const active = href === '/admin' ? pathname === '/admin' : pathname.startsWith(href);
+              const labels: Record<string, string> = {
+                'Solicitudes Médicos': en ? 'Doctor requests' : label,
+                'Especialistas destacados': en ? 'Featured specialists' : label,
+                'Citas médicas': en ? 'Appointments' : label,
+                'Pagos Médicos': en ? 'Doctor payments' : label,
+                'Centros de Salud': en ? 'Health centers' : label,
+                'Preguntas y Recomendaciones': en ? 'Feedback and suggestions' : label,
+                'Configuración': en ? 'Settings' : label,
+              };
               return (
                 <Link
                   key={href}
@@ -92,7 +104,7 @@ export default function AdminSidebar() {
                   className={`flex min-w-0 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${active ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50'}`}
                 >
                   <Icon className="h-5 w-5 shrink-0" />
-                  <span className="min-w-0 break-words">{label}</span>
+                  <span className="min-w-0 break-words">{labels[label] || label}</span>
                 </Link>
               );
             })}
@@ -105,12 +117,12 @@ export default function AdminSidebar() {
               </div>
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium text-slate-900">{user?.firstName} {user?.lastName}</p>
-                <p className="text-xs text-slate-500">Administrador</p>
+                <p className="text-xs text-slate-500">{en ? 'Administrator' : 'Administrador'}</p>
               </div>
             </div>
             <button type="button" onClick={handleLogout} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50">
               <LogOut className="h-4 w-4 shrink-0" />
-              Cerrar Sesión
+              {en ? 'Sign out' : 'Cerrar Sesión'}
             </button>
           </div>
         </div>

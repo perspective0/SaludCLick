@@ -5,6 +5,7 @@ import PageTransition from '@/components/PageTransition';
 import InstallAppNotice from '@/components/InstallAppNotice';
 import PWARegistration from '@/components/PWARegistration';
 import RuntimeSettings from '@/components/RuntimeSettings';
+import { I18nProvider } from '@/i18n';
 import {
   getSiteUrl,
   SITE_DESCRIPTION,
@@ -145,11 +146,13 @@ export default function RootLayout({
       </head>
       <body className="bg-light text-dark">
         <PWARegistration />
-        <InstallAppNotice />
         <RuntimeSettings />
-        <PageTransition>{children}</PageTransition>
-        <ThemeToggle />
-        <LanguageToggle floating />
+        <I18nProvider>
+          <InstallAppNotice />
+          <PageTransition>{children}</PageTransition>
+          <ThemeToggle />
+          <LanguageToggle floating />
+        </I18nProvider>
       </body>
     </html>
   );

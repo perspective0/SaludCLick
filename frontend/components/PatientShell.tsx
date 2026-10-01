@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ArrowLeft, CalendarDays, FileText, Home, LogOut, Menu, MessageCircle, Search, Stethoscope, UserRound, X } from 'lucide-react';
 import NotificationBell from './NotificationBell';
+import { useI18n } from '@/i18n';
 
 const navItems = [
   { href: '/patient/dashboard', label: 'Inicio', icon: Home },
@@ -34,6 +35,8 @@ export default function PatientShell({
   backLabel?: string;
   hideBack?: boolean;
 }) {
+  const { locale } = useI18n();
+  const en = locale === 'en';
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -70,11 +73,11 @@ export default function PatientShell({
               <Link href="/patient/dashboard" className="flex items-center">
                 <Image src="/saludclick.png" alt="SaludClick" width={260} height={110} priority className="h-14 w-auto" />
               </Link>
-              <p className="mt-2 px-1 text-sm font-medium text-gray-500">Portal del paciente</p>
+              <p className="mt-2 px-1 text-sm font-medium text-gray-500">{en ? 'Patient portal' : 'Portal del paciente'}</p>
             </div>
 
             <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto p-3">
-              <p className="px-2 pb-2 text-[11px] font-semibold uppercase text-gray-400">Tu salud</p>
+              <p className="px-2 pb-2 text-[11px] font-semibold uppercase text-gray-400">{en ? 'Your health' : 'Tu salud'}</p>
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -87,17 +90,25 @@ export default function PatientShell({
                     }`}
                   >
                     <Icon className="h-5 w-5" />
-                    {item.label}
+                    {({
+                      Inicio: en ? 'Home' : item.label,
+                      Médicos: en ? 'Doctors' : item.label,
+                      Citas: en ? 'Appointments' : item.label,
+                      Recetas: en ? 'Prescriptions' : item.label,
+                      Documentos: en ? 'Documents' : item.label,
+                      Perfil: en ? 'Profile' : item.label,
+                      'Ayuda y sugerencias': en ? 'Help and feedback' : item.label,
+                    } as Record<string, string>)[item.label] || item.label}
                   </Link>
                 );
               })}
 
               <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50 p-4">
                 <Search className="mb-3 h-5 w-5 text-blue-700" />
-                <p className="text-sm font-bold text-blue-950">Encuentra atención</p>
-                <p className="mt-1 text-sm leading-5 text-blue-700">Busca médicos y agenda una cita cuando lo necesites.</p>
+                <p className="text-sm font-bold text-blue-950">{en ? 'Find care' : 'Encuentra atención'}</p>
+                <p className="mt-1 text-sm leading-5 text-blue-700">{en ? 'Find doctors and book an appointment whenever you need.' : 'Busca médicos y agenda una cita cuando lo necesites.'}</p>
                 <Link href="/doctors" className="mt-3 inline-flex h-9 items-center justify-center rounded-xl bg-blue-600 px-3 text-sm font-bold text-white hover:bg-blue-700">
-                  Buscar médicos
+                  {en ? 'Find doctors' : 'Buscar médicos'}
                 </Link>
               </div>
             </nav>
@@ -109,12 +120,12 @@ export default function PatientShell({
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-bold">{user?.firstName} {user?.lastName}</p>
-                  <p className="text-xs text-gray-500">Paciente</p>
+                  <p className="text-xs text-gray-500">{en ? 'Patient' : 'Paciente'}</p>
                 </div>
               </div>
               <button onClick={handleLogout} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50">
                 <LogOut className="h-4 w-4" />
-                Cerrar sesión
+                {en ? 'Sign out' : 'Cerrar sesión'}
               </button>
             </div>
           </div>

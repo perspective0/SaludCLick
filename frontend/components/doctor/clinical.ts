@@ -102,6 +102,7 @@ function parseHeightMeters(value: string) {
 
   const parsed = parseVitalNumber(value);
   if (!parsed) return 0;
+  if (/\b(m|metro|metros)\b/i.test(value)) return parsed;
   return parsed > 3 ? parsed / 100 : parsed;
 }
 

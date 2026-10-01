@@ -497,3 +497,58 @@ body {
 }
 
  :root { --brand-primary: #0ea5e9; --brand-secondary: #06b6d4; }
+
+/* Mantiene legibles los campos cuando Edge/Chromium completa datos automáticamente. */
+input,
+select,
+textarea {
+  color: #111827;
+  background-color: #ffffff;
+  caret-color: #111827;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #64748b;
+  opacity: 1;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: #111827 !important;
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  caret-color: #111827 !important;
+}
+
+.dark input,
+.dark select,
+.dark textarea {
+  color: #f8fafc;
+  background-color: #0f172a;
+  caret-color: #f8fafc;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #94a3b8;
+}
+
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:focus,
+.dark textarea:-webkit-autofill,
+.dark select:-webkit-autofill {
+  -webkit-text-fill-color: #f8fafc !important;
+  -webkit-box-shadow: 0 0 0 1000px #0f172a inset !important;
+  box-shadow: 0 0 0 1000px #0f172a inset !important;
+  caret-color: #f8fafc !important;
+}
+input[type='time']::-webkit-calendar-picker-indicator {
+  opacity: 0.85;
+  filter: brightness(0) saturate(100%) invert(32%) sepia(91%) saturate(1775%) hue-rotate(210deg) brightness(93%) contrast(92%);
+  cursor: pointer;
+}

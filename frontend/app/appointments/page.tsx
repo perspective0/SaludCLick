@@ -8,13 +8,14 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import DoctorShell from '@/components/DoctorShell';
 import { appointmentAPI, doctorAPI, secretaryAPI } from '@/utils/api';
 import { formatDoctorName } from '@/utils/names';
+import { useI18n } from '@/i18n';
 import { CalendarCheck, CalendarPlus, CheckCircle2, ChevronLeft, ChevronRight, Clock3, CreditCard, ExternalLink, FileText, Home, LogOut, MapPin, Menu, RotateCcw, Search, UserRound, Video, X, XCircle } from 'lucide-react';
 
 type AppointmentFilter = 'active' | 'all' | 'scheduled' | 'confirmed' | 'completed' | 'cancelled';
 const activeAppointmentStatuses = ['scheduled', 'confirmed'];
 
-const monthFormatter = new Intl.DateTimeFormat('es-DO', { month: 'long', year: 'numeric' });
-const dayFormatter = new Intl.DateTimeFormat('es-DO', { weekday: 'short' });
+const monthFormatter = (en: boolean) => new Intl.DateTimeFormat(en ? 'en-US' : 'es-DO', { month: 'long', year: 'numeric' });
+const dayFormatter = (en: boolean) => new Intl.DateTimeFormat(en ? 'en-US' : 'es-DO', { weekday: 'short' });
 
 function appointmentDate(value?: string) {
   if (!value) return null;
@@ -64,18 +65,20 @@ function isExternalUrl(value?: string) {
   return /^https?:\/\//i.test(String(value || ''));
 }
 
-function statusLabel(status?: string) {
+function statusLabel(status?: string, en = false) {
   const labels: Record<string, string> = {
-    scheduled: 'Programada',
-    confirmed: 'Confirmada',
-    completed: 'Completada',
-    cancelled: 'Cancelada',
+    scheduled: en ? 'Scheduled' : 'Programada',
+    confirmed: en ? 'Confirmed' : 'Confirmada',
+    completed: en ? 'Completed' : 'Completada',
+    cancelled: en ? 'Cancelled' : 'Cancelada',
   };
 
-  return labels[status || ''] || status || 'No disponible';
+  return labels[status || ''] || status || (en ? 'Not available' : 'No disponible');
 }
 
 export default function AppointmentsPage() {
+  const { locale } = useI18n();
+  const en = locale === 'en';
   const router = useRouter();
   const [role, setRole] = useState('');
   const [user, setUser] = useState<any>(null);
@@ -141,7 +144,7 @@ export default function AppointmentsPage() {
       if (nextDoctorId) localStorage.setItem('secretarySelectedDoctorId', nextDoctorId);
     } catch (err) {
       console.error(err);
-      setError('No se pudieron cargar los medicos asignados.');
+      setError(en ? 'Assigned doctors could not be loaded.' : 'No se pudieron cargar los medicos asignados.');
     }
   };
 
@@ -158,7 +161,7 @@ export default function AppointmentsPage() {
       setSelectedAppointment((current: any) => data.find((appointment: any) => appointment.id === current?.id) || null);
     } catch (err) {
       console.error(err);
-      setError(err instanceof Error ? err.message : 'No se pudieron cargar las citas medicas.');
+      setError(err instanceof Error ? err.message : (en ? 'Appointments could not be loaded.' : 'No se pudieron cargar las citas medicas.'));
     } finally {
       setLoading(false);
     }
@@ -177,14 +180,14 @@ export default function AppointmentsPage() {
       }));
     } catch (err) {
       console.error(err);
-      setError('No se pudieron cargar los pacientes del medico.');
+      setError(en ? 'The doctor\'s patients could not be loaded.' : 'No se pudieron cargar los pacientes del medico.');
     }
   };
 
   const createAppointment = async () => {
     const doctorId = role === 'doctor' ? user?.id : selectedDoctorId;
     if (!doctorId || !createForm.patientId) {
-      setError('Selecciona medico y paciente para crear la cita.');
+      setError(en ? 'Select a doctor and patient to create the appointment.' : 'Selecciona medico y paciente para crear la cita.');
       return;
     }
 
@@ -212,7 +215,7 @@ export default function AppointmentsPage() {
       await loadAppointments();
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'No se pudo crear la cita.');
+      setError(err.message || (en ? 'The appointment could not be created.' : 'No se pudo crear la cita.'));
     } finally {
       setActionLoading(false);
     }
@@ -226,7 +229,7 @@ export default function AppointmentsPage() {
       await loadAppointments();
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'No se pudo completar la cita.');
+      setError(err.message || (en ? 'The appointment could not be completed.' : 'No se pudo completar la cita.'));
     } finally {
       setActionLoading(false);
     }
@@ -240,7 +243,7 @@ export default function AppointmentsPage() {
       await loadAppointments();
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'No se pudo restaurar la cita.');
+      setError(err.message || (en ? 'The appointment could not be restored.' : 'No se pudo restaurar la cita.'));
     } finally {
       setActionLoading(false);
     }
@@ -262,7 +265,7 @@ export default function AppointmentsPage() {
       await loadAppointments();
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'No se pudo cancelar la cita.');
+      setError(err.message || (en ? 'The appointment could not be cancelled.' : 'No se pudo cancelar la cita.'));
     } finally {
       setActionLoading(false);
     }
@@ -291,7 +294,7 @@ export default function AppointmentsPage() {
       await loadAppointments();
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'No se pudo reagendar la cita.');
+      setError(err.message || (en ? 'The appointment could not be rescheduled.' : 'No se pudo reagendar la cita.'));
     } finally {
       setActionLoading(false);
     }
@@ -357,10 +360,10 @@ export default function AppointmentsPage() {
       {error && <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
 
       <section className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Metric title="Activas" value={appointments.filter((a) => activeAppointmentStatuses.includes(a.status)).length} icon={CalendarCheck} />
-        <Metric title="Programadas" value={appointments.filter((a) => a.status === 'scheduled').length} icon={Clock3} />
-        <Metric title="Confirmadas" value={appointments.filter((a) => a.status === 'confirmed').length} icon={CheckCircle2} />
-        <Metric title="Completadas" value={appointments.filter((a) => a.status === 'completed').length} icon={CheckCircle2} />
+        <Metric title={en ? 'Active' : 'Activas'} value={appointments.filter((a) => activeAppointmentStatuses.includes(a.status)).length} icon={CalendarCheck} />
+        <Metric title={en ? 'Scheduled' : 'Programadas'} value={appointments.filter((a) => a.status === 'scheduled').length} icon={Clock3} />
+        <Metric title={en ? 'Confirmed' : 'Confirmadas'} value={appointments.filter((a) => a.status === 'confirmed').length} icon={CheckCircle2} />
+        <Metric title={en ? 'Completed' : 'Completadas'} value={appointments.filter((a) => a.status === 'completed').length} icon={CheckCircle2} />
       </section>
 
       <section className="rounded-2xl bg-white border border-gray-200 overflow-hidden">
@@ -370,7 +373,7 @@ export default function AppointmentsPage() {
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Buscar cita..."
+              placeholder={en ? 'Search appointment...' : 'Buscar cita...'}
               className="h-10 w-full lg:w-72 rounded-xl border border-gray-200 pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -382,7 +385,7 @@ export default function AppointmentsPage() {
                 disabled={role === 'secretary' && !selectedDoctorId}
               >
                 <CalendarPlus className="h-4 w-4" />
-                Nueva cita
+                {en ? 'New appointment' : 'Nueva cita'}
               </button>
             )}
             {role === 'secretary' && (
@@ -392,7 +395,7 @@ export default function AppointmentsPage() {
                 className="h-10 w-full sm:w-72 rounded-xl border border-gray-200 bg-white px-3 text-sm font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 {assignedDoctors.length === 0 ? (
-                  <option value="">Sin medicos asignados</option>
+                  <option value="">{en ? 'No assigned doctors' : 'Sin medicos asignados'}</option>
                 ) : (
                   assignedDoctors.map((doctor) => (
                     <option key={doctor.id} value={doctor.id}>
@@ -404,12 +407,12 @@ export default function AppointmentsPage() {
             )}
             <div className="flex flex-wrap gap-2">
               {([
-                ['active', 'Activas'],
-                ['scheduled', 'Programadas'],
-                ['confirmed', 'Confirmadas'],
-                ['completed', 'Completadas'],
-                ['cancelled', 'Canceladas'],
-                ['all', 'Todas'],
+                ['active', en ? 'Active' : 'Activas'],
+                ['scheduled', en ? 'Scheduled' : 'Programadas'],
+                ['confirmed', en ? 'Confirmed' : 'Confirmadas'],
+                ['completed', en ? 'Completed' : 'Completadas'],
+                ['cancelled', en ? 'Cancelled' : 'Canceladas'],
+                ['all', en ? 'All' : 'Todas'],
               ] as const).map(([value, label]) => (
                 <button
                   key={value}
@@ -432,22 +435,22 @@ export default function AppointmentsPage() {
         ) : visibleAppointments.length === 0 ? (
           <div className="p-12 text-center text-gray-500">
             <CalendarCheck className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="font-semibold text-gray-700">No hay citas para esta vista.</p>
-            <p className="text-sm text-gray-500 mt-1">Cambia el filtro o revisa otra fecha.</p>
+            <p className="font-semibold text-gray-700">{en ? 'No appointments for this view.' : 'No hay citas para esta vista.'}</p>
+            <p className="text-sm text-gray-500 mt-1">{en ? 'Change the filter or check another date.' : 'Cambia el filtro o revisa otra fecha.'}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-5 p-5 xl:grid-cols-[1fr_340px]">
             <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
               <div className="flex flex-col gap-3 border-b border-gray-100 p-4 sm:flex-row sm:items-center sm:justify-between">
-                <h2 className="text-lg font-bold capitalize text-gray-900">{monthFormatter.format(calendarDate)}</h2>
+                <h2 className="text-lg font-bold capitalize text-gray-900">{monthFormatter(en).format(calendarDate)}</h2>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => changeMonth(-1)} className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50" aria-label="Mes anterior">
+                  <button onClick={() => changeMonth(-1)} className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50" aria-label={en ? 'Previous month' : 'Mes anterior'}>
                     <ChevronLeft className="h-4 w-4" />
                   </button>
                   <button onClick={() => setCalendarDate(new Date())} className="h-9 rounded-lg border border-gray-200 px-3 text-sm font-semibold hover:bg-gray-50">
-                    Hoy
+                    {en ? 'Today' : 'Hoy'}
                   </button>
-                  <button onClick={() => changeMonth(1)} className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50" aria-label="Mes siguiente">
+                  <button onClick={() => changeMonth(1)} className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50" aria-label={en ? 'Next month' : 'Mes siguiente'}>
                     <ChevronRight className="h-4 w-4" />
                   </button>
                 </div>
@@ -456,7 +459,7 @@ export default function AppointmentsPage() {
               <div className="grid grid-cols-7 border-b border-gray-100 bg-gray-50">
                 {calendarDays.slice(0, 7).map((day) => (
                   <div key={day.toISOString()} className="px-2 py-3 text-center text-xs font-bold uppercase text-gray-500">
-                    {dayFormatter.format(day)}
+                    {dayFormatter(en).format(day)}
                   </div>
                 ))}
               </div>
@@ -494,6 +497,7 @@ export default function AppointmentsPage() {
             <AppointmentDetailPanel
               appointment={selectedAppointment}
               role={role}
+              en={en}
               onComplete={completeAppointment}
               onRestore={restoreAppointment}
               onCancel={openCancelModal}
@@ -534,7 +538,7 @@ export default function AppointmentsPage() {
   if (role === 'doctor') {
     return (
       <ProtectedRoute requiredRole="doctor">
-        <DoctorShell title="Citas medicas" subtitle="Agenda y seguimiento de atenciones">
+        <DoctorShell title={en ? 'Appointments' : 'Citas medicas'} subtitle={en ? 'Schedule and visit follow-up' : 'Agenda y seguimiento de atenciones'}>
           {content}
         </DoctorShell>
       </ProtectedRoute>
@@ -557,14 +561,14 @@ export default function AppointmentsPage() {
                 </div>
 
                 <nav className="flex-1 min-h-0 p-3 space-y-1 overflow-y-auto">
-                  <p className="px-2 mb-2 text-[11px] font-semibold uppercase text-gray-400">Portal secretaria</p>
+                  <p className="px-2 mb-2 text-[11px] font-semibold uppercase text-gray-400">{en ? 'Secretary portal' : 'Portal secretaria'}</p>
                   <Link href="/secretary/dashboard" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50">
                     <Home className="w-5 h-5" />
                     Dashboard
                   </Link>
                   <Link href="/appointments" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium bg-blue-50 text-blue-700">
                     <CalendarCheck className="w-5 h-5" />
-                    Citas medicas
+                    {en ? 'Appointments' : 'Citas medicas'}
                   </Link>
                 </nav>
 
@@ -575,12 +579,12 @@ export default function AppointmentsPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold truncate">{user?.firstName} {user?.lastName}</p>
-                      <p className="text-xs text-gray-500">Secretaria</p>
+                    <p className="text-xs text-gray-500">{en ? 'Secretary' : 'Secretaria'}</p>
                     </div>
                   </div>
                   <button onClick={handleLogout} className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                     <LogOut className="w-4 h-4" />
-                    Cerrar sesion
+                    {en ? 'Sign out' : 'Cerrar sesion'}
                   </button>
                 </div>
               </div>
@@ -594,12 +598,12 @@ export default function AppointmentsPage() {
               <header className="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-gray-200">
                 <div className="min-h-20 px-4 md:px-8 py-4 flex items-center justify-between gap-4">
                   <div className="flex items-center gap-4 min-w-0">
-                    <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden w-10 h-10 rounded-lg hover:bg-gray-100 flex items-center justify-center" aria-label="Abrir menu">
+                    <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden w-10 h-10 rounded-lg hover:bg-gray-100 flex items-center justify-center" aria-label={en ? 'Open menu' : 'Abrir menu'}>
                       {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
                     </button>
                     <div className="min-w-0">
-                      <h1 className="text-xl md:text-2xl font-bold truncate">Citas medicas</h1>
-                      <p className="text-sm text-gray-500 truncate">Agenda y seguimiento por medico asignado</p>
+                      <h1 className="text-xl md:text-2xl font-bold truncate">{en ? 'Appointments' : 'Citas medicas'}</h1>
+                      <p className="text-sm text-gray-500 truncate">{en ? 'Schedule and follow-up by assigned doctor' : 'Agenda y seguimiento por medico asignado'}</p>
                     </div>
                   </div>
                 </div>
@@ -637,6 +641,7 @@ function Metric({ title, value, icon: Icon }: { title: string; value: number; ic
 function AppointmentDetailPanel({
   appointment,
   role,
+  en,
   onComplete,
   onRestore,
   onCancel,
@@ -644,6 +649,7 @@ function AppointmentDetailPanel({
 }: {
   appointment: any;
   role: string;
+  en: boolean;
   onComplete: (id: string) => void;
   onRestore: (id: string) => void;
   onCancel: (appointment: any) => void;
@@ -655,8 +661,8 @@ function AppointmentDetailPanel({
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm">
           <CalendarCheck className="h-7 w-7 text-blue-500" />
         </div>
-        <p className="font-bold text-gray-800">Selecciona una cita</p>
-        <p className="mt-2 text-sm leading-6">Haz click en un evento del calendario para revisar datos del paciente, modalidad y acciones disponibles.</p>
+        <p className="font-bold text-gray-800">{en ? 'Select an appointment' : 'Selecciona una cita'}</p>
+        <p className="mt-2 text-sm leading-6">{en ? 'Click a calendar event to review patient details, appointment type and available actions.' : 'Haz click en un evento del calendario para revisar datos del paciente, modalidad y acciones disponibles.'}</p>
       </aside>
     );
   }
@@ -680,21 +686,21 @@ function AppointmentDetailPanel({
               {teleconsultation ? <Video className="h-6 w-6" /> : <MapPin className="h-6 w-6" />}
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-bold uppercase text-white/70">Detalle de cita</p>
+          <p className="text-xs font-bold uppercase text-white/70">{en ? 'Appointment details' : 'Detalle de cita'}</p>
               <h2 className="mt-1 truncate text-2xl font-bold leading-tight">{getAppointmentName(appointment, role)}</h2>
             </div>
           </div>
           <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-bold">
-            {statusLabel(appointment.status)}
+            {statusLabel(appointment.status, en)}
           </span>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-2xl bg-white/12 p-3">
-            <p className="text-xs font-semibold text-white/65">Fecha</p>
+            <p className="text-xs font-semibold text-white/65">{en ? 'Date' : 'Fecha'}</p>
             <p className="mt-1 font-bold">{formatDate(appointment.appointment_date)}</p>
           </div>
           <div className="rounded-2xl bg-white/12 p-3">
-            <p className="text-xs font-semibold text-white/65">Hora</p>
+            <p className="text-xs font-semibold text-white/65">{en ? 'Time' : 'Hora'}</p>
             <p className="mt-1 font-bold">{formatTime(appointment.appointment_time)}</p>
           </div>
         </div>
@@ -703,43 +709,43 @@ function AppointmentDetailPanel({
       <div className="space-y-5 p-5">
         <div className="flex flex-wrap gap-2">
           <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-bold ${typeBadge}`}>
-            {teleconsultation ? 'Teleconsulta' : 'Presencial'}
+            {teleconsultation ? (en ? 'Telehealth' : 'Teleconsulta') : (en ? 'In person' : 'Presencial')}
           </span>
           <span className="inline-flex rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs font-bold text-gray-600">
-            {statusLabel(appointment.status)}
+            {statusLabel(appointment.status, en)}
           </span>
           {restoreAllowed && (
             <span className="inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">
-              Puede restaurarse
+              {en ? 'Can be restored' : 'Puede restaurarse'}
             </span>
           )}
         </div>
 
         <div className="grid gap-3">
-          <Detail icon={UserRound} label={role === 'doctor' ? 'Paciente' : 'Profesional'} value={getAppointmentName(appointment, role)} />
+          <Detail icon={UserRound} label={role === 'doctor' ? (en ? 'Patient' : 'Paciente') : (en ? 'Professional' : 'Profesional')} value={getAppointmentName(appointment, role)} />
           {(role === 'doctor' || role === 'secretary') && (
-            <Detail icon={UserRound} label="Cédula" value={appointment.document_number || 'No registrada'} />
+            <Detail icon={UserRound} label={en ? 'ID' : 'Cédula'} value={appointment.document_number || (en ? 'Not registered' : 'No registrada')} />
           )}
           {(role === 'doctor' || role === 'secretary') && (
-            <Detail icon={CreditCard} label="Seguro" value={appointment.has_insurance ? `${appointment.insurance_provider || 'Seguro no especificado'} · ${appointment.insurance_number || 'NSS/póliza pendiente'}` : 'No indicado'} />
+            <Detail icon={CreditCard} label={en ? 'Insurance' : 'Seguro'} value={appointment.has_insurance ? `${appointment.insurance_provider || (en ? 'Insurance not specified' : 'Seguro no especificado')} · ${appointment.insurance_number || (en ? 'Policy pending' : 'NSS/póliza pendiente')}` : (en ? 'Not indicated' : 'No indicado')} />
           )}
           {role === 'secretary' && (
-            <Detail icon={UserRound} label="Medico" value={formatDoctorName(appointment.doctor_first_name, appointment.doctor_last_name)} />
+            <Detail icon={UserRound} label={en ? 'Doctor' : 'Medico'} value={formatDoctorName(appointment.doctor_first_name, appointment.doctor_last_name)} />
           )}
-          <Detail icon={MapPin} label="Centro" value={appointment.health_center_name || 'No disponible'} />
+          <Detail icon={MapPin} label={en ? 'Health center' : 'Centro'} value={appointment.health_center_name || (en ? 'Not available' : 'No disponible')} />
         </div>
 
         <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
           <div className="mb-2 flex items-center gap-2 text-sm font-bold text-gray-800">
             <FileText className="h-4 w-4 text-blue-600" />
-            Motivo de consulta
+            {en ? 'Reason for visit' : 'Motivo de consulta'}
           </div>
-          <p className="text-sm leading-6 text-gray-600">{appointment.reason_for_visit || 'Sin motivo indicado'}</p>
+          <p className="text-sm leading-6 text-gray-600">{appointment.reason_for_visit || (en ? 'No reason provided' : 'Sin motivo indicado')}</p>
         </div>
 
         {restoreAllowed && (
           <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-            Esta cita fue marcada como completada, pero la fecha reservada aun no ha pasado. Puedes devolverla a confirmada si fue un error.
+            {en ? 'This appointment was marked completed, but its scheduled date has not passed. You can restore it to confirmed if this was a mistake.' : 'Esta cita fue marcada como completada, pero la fecha reservada aun no ha pasado. Puedes devolverla a confirmada si fue un error.'}
           </div>
         )}
       </div>
@@ -749,32 +755,32 @@ function AppointmentDetailPanel({
           {teleconsultation && appointment.video_room_url && (
           <Link href={appointment.video_room_url} className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-violet-600 px-3 text-sm font-bold text-white shadow-sm hover:bg-violet-700">
             <Video className="h-4 w-4" />
-            Abrir teleconsulta
+            {en ? 'Open telehealth visit' : 'Abrir teleconsulta'}
           </Link>
         )}
         <Link href={`/appointments/${appointment.id}`} className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white text-sm font-bold text-gray-700 hover:bg-gray-50">
           <ExternalLink className="h-4 w-4" />
-          Ver detalles completos
+          {en ? 'View full details' : 'Ver detalles completos'}
         </Link>
         {canManage && restoreAllowed && (
           <button onClick={() => onRestore(appointment.id)} className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-amber-500 px-3 text-sm font-bold text-white shadow-sm hover:bg-amber-600">
             <RotateCcw className="h-4 w-4" />
-            Restaurar a confirmada
+            {en ? 'Restore as confirmed' : 'Restaurar a confirmada'}
           </button>
         )}
         {canManage && appointment.status !== 'completed' && (
           <>
             <button onClick={() => onComplete(appointment.id)} className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-3 text-sm font-bold text-white shadow-sm hover:bg-emerald-700">
               <CheckCircle2 className="h-4 w-4" />
-              Marcar completada
+              {en ? 'Mark completed' : 'Marcar completada'}
             </button>
             <button onClick={() => onReschedule(appointment)} className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-blue-200 bg-white px-3 text-sm font-bold text-blue-700 hover:bg-blue-50">
               <RotateCcw className="h-4 w-4" />
-              Reagendar
+              {en ? 'Reschedule' : 'Reagendar'}
             </button>
             <button onClick={() => onCancel(appointment)} className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-rose-200 bg-white px-3 text-sm font-bold text-rose-700 hover:bg-rose-50">
               <XCircle className="h-4 w-4" />
-              Cancelar
+              {en ? 'Cancel' : 'Cancelar'}
             </button>
           </>
         )}
@@ -801,6 +807,8 @@ function CreateAppointmentModal({
   onClose: () => void;
   onSubmit: () => void;
 }) {
+  const { locale } = useI18n();
+  const en = locale === 'en';
   if (!open) return null;
 
   return (
@@ -815,9 +823,9 @@ function CreateAppointmentModal({
         <div className="border-b border-gray-100 p-5">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-bold uppercase text-blue-600">Nueva cita</p>
-              <h2 className="mt-1 text-xl font-bold text-gray-950">Agendar paciente</h2>
-              <p className="mt-1 text-sm text-gray-500">Crea una cita para un paciente asociado a este medico.</p>
+              <p className="text-xs font-bold uppercase text-blue-600">{en ? 'New appointment' : 'Nueva cita'}</p>
+              <h2 className="mt-1 text-xl font-bold text-gray-950">{en ? 'Book patient' : 'Agendar paciente'}</h2>
+              <p className="mt-1 text-sm text-gray-500">{en ? 'Create an appointment for a patient associated with this doctor.' : 'Crea una cita para un paciente asociado a este medico.'}</p>
             </div>
             <button type="button" onClick={onClose} className="inline-flex h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-100" aria-label="Cerrar">
               <X className="h-5 w-5" />
@@ -827,7 +835,7 @@ function CreateAppointmentModal({
 
         <div className="grid gap-4 p-5 sm:grid-cols-2">
           <label className="block sm:col-span-2">
-            <span className="mb-1 block text-sm font-semibold text-gray-700">Paciente</span>
+            <span className="mb-1 block text-sm font-semibold text-gray-700">{en ? 'Patient' : 'Paciente'}</span>
             <select
               required
               value={form.patientId}
@@ -835,11 +843,11 @@ function CreateAppointmentModal({
               className="h-11 w-full rounded-xl border border-gray-200 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {patients.length === 0 ? (
-                <option value="">Sin pacientes asociados</option>
+                <option value="">{en ? 'No associated patients' : 'Sin pacientes asociados'}</option>
               ) : (
                 patients.map((patient) => (
                   <option key={patient.id} value={patient.id}>
-                    {`${patient.first_name || ''} ${patient.last_name || ''}`.trim() || patient.email || 'Paciente'}
+                    {`${patient.first_name || ''} ${patient.last_name || ''}`.trim() || patient.email || (en ? 'Patient' : 'Paciente')}
                   </option>
                 ))
               )}
@@ -847,7 +855,7 @@ function CreateAppointmentModal({
           </label>
 
           <label className="block">
-            <span className="mb-1 block text-sm font-semibold text-gray-700">Fecha</span>
+            <span className="mb-1 block text-sm font-semibold text-gray-700">{en ? 'Date' : 'Fecha'}</span>
             <input
               type="date"
               required
@@ -858,7 +866,7 @@ function CreateAppointmentModal({
           </label>
 
           <label className="block">
-            <span className="mb-1 block text-sm font-semibold text-gray-700">Hora</span>
+            <span className="mb-1 block text-sm font-semibold text-gray-700">{en ? 'Time' : 'Hora'}</span>
             <input
               type="time"
               required
@@ -869,20 +877,20 @@ function CreateAppointmentModal({
           </label>
 
           <label className="block sm:col-span-2">
-            <span className="mb-1 block text-sm font-semibold text-gray-700">Modalidad</span>
+            <span className="mb-1 block text-sm font-semibold text-gray-700">{en ? 'Appointment type' : 'Modalidad'}</span>
             <select
               value={form.appointmentType}
               onChange={(event) => onChange({ ...form, appointmentType: event.target.value })}
               className="h-11 w-full rounded-xl border border-gray-200 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="presencial">Presencial</option>
-              <option value="teleconsulta">Teleconsulta</option>
+              <option value="presencial">{en ? 'In person' : 'Presencial'}</option>
+              <option value="teleconsulta">{en ? 'Telehealth' : 'Teleconsulta'}</option>
             </select>
           </label>
 
           {form.appointmentType === 'teleconsulta' && (
             <label className="block sm:col-span-2">
-              <span className="mb-1 block text-sm font-semibold text-gray-700">Enlace de videollamada</span>
+              <span className="mb-1 block text-sm font-semibold text-gray-700">{en ? 'Video call link' : 'Enlace de videollamada'}</span>
               <input
                 type="url"
                 value={form.videoRoomUrl}
@@ -890,12 +898,12 @@ function CreateAppointmentModal({
                 placeholder="https://meet.google.com/... o https://zoom.us/j/..."
                 className="h-11 w-full rounded-xl border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <span className="mt-1 block text-xs text-gray-500">Si lo dejas vacio, SaludClick creara una sala interna como respaldo.</span>
+              <span className="mt-1 block text-xs text-gray-500">{en ? 'If left empty, SaludClick will create an internal room as a backup.' : 'Si lo dejas vacio, SaludClick creara una sala interna como respaldo.'}</span>
             </label>
           )}
 
           <label className="block sm:col-span-2">
-            <span className="mb-1 block text-sm font-semibold text-gray-700">Motivo</span>
+            <span className="mb-1 block text-sm font-semibold text-gray-700">{en ? 'Reason' : 'Motivo'}</span>
             <textarea
               value={form.reasonForVisit}
               onChange={(event) => onChange({ ...form, reasonForVisit: event.target.value })}
@@ -907,11 +915,11 @@ function CreateAppointmentModal({
         </div>
 
         <div className="flex flex-col-reverse gap-3 border-t border-gray-100 bg-gray-50 p-5 sm:flex-row sm:justify-end">
-          <button type="button" onClick={onClose} disabled={saving} className="h-11 rounded-xl border border-gray-200 bg-white px-4 text-sm font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-60">
-            Volver
+            <button type="button" onClick={onClose} disabled={saving} className="h-11 rounded-xl border border-gray-200 bg-white px-4 text-sm font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-60">
+            {en ? 'Back' : 'Volver'}
           </button>
           <button type="submit" disabled={saving || patients.length === 0} className="h-11 rounded-xl bg-blue-600 px-4 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-60">
-            {saving ? 'Creando...' : 'Crear cita'}
+            {saving ? (en ? 'Creating...' : 'Creando...') : (en ? 'Create appointment' : 'Crear cita')}
           </button>
         </div>
       </form>
@@ -934,6 +942,8 @@ function RescheduleModal({
   onClose: () => void;
   onSubmit: () => void;
 }) {
+  const { locale } = useI18n();
+  const en = locale === 'en';
   if (!appointment) return null;
 
   return (
@@ -948,10 +958,10 @@ function RescheduleModal({
         <div className="border-b border-gray-100 p-5">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-bold uppercase text-blue-600">Reagendar cita</p>
+              <p className="text-xs font-bold uppercase text-blue-600">{en ? 'Reschedule appointment' : 'Reagendar cita'}</p>
               <h2 className="mt-1 text-xl font-bold text-gray-950">{getAppointmentName(appointment, 'doctor')}</h2>
               <p className="mt-1 text-sm text-gray-500">
-                Actual: {formatDate(appointment.appointment_date)} a las {formatTime(appointment.appointment_time)}
+                {en ? 'Current:' : 'Actual:'} {formatDate(appointment.appointment_date)} {en ? 'at' : 'a las'} {formatTime(appointment.appointment_time)}
               </p>
             </div>
             <button type="button" onClick={onClose} className="inline-flex h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-100" aria-label="Cerrar">
@@ -962,7 +972,7 @@ function RescheduleModal({
 
         <div className="grid gap-4 p-5 sm:grid-cols-2">
           <label className="block">
-            <span className="mb-1 block text-sm font-semibold text-gray-700">Nueva fecha</span>
+            <span className="mb-1 block text-sm font-semibold text-gray-700">{en ? 'New date' : 'Nueva fecha'}</span>
             <input
               type="date"
               required
@@ -972,7 +982,7 @@ function RescheduleModal({
             />
           </label>
           <label className="block">
-            <span className="mb-1 block text-sm font-semibold text-gray-700">Nueva hora</span>
+            <span className="mb-1 block text-sm font-semibold text-gray-700">{en ? 'New time' : 'Nueva hora'}</span>
             <input
               type="time"
               required
@@ -983,7 +993,7 @@ function RescheduleModal({
           </label>
           {isTeleconsultation(appointment) && (
             <label className="block sm:col-span-2">
-              <span className="mb-1 block text-sm font-semibold text-gray-700">Enlace de videollamada</span>
+              <span className="mb-1 block text-sm font-semibold text-gray-700">{en ? 'Video call link' : 'Enlace de videollamada'}</span>
               <input
                 type="url"
                 value={form.videoRoomUrl}
@@ -991,17 +1001,17 @@ function RescheduleModal({
                 placeholder="https://meet.google.com/... o https://zoom.us/j/..."
                 className="h-11 w-full rounded-xl border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <span className="mt-1 block text-xs text-gray-500">Pega aqui el enlace externo para reemplazar la sala interna.</span>
+              <span className="mt-1 block text-xs text-gray-500">{en ? 'Paste the external link here to replace the internal room.' : 'Pega aqui el enlace externo para reemplazar la sala interna.'}</span>
             </label>
           )}
         </div>
 
         <div className="flex flex-col-reverse gap-3 border-t border-gray-100 bg-gray-50 p-5 sm:flex-row sm:justify-end">
           <button type="button" onClick={onClose} disabled={saving} className="h-11 rounded-xl border border-gray-200 bg-white px-4 text-sm font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-60">
-            Volver
+            {en ? 'Back' : 'Volver'}
           </button>
           <button type="submit" disabled={saving} className="h-11 rounded-xl bg-blue-600 px-4 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-60">
-            {saving ? 'Guardando...' : 'Guardar nueva fecha'}
+            {saving ? (en ? 'Saving...' : 'Guardando...') : (en ? 'Save new date' : 'Guardar nueva fecha')}
           </button>
         </div>
       </form>
@@ -1024,6 +1034,8 @@ function CancelAppointmentModal({
   onClose: () => void;
   onSubmit: () => void;
 }) {
+  const { locale } = useI18n();
+  const en = locale === 'en';
   if (!appointment) return null;
 
   return (
@@ -1038,10 +1050,10 @@ function CancelAppointmentModal({
         <div className="border-b border-gray-100 p-5">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-bold uppercase text-rose-600">Cancelar cita</p>
+              <p className="text-xs font-bold uppercase text-rose-600">{en ? 'Cancel appointment' : 'Cancelar cita'}</p>
               <h2 className="mt-1 text-xl font-bold text-gray-950">{getAppointmentName(appointment, 'doctor')}</h2>
               <p className="mt-1 text-sm text-gray-500">
-                {formatDate(appointment.appointment_date)} a las {formatTime(appointment.appointment_time)}
+                {formatDate(appointment.appointment_date)} {en ? 'at' : 'a las'} {formatTime(appointment.appointment_time)}
               </p>
             </div>
             <button type="button" onClick={onClose} className="inline-flex h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-100" aria-label="Cerrar">
@@ -1052,10 +1064,10 @@ function CancelAppointmentModal({
 
         <div className="space-y-3 p-5">
           <p className="rounded-xl border border-rose-100 bg-rose-50 p-3 text-sm text-rose-700">
-            Esta accion marcara la cita como cancelada y la quitara de las agendas activas.
+            {en ? 'This action will mark the appointment as cancelled and remove it from active schedules.' : 'Esta accion marcara la cita como cancelada y la quitara de las agendas activas.'}
           </p>
           <label className="block">
-            <span className="mb-1 block text-sm font-semibold text-gray-700">Motivo de cancelacion</span>
+            <span className="mb-1 block text-sm font-semibold text-gray-700">{en ? 'Cancellation reason' : 'Motivo de cancelacion'}</span>
             <textarea
               value={reason}
               onChange={(event) => onReasonChange(event.target.value)}
@@ -1068,10 +1080,10 @@ function CancelAppointmentModal({
 
         <div className="flex flex-col-reverse gap-3 border-t border-gray-100 bg-gray-50 p-5 sm:flex-row sm:justify-end">
           <button type="button" onClick={onClose} disabled={saving} className="h-11 rounded-xl border border-gray-200 bg-white px-4 text-sm font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-60">
-            Mantener cita
+            {en ? 'Keep appointment' : 'Mantener cita'}
           </button>
           <button type="submit" disabled={saving} className="h-11 rounded-xl bg-rose-600 px-4 text-sm font-bold text-white hover:bg-rose-700 disabled:opacity-60">
-            {saving ? 'Cancelando...' : 'Cancelar cita'}
+            {saving ? (en ? 'Cancelling...' : 'Cancelando...') : (en ? 'Cancel appointment' : 'Cancelar cita')}
           </button>
         </div>
       </form>

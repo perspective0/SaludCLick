@@ -8,8 +8,9 @@ import { doctorCanAccessPatient } from '../repositories/clinicalAccessRepository
 
 const allowedWarningTypes = ['alergia', 'embarazo', 'lactancia', 'renal', 'hepatico', 'interaccion', 'duplicidad', 'controlado'];
 const allowedSeverities = ['baja', 'media', 'alta', 'critica'];
+let vademecumReady: Promise<void> | null = null;
 
-export async function ensureVademecumTables() {
+async function initializeVademecumTables() {
   await query(`
     CREATE TABLE IF NOT EXISTS medicamentos_vademecum (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -102,6 +103,16 @@ export async function ensureVademecumTables() {
     )
   `).catch(() => null);
   await seedDemoVademecum();
+}
+
+export function ensureVademecumTables() {
+  if (!vademecumReady) {
+    vademecumReady = initializeVademecumTables().catch((error) => {
+      vademecumReady = null;
+      throw error;
+    });
+  }
+  return vademecumReady;
 }
 
 export const searchMedications = async (req: Request, res: Response) => {

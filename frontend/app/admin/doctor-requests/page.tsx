@@ -547,7 +547,7 @@ export default function AdminDoctorRequestsPage() {
                               {item.message && (
                                 <div className="mt-3 flex items-start gap-2 text-sm text-gray-500 bg-gray-50 rounded-lg p-3">
                                   <MessageSquare className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
-                                  <p className="italic">"{item.message}"</p>
+                                  <p className="italic">&quot;{item.message}&quot;</p>
                                 </div>
                               )}
                             </div>
@@ -766,7 +766,7 @@ export default function AdminDoctorRequestsPage() {
                 {selectedRequest.message && (
                   <div className="bg-blue-50 rounded-xl p-4">
                     <p className="text-xs text-blue-600 mb-1 font-medium">Mensaje del solicitante</p>
-                    <p className="text-gray-700 italic">"{selectedRequest.message}"</p>
+                    <p className="text-gray-700 italic">&quot;{selectedRequest.message}&quot;</p>
                   </div>
                 )}
 

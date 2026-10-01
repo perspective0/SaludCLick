@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 import { doctorAPI } from '@/utils/api';
+import { useI18n } from '@/i18n';
 
 type DoctorShellProps = {
   title: string;
@@ -48,6 +49,8 @@ const navItems = [
 ];
 
 export default function DoctorShell({ title, subtitle, children, actions, backHref, backLabel = 'Volver', hideBack = false }: DoctorShellProps) {
+  const { locale } = useI18n();
+  const en = locale === 'en';
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -109,7 +112,7 @@ export default function DoctorShell({ title, subtitle, children, actions, backHr
             </div>
 
             <nav className="flex-1 min-h-0 p-3 space-y-1 overflow-y-auto">
-              <p className="px-2 mb-2 text-[11px] font-semibold uppercase text-gray-400">Portal medico</p>
+              <p className="px-2 mb-2 text-[11px] font-semibold uppercase text-gray-400">{en ? 'Doctor portal' : 'Portal medico'}</p>
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const active = pathname === item.href;
@@ -122,7 +125,16 @@ export default function DoctorShell({ title, subtitle, children, actions, backHr
                     }`}
                   >
                     <Icon className="w-5 h-5" />
-                    {item.label}
+                    {({
+                      'Citas medicas': en ? 'Appointments' : item.label,
+                      'Registros medicos': en ? 'Medical records' : item.label,
+                      'Analiticas y estudios': en ? 'Labs and studies' : item.label,
+                      'Documentos medicos': en ? 'Medical documents' : item.label,
+                      'Preguntas y recomendaciones': en ? 'Feedback and suggestions' : item.label,
+                      'Equipo de apoyo': en ? 'Support team' : item.label,
+                      'Perfil profesional': en ? 'Professional profile' : item.label,
+                      Medico: en ? 'Doctor' : item.label,
+                    } as Record<string, string>)[item.label] || item.label}
                   </Link>
                 );
               })}
@@ -140,7 +152,7 @@ export default function DoctorShell({ title, subtitle, children, actions, backHr
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold truncate">{user?.firstName} {user?.lastName}</p>
-                  <p className="text-xs text-gray-500">Medico</p>
+                  <p className="text-xs text-gray-500">{en ? 'Doctor' : 'Medico'}</p>
                 </div>
               </div>
               <button
@@ -148,7 +160,7 @@ export default function DoctorShell({ title, subtitle, children, actions, backHr
                 className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
               >
                 <LogOut className="w-4 h-4" />
-                Cerrar sesion
+                {en ? 'Sign out' : 'Cerrar sesion'}
               </button>
             </div>
           </div>

@@ -63,7 +63,7 @@ export default function PrescriptionPreview({
   }, [verifyUrl]);
 
   return (
-    <section className="rounded-2xl bg-white border border-gray-200 p-5">
+    <section translate="no" className="rounded-2xl bg-white border border-gray-200 p-5">
       <div className="flex items-start justify-between gap-4 border-b border-gray-100 pb-4 mb-4">
         <div>
           <Image src="/saludclick.png" alt="SaludClick" width={160} height={70} className="h-10 w-auto" />

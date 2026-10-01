@@ -145,6 +145,7 @@ export default function DoctorDocumentsPage() {
         healthCenterId: current.healthCenterId || centers[0]?.id || '',
         title: current.title || documentTypes[0].title,
       }));
+      window.dispatchEvent(new Event('saludclick:content-change'));
     } catch (err: any) {
       setError(err?.message || 'No se pudo cargar la informacion inicial.');
     } finally {
@@ -205,6 +206,7 @@ export default function DoctorDocumentsPage() {
         diagnosis: current.diagnosis || recordData[0]?.diagnosis || '',
         icd10Code: current.icd10Code || recordData[0]?.icd10_code || '',
       }));
+      window.dispatchEvent(new Event('saludclick:content-change'));
     } catch (err: any) {
       setError(err?.message || 'No se pudieron cargar los documentos del paciente.');
     }
@@ -262,7 +264,7 @@ export default function DoctorDocumentsPage() {
     }
   };
 
-  const useFrequent = (item: FrequentText) => {
+  const applyFrequent = (item: FrequentText) => {
     setSelectedDocument(null);
     setForm((current) => ({
       ...current,
@@ -340,7 +342,7 @@ export default function DoctorDocumentsPage() {
               <p className="font-bold text-gray-900 mb-3">Textos frecuentes</p>
               <div className="space-y-2">
                 {(frequents[form.type] || []).map((item) => (
-                  <button key={`${item.title}-${item.content}`} type="button" onClick={() => useFrequent(item)} className="w-full rounded-xl border border-gray-100 bg-gray-50 px-3 py-2 text-left hover:bg-white">
+                  <button key={`${item.title}-${item.content}`} type="button" onClick={() => applyFrequent(item)} className="w-full rounded-xl border border-gray-100 bg-gray-50 px-3 py-2 text-left hover:bg-white">
                     <p className="text-sm font-semibold text-gray-900">{item.title}</p>
                     <p className="text-xs text-gray-500 line-clamp-2">{item.content}</p>
                   </button>

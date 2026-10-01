@@ -370,6 +370,10 @@ export const createAppointment = async (req: Request, res: Response) => {
 export const getAppointments = async (req: Request, res: Response) => {
   try {
     await ensurePatientAppointmentFields();
+    // Algunas instalaciones existentes no tienen todavía estos campos de precio.
+    // La consulta de citas los utiliza para mostrar correctamente la información
+    // en los dashboards, así que aseguramos la compatibilidad antes de consultar.
+    await ensureAppointmentPriceFields();
     const { status, month, year, doctorId, page = 1, limit = 20 } = req.query;
     const statusFilter = typeof status === 'string' && status !== 'undefined' && status !== 'null' && status !== '' ? status : null;
     const userId = req.user?.id;

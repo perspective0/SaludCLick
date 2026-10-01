@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { SOAPData } from './clinical';
 import { clinicalAPI } from '@/utils/api';
 import { Icd10Suggestion, getIcd10Suggestions, suggestIcd10 } from '@/utils/icd10';
+import { useI18n } from '@/i18n';
 
 type SOAPFormProps = {
   value: SOAPData;
@@ -11,6 +12,8 @@ type SOAPFormProps = {
 };
 
 export default function SOAPForm({ value, onChange }: SOAPFormProps) {
+  const { locale } = useI18n();
+  const en = locale === 'en';
   const [icd10Suggestions, setIcd10Suggestions] = useState<Icd10Suggestion[]>([]);
   const icd10Suggestion = icd10Suggestions[0] || suggestIcd10(value.primaryDiagnosis);
 
@@ -56,26 +59,26 @@ export default function SOAPForm({ value, onChange }: SOAPFormProps) {
   return (
     <section className="rounded-2xl bg-white border border-gray-200 p-5">
       <div className="mb-5">
-        <h2 className="text-lg font-bold text-gray-900">Historia clinica SOAP</h2>
-        <p className="text-sm text-gray-500">Registro estructurado de la atencion</p>
+        <h2 className="text-lg font-bold text-gray-900">{en ? 'SOAP clinical history' : 'Historia clínica SOAP'}</h2>
+        <p className="text-sm text-gray-500">{en ? 'Structured consultation record' : 'Registro estructurado de la atención'}</p>
       </div>
 
       <div className="space-y-6">
-        <SOAPSection title="Subjetivo">
-          <Textarea label="Sintomas" value={value.symptoms} onChange={(text) => onChange({ ...value, symptoms: text })} required />
-          <Textarea label="Motivo consulta" value={value.reasonForVisit} onChange={(text) => onChange({ ...value, reasonForVisit: text })} />
-          <Input label="Dolor" value={value.pain} onChange={(text) => onChange({ ...value, pain: text })} placeholder="EVA 0-10, localizacion" />
-          <Textarea label="Evolucion sintomas" value={value.symptomEvolution} onChange={(text) => onChange({ ...value, symptomEvolution: text })} />
+        <SOAPSection title={en ? 'Subjective' : 'Subjetivo'}>
+          <Textarea label={en ? 'Symptoms' : 'Síntomas'} value={value.symptoms} onChange={(text) => onChange({ ...value, symptoms: text })} required />
+          <Textarea label={en ? 'Reason for visit' : 'Motivo de consulta'} value={value.reasonForVisit} onChange={(text) => onChange({ ...value, reasonForVisit: text })} />
+          <Input label={en ? 'Pain' : 'Dolor'} value={value.pain} onChange={(text) => onChange({ ...value, pain: text })} placeholder={en ? 'Scale 0-10, location' : 'EVA 0-10, localización'} />
+          <Textarea label={en ? 'Symptom progression' : 'Evolución de síntomas'} value={value.symptomEvolution} onChange={(text) => onChange({ ...value, symptomEvolution: text })} />
         </SOAPSection>
 
-        <SOAPSection title="Objetivo">
-          <Textarea label="Examen fisico" value={value.physicalExam} onChange={(text) => onChange({ ...value, physicalExam: text })} />
-          <Textarea label="Observaciones" value={value.objectiveObservations} onChange={(text) => onChange({ ...value, objectiveObservations: text })} />
+        <SOAPSection title={en ? 'Objective' : 'Objetivo'}>
+          <Textarea label={en ? 'Physical examination' : 'Examen físico'} value={value.physicalExam} onChange={(text) => onChange({ ...value, physicalExam: text })} />
+          <Textarea label={en ? 'Observations' : 'Observaciones'} value={value.objectiveObservations} onChange={(text) => onChange({ ...value, objectiveObservations: text })} />
         </SOAPSection>
 
-        <SOAPSection title="Analisis">
+        <SOAPSection title={en ? 'Assessment' : 'Análisis'}>
           <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_160px] gap-4">
-            <Input label="Diagnostico principal" value={value.primaryDiagnosis} onChange={updateDiagnosis} required />
+            <Input label={en ? 'Primary diagnosis' : 'Diagnóstico principal'} value={value.primaryDiagnosis} onChange={updateDiagnosis} required />
             <Input label="CIE-10" value={value.primaryDiagnosisIcd10 || ''} onChange={(text) => onChange({ ...value, primaryDiagnosisIcd10: text.toUpperCase() })} placeholder="E11" />
             {icd10Suggestion && icd10Suggestion.code !== value.primaryDiagnosisIcd10 && (
               <button
@@ -83,7 +86,7 @@ export default function SOAPForm({ value, onChange }: SOAPFormProps) {
                 onClick={() => onChange({ ...value, primaryDiagnosisIcd10: icd10Suggestion.code })}
                 className="md:col-span-2 w-fit rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-left text-sm font-semibold text-blue-800 hover:bg-blue-100"
               >
-                Sugerido: {icd10Suggestion.code} · {icd10Suggestion.label}
+                {en ? 'Suggested' : 'Sugerido'}: {icd10Suggestion.code} · {icd10Suggestion.label}
               </button>
             )}
             {icd10Suggestions.length > 1 && (
@@ -102,16 +105,16 @@ export default function SOAPForm({ value, onChange }: SOAPFormProps) {
               </div>
             )}
           </div>
-          <Input label="Diagnosticos secundarios" value={value.secondaryDiagnoses} onChange={(text) => onChange({ ...value, secondaryDiagnoses: text })} />
-          <Textarea label="Impresion clinica" value={value.clinicalImpression} onChange={(text) => onChange({ ...value, clinicalImpression: text })} />
+          <Input label={en ? 'Secondary diagnoses' : 'Diagnósticos secundarios'} value={value.secondaryDiagnoses} onChange={(text) => onChange({ ...value, secondaryDiagnoses: text })} />
+          <Textarea label={en ? 'Clinical impression' : 'Impresión clínica'} value={value.clinicalImpression} onChange={(text) => onChange({ ...value, clinicalImpression: text })} />
         </SOAPSection>
 
         <SOAPSection title="Plan">
-          <Textarea label="Tratamiento" value={value.treatment} onChange={(text) => onChange({ ...value, treatment: text })} required />
-          <Textarea label="Medicamentos" value={value.medications} onChange={(text) => onChange({ ...value, medications: text })} />
-          <Textarea label="Laboratorios" value={value.labs} onChange={(text) => onChange({ ...value, labs: text })} />
-          <Textarea label="Indicaciones" value={value.instructions} onChange={(text) => onChange({ ...value, instructions: text })} />
-          <Textarea label="Seguimiento" value={value.followUp} onChange={(text) => onChange({ ...value, followUp: text })} />
+          <Textarea label={en ? 'Treatment' : 'Tratamiento'} value={value.treatment} onChange={(text) => onChange({ ...value, treatment: text })} required />
+          <Textarea label={en ? 'Medications' : 'Medicamentos'} value={value.medications} onChange={(text) => onChange({ ...value, medications: text })} />
+          <Textarea label={en ? 'Laboratory tests' : 'Laboratorios'} value={value.labs} onChange={(text) => onChange({ ...value, labs: text })} />
+          <Textarea label={en ? 'Instructions' : 'Indicaciones'} value={value.instructions} onChange={(text) => onChange({ ...value, instructions: text })} />
+          <Textarea label={en ? 'Follow-up' : 'Seguimiento'} value={value.followUp} onChange={(text) => onChange({ ...value, followUp: text })} />
         </SOAPSection>
       </div>
     </section>

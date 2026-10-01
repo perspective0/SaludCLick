@@ -51,8 +51,8 @@ export default function TermsPage() {
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-3">1. Aceptación de los Términos</h2>
                 <p className="text-gray-600 leading-relaxed mb-3">
-                  Bienvenido a <strong>SaludClick</strong> ("la Plataforma"). Al acceder, registrarte o utilizar 
-                  nuestros servicios de agendamiento de citas médicas, aceptas estar legalmente vinculado por 
+                  Bienvenido a <strong>SaludClick</strong> (&quot;la Plataforma&quot;). Al acceder, registrarte o utilizar
+                  nuestros servicios de agendamiento de citas médicas, aceptas estar legalmente vinculado por
                   estos Términos y Condiciones.
                 </p>
                 <p className="text-gray-600 leading-relaxed mb-3">
@@ -281,7 +281,7 @@ export default function TermsPage() {
                   Todos los derechos de propiedad intelectual sobre la Plataforma, incluyendo pero no limitado a:
                 </p>
                 <ul className="list-disc list-inside space-y-2 text-gray-600 ml-4">
-                  <li>El nombre "SaludClick" y su logotipo</li>
+                  <li>El nombre &quot;SaludClick&quot; y su logotipo</li>
                   <li>El diseño, código fuente y arquitectura de la plataforma</li>
                   <li>Las bases de datos y algoritmos propietarios</li>
                   <li>El contenido original publicado por SaludClick</li>
@@ -351,7 +351,7 @@ export default function TermsPage() {
                 <ul className="list-disc list-inside space-y-2 text-gray-600 ml-4">
                   <li>Un aviso destacado en la plataforma con 30 días de anticipación</li>
                   <li>Notificación por correo electrónico a la dirección registrada</li>
-                  <li>Actualización de la fecha de "Última actualización" al inicio de este documento</li>
+                  <li>Actualización de la fecha de &quot;Última actualización&quot; al inicio de este documento</li>
                 </ul>
                 <p className="text-gray-600 leading-relaxed mt-3">
                   El uso continuado de la plataforma después de los cambios constituye tu aceptación 

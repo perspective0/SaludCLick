@@ -13,6 +13,7 @@ import {
   ClinicalPatient,
   emptySOAP,
   emptyVitalSigns,
+  calculateBMI,
   getAge,
   getFullName,
   SOAPData,
@@ -20,6 +21,7 @@ import {
 } from '@/components/doctor/clinical';
 import { appointmentAPI, clinicalAPI, doctorAPI, medicalAPI } from '@/utils/api';
 import { formatDate } from '@/utils/helpers';
+import { useI18n } from '@/i18n';
 import { AlertCircle, CalendarClock, CheckCircle2, FlaskConical, Pill, Save } from 'lucide-react';
 
 const draftKey = (patientId: string, appointmentId?: string | null) => `consultationDraft:${patientId}:${appointmentId || 'standalone'}`;
@@ -33,6 +35,8 @@ export default function DoctorConsultationPage() {
 }
 
 function DoctorConsultationContent() {
+  const { locale } = useI18n();
+  const en = locale === 'en';
   const router = useRouter();
   const searchParams = useSearchParams();
   const patientId = searchParams.get('patientId') || '';
@@ -98,7 +102,7 @@ function DoctorConsultationContent() {
       hydrateDraft(draftResponse?.data);
     } catch (err) {
       console.error('Error loading consultation:', err);
-      setError('No se pudo cargar la consulta medica.');
+      setError(en ? 'Could not load the medical consultation.' : 'No se pudo cargar la consulta médica.');
       loadLocalDraft();
     } finally {
       setLoading(false);
@@ -134,22 +138,22 @@ function DoctorConsultationContent() {
       const response = await clinicalAPI.saveConsultationDraft({ patientId, appointmentId, draftData });
       setDraftId(response?.data?.id || '');
       localStorage.removeItem(draftKey(patientId, appointmentId));
-      setSuccess('Borrador guardado en el backend.');
+      setSuccess(en ? 'Draft saved to the server.' : 'Borrador guardado en el servidor.');
     } catch (err) {
       console.error('Error saving backend draft:', err);
       localStorage.setItem(draftKey(patientId, appointmentId), JSON.stringify(draftData));
-      setSuccess(getDraftFallbackMessage(err));
+      setSuccess(getDraftFallbackMessage(err, en));
     }
   };
 
   const finishConsultation = async () => {
-    if (!window.confirm('¿Finalizar esta consulta y crear el registro medico?')) return;
+    if (!window.confirm(en ? 'Finish this consultation and create the medical record?' : '¿Finalizar esta consulta y crear el registro médico?')) return;
     if (!patientId) {
-      setError('Selecciona un paciente antes de finalizar.');
+      setError(en ? 'Select a patient before finishing.' : 'Selecciona un paciente antes de finalizar.');
       return;
     }
     if (!soap.primaryDiagnosis.trim() || !soap.treatment.trim()) {
-      setError('Diagnostico principal y tratamiento son obligatorios.');
+      setError(en ? 'Primary diagnosis and treatment are required.' : 'El diagnóstico principal y el tratamiento son obligatorios.');
       return;
     }
 
@@ -164,7 +168,7 @@ function DoctorConsultationContent() {
         icd10Code: soap.primaryDiagnosisIcd10 || undefined,
         treatment: soap.treatment,
         symptoms: soap.symptoms || soap.reasonForVisit,
-        vitalSigns: vitals,
+        vitalSigns: { ...vitals, bmi: calculateBMI(vitals.weight, vitals.height) || undefined },
         notes: buildStructuredConsultationNotes(soap),
       });
 
@@ -176,11 +180,11 @@ function DoctorConsultationContent() {
       }
 
       localStorage.removeItem(draftKey(patientId, appointmentId));
-      setSuccess('Consulta finalizada y registro clinico creado.');
+      setSuccess(en ? 'Consultation completed and clinical record created.' : 'Consulta finalizada y registro clínico creado.');
       router.push(`/doctor/patients/${patientId}`);
     } catch (err: any) {
       console.error('Error finishing consultation:', err);
-      setError(getClinicalErrorMessage(err, 'No se pudo finalizar la consulta. El borrador se conserva.'));
+      setError(getClinicalErrorMessage(err, en ? 'Could not finish the consultation. The draft was preserved.' : 'No se pudo finalizar la consulta. El borrador se conserva.', en));
     } finally {
       setSaving(false);
     }
@@ -189,17 +193,17 @@ function DoctorConsultationContent() {
   return (
     <ProtectedRoute requiredRole="doctor">
       <DoctorShell
-        title="Consulta medica"
-        subtitle="Flujo clinico SOAP, signos vitales, receta y seguimiento"
+        title={en ? 'Medical consultation' : 'Consulta médica'}
+        subtitle={en ? 'SOAP workflow, vital signs, prescription and follow-up' : 'Flujo clínico SOAP, signos vitales, receta y seguimiento'}
         actions={
           <div className="flex flex-wrap gap-2">
             <button onClick={saveDraft} className="h-10 px-3 rounded-xl border border-gray-200 text-sm font-semibold hover:bg-gray-50 inline-flex items-center gap-2">
               <Save className="w-4 h-4" />
-              Guardar borrador
+              {en ? 'Save draft' : 'Guardar borrador'}
             </button>
             <button onClick={finishConsultation} disabled={saving} className="h-10 px-3 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-60 inline-flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4" />
-              {saving ? 'Finalizando...' : 'Finalizar consulta'}
+              {saving ? (en ? 'Finishing...' : 'Finalizando...') : (en ? 'Finish consultation' : 'Finalizar consulta')}
             </button>
           </div>
         }
@@ -216,26 +220,26 @@ function DoctorConsultationContent() {
           ) : !patient ? (
             <section className="rounded-2xl bg-white border border-gray-200 p-12 text-center">
               <AlertCircle className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <p className="font-semibold text-gray-700">Selecciona un paciente para iniciar consulta.</p>
-              <Link href="/doctor/patients" className="mt-4 inline-flex h-10 px-4 rounded-xl bg-gray-900 text-white text-sm font-semibold items-center">Ir a pacientes</Link>
+              <p className="font-semibold text-gray-700">{en ? 'Select a patient to start the consultation.' : 'Selecciona un paciente para iniciar la consulta.'}</p>
+              <Link href="/doctor/patients" className="mt-4 inline-flex h-10 px-4 rounded-xl bg-gray-900 text-white text-sm font-semibold items-center">{en ? 'Go to patients' : 'Ir a pacientes'}</Link>
             </section>
           ) : (
             <>
               <section className="rounded-2xl bg-gray-950 text-white p-5">
                 <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-4">
                   <div>
-                    <p className="text-sm text-blue-200 font-medium">Consulta en curso</p>
+                    <p className="text-sm text-blue-200 font-medium">{en ? 'Consultation in progress' : 'Consulta en curso'}</p>
                     <h1 className="text-2xl font-bold mt-1 text-white">{getFullName(patient)}</h1>
                     <div className="mt-3 flex flex-wrap gap-2 text-sm text-gray-300">
                       <span>{getAge(patient.birth_date)}</span>
-                      <span>Sexo: {patient.sex || 'No disponible'}</span>
-                      <span>Motivo: {appointment?.reason_for_visit || soap.reasonForVisit || 'No registrado'}</span>
-                      <span>Ultima consulta: {lastRecord?.created_at ? new Date(lastRecord.created_at).toLocaleDateString('es-DO') : 'Sin registro'}</span>
+                      <span>{en ? 'Gender' : 'Sexo'}: {patient.sex || (en ? 'Not available' : 'No disponible')}</span>
+                      <span>{en ? 'Reason' : 'Motivo'}: {appointment?.reason_for_visit || soap.reasonForVisit || (en ? 'Not recorded' : 'No registrado')}</span>
+                      <span>{en ? 'Last visit' : 'Última consulta'}: {lastRecord?.created_at ? new Date(lastRecord.created_at).toLocaleDateString(en ? 'en-US' : 'es-DO') : (en ? 'No record' : 'Sin registro')}</span>
                     </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-                    <ClinicalBadge label="Alergias" value={clinicalSummary?.allergies?.[0]?.name || 'Sin alergias registradas'} tone="amber" />
-                    <ClinicalBadge label="Signos criticos" value="Sin alertas activas" tone="emerald" />
+                    <ClinicalBadge label={en ? 'Allergies' : 'Alergias'} value={clinicalSummary?.allergies?.[0]?.name || (en ? 'No allergies recorded' : 'Sin alergias registradas')} tone="amber" />
+                    <ClinicalBadge label={en ? 'Critical signs' : 'Signos críticos'} value={en ? 'No active alerts' : 'Sin alertas activas'} tone="emerald" />
                   </div>
                 </div>
               </section>
@@ -249,19 +253,19 @@ function DoctorConsultationContent() {
                     <div className="flex flex-wrap gap-2">
                       <Link href={`/doctor/prescriptions?patientId=${patientId}`} className="h-10 px-3 rounded-xl border border-gray-200 text-sm font-semibold hover:bg-gray-50 inline-flex items-center gap-2">
                         <Pill className="w-4 h-4" />
-                        Generar receta
+                        {en ? 'Generate prescription' : 'Generar receta'}
                       </Link>
                       <Link href={`/doctor/lab-orders?patientId=${patientId}${lastRecord?.id ? `&recordId=${lastRecord.id}` : ''}`} className="h-10 px-3 rounded-xl border border-gray-200 text-sm font-semibold hover:bg-gray-50 inline-flex items-center gap-2">
                         <FlaskConical className="w-4 h-4" />
-                        Ordenar laboratorio
+                        {en ? 'Order lab test' : 'Ordenar laboratorio'}
                       </Link>
                       <Link href="/appointments" className="h-10 px-3 rounded-xl border border-gray-200 text-sm font-semibold hover:bg-gray-50 inline-flex items-center gap-2">
                         <CalendarClock className="w-4 h-4" />
-                        Reagendar
+                        {en ? 'Reschedule' : 'Reagendar'}
                       </Link>
                       <button onClick={finishConsultation} disabled={saving} className="h-10 px-3 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 disabled:opacity-60 inline-flex items-center gap-2">
                         <CheckCircle2 className="w-4 h-4" />
-                        Finalizar consulta
+                        {en ? 'Finish consultation' : 'Finalizar consulta'}
                       </button>
                     </div>
                   </section>
@@ -283,9 +287,11 @@ function DoctorConsultationContent() {
 }
 
 function ConsultationFallback() {
+  const { locale } = useI18n();
+  const en = locale === 'en';
   return (
     <ProtectedRoute requiredRole="doctor">
-      <DoctorShell title="Consulta medica" subtitle="Flujo clinico SOAP, signos vitales, receta y seguimiento">
+      <DoctorShell title={en ? 'Medical consultation' : 'Consulta médica'} subtitle={en ? 'SOAP workflow, vital signs, prescription and follow-up' : 'Flujo clínico SOAP, signos vitales, receta y seguimiento'}>
         <div className="space-y-6 animate-pulse">
           <div className="h-40 rounded-2xl bg-gray-100" />
           <div className="h-96 rounded-2xl bg-gray-100" />
@@ -295,26 +301,28 @@ function ConsultationFallback() {
   );
 }
 
-function getClinicalErrorMessage(error: any, fallback: string) {
-  if (error?.status === 403) return 'No tienes permiso para acceder a este paciente.';
-  if (error?.status === 409) return 'Hay un conflicto con los datos clinicos. Revisa la informacion e intenta nuevamente.';
-  if (error?.status === 400) return error?.message || 'Hay datos clinicos invalidos.';
+function getClinicalErrorMessage(error: any, fallback: string, en = false) {
+  if (error?.status === 403) return en ? 'You do not have permission to access this patient.' : 'No tienes permiso para acceder a este paciente.';
+  if (error?.status === 409) return en ? 'There is a conflict with the clinical data. Review the information and try again.' : 'Hay un conflicto con los datos clínicos. Revisa la información e intenta nuevamente.';
+  if (error?.status === 400) return error?.message || (en ? 'The clinical data is invalid.' : 'Hay datos clínicos inválidos.');
   return error?.message || fallback;
 }
 
-function getDraftFallbackMessage(error: any) {
-  if (error?.status === 401) return 'Sesion expirada: borrador guardado localmente.';
-  if (error?.status === 403) return 'Sin permiso para sincronizar este paciente: borrador guardado localmente.';
-  if (error?.status === 400) return `${error?.message || 'Datos incompletos'}: borrador guardado localmente.`;
-  return 'No se pudo sincronizar con el servidor: borrador guardado localmente.';
+function getDraftFallbackMessage(error: any, en = false) {
+  if (error?.status === 401) return en ? 'Session expired: draft saved locally.' : 'Sesión expirada: borrador guardado localmente.';
+  if (error?.status === 403) return en ? 'You do not have permission to sync this patient: draft saved locally.' : 'Sin permiso para sincronizar este paciente: borrador guardado localmente.';
+  if (error?.status === 400) return `${error?.message || (en ? 'Incomplete data' : 'Datos incompletos')}: ${en ? 'draft saved locally.' : 'borrador guardado localmente.'}`;
+  return en ? 'Could not sync with the server: draft saved locally.' : 'No se pudo sincronizar con el servidor: borrador guardado localmente.';
 }
 
 function ClinicalBadge({ label, value, tone }: { label: string; value: string; tone: 'amber' | 'emerald' }) {
-  const styles = tone === 'amber' ? 'bg-amber-50 text-amber-100 border-amber-400/30' : 'bg-emerald-50 text-emerald-100 border-emerald-400/30';
+  const styles = tone === 'amber'
+    ? 'bg-amber-50 text-amber-900 border-amber-300'
+    : 'bg-emerald-50 text-emerald-900 border-emerald-300';
   return (
     <div className={`rounded-xl border px-3 py-2 ${styles}`}>
-      <p className="text-xs opacity-80">{label}</p>
-      <p className="font-semibold text-white">{value}</p>
+      <p className="text-xs font-medium opacity-80">{label}</p>
+      <p className="font-semibold">{value}</p>
     </div>
   );
 }

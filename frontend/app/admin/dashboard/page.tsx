@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { adminAPI } from '@/utils/api';
 import { getUserGreeting } from '@/utils/helpers';
+import { useI18n } from '@/i18n';
 import { 
   Users, 
   Stethoscope, 
@@ -106,6 +107,8 @@ function QuickLink({
 }
 
 export default function AdminDashboardPage() {
+  const { locale } = useI18n();
+  const en = locale === 'en';
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [stats, setStats] = useState({
@@ -148,7 +151,7 @@ export default function AdminDashboardPage() {
 
       setStats(statsResponse.data || stats);
       setRecentActivity(activityResponse.data || []);
-      setLastUpdate(new Date().toLocaleTimeString('es-DO'));
+      setLastUpdate(new Date().toLocaleTimeString(en ? 'en-US' : 'es-DO'));
     } catch (error: any) {
       console.error('Error loading stats:', error);
       setLoadError(error.message || 'No se pudieron cargar los datos administrativos');
@@ -165,8 +168,13 @@ export default function AdminDashboardPage() {
 
   const formatActivityTime = (value?: string) => {
     if (!value) return '';
-    return new Date(value).toLocaleString('es-DO');
+    return new Date(value).toLocaleString(en ? 'en-US' : 'es-DO');
   };
+
+  const greeting = getUserGreeting(user, 'Admin')
+    .replace('Buenos días', en ? 'Good morning' : 'Buenos días')
+    .replace('Buenas tardes', en ? 'Good afternoon' : 'Buenas tardes')
+    .replace('Buenas noches', en ? 'Good evening' : 'Buenas noches');
 
   return (
     <ProtectedRoute requiredRole="admin">
@@ -182,7 +190,7 @@ export default function AdminDashboardPage() {
                 <Shield className="w-7 h-7 text-blue-600" />
                 <div>
                   <h1 className="text-base font-bold text-gray-900">SaludClick</h1>
-                  <p className="text-xs text-gray-500">Panel Admin</p>
+                <p className="text-xs text-gray-500">{en ? 'Admin panel' : 'Panel Admin'}</p>
                 </div>
               </Link>
             </div>
@@ -190,7 +198,7 @@ export default function AdminDashboardPage() {
             {/* Navigation */}
             <nav className="flex-1 min-h-0 p-3 space-y-1 overflow-y-auto">
               <p className="text-[11px] font-semibold text-gray-400 uppercase mb-2 px-2">
-                Principal
+                {en ? 'Main' : 'Principal'}
               </p>
               <Link
                 href="/admin"
@@ -204,14 +212,14 @@ export default function AdminDashboardPage() {
                 className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors"
               >
                 <Users className="w-5 h-5" />
-                Usuarios
+                {en ? 'Users' : 'Usuarios'}
               </Link>
               <Link
                 href="/admin/doctor-requests"
                 className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors relative"
               >
                 <Stethoscope className="w-5 h-5" />
-                Solicitudes Médicos
+                {en ? 'Doctor requests' : 'Solicitudes Médicos'}
                 {stats.pendingDoctorRequests > 0 && (
                   <span className="absolute right-2 top-1/2 -translate-y-1/2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
                     {stats.pendingDoctorRequests}
@@ -223,60 +231,60 @@ export default function AdminDashboardPage() {
                 className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors"
               >
                 <Star className="w-5 h-5" />
-                Especialistas destacados
+                {en ? 'Featured specialists' : 'Especialistas destacados'}
               </Link>
               <Link
                 href="/admin/appointments"
                 className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors"
               >
                 <CalendarCheck className="w-5 h-5" />
-                Citas médicas
+                {en ? 'Appointments' : 'Citas médicas'}
               </Link>
               <Link
                 href="/admin/doctor-payments"
                 className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors"
               >
                 <CreditCard className="w-5 h-5" />
-                Pagos Médicos
+                {en ? 'Doctor payments' : 'Pagos Médicos'}
               </Link>
 
               <p className="text-[11px] font-semibold text-gray-400 uppercase mb-2 mt-3 px-2">
-                Gestión
+                {en ? 'Management' : 'Gestión'}
               </p>
               <Link
                 href="/admin/health-centers"
                 className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors"
               >
                 <Building2 className="w-5 h-5" />
-                Centros de Salud
+                {en ? 'Health centers' : 'Centros de Salud'}
               </Link>
               <Link
                 href="/admin/laboratories"
                 className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors"
               >
                 <Beaker className="w-5 h-5" />
-                Laboratorios
+                {en ? 'Laboratories' : 'Laboratorios'}
               </Link>
               <Link
                 href="/admin/feedback"
                 className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors"
               >
                 <MessageSquare className="w-5 h-5" />
-                Preguntas y Recomendaciones
+                {en ? 'Feedback and suggestions' : 'Preguntas y Recomendaciones'}
               </Link>
               <Link
                 href="/admin/reports"
                 className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors"
               >
                 <BarChart3 className="w-5 h-5" />
-                Reportes
+                {en ? 'Reports' : 'Reportes'}
               </Link>
               <Link
                 href="/admin/settings"
                 className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors"
               >
                 <Settings className="w-5 h-5" />
-                Configuración
+                {en ? 'Settings' : 'Configuración'}
               </Link>
             </nav>
 
@@ -290,7 +298,7 @@ export default function AdminDashboardPage() {
                   <p className="text-sm font-medium text-gray-900 truncate">
                     {user?.firstName} {user?.lastName}
                   </p>
-                  <p className="text-xs text-gray-500">Administrador</p>
+                  <p className="text-xs text-gray-500">{en ? 'Administrator' : 'Administrador'}</p>
                 </div>
               </div>
               <button
@@ -298,7 +306,7 @@ export default function AdminDashboardPage() {
                 className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
               >
                 <LogOut className="w-4 h-4" />
-                Cerrar Sesión
+                {en ? 'Sign out' : 'Cerrar Sesión'}
               </button>
             </div>
           </div>
@@ -326,14 +334,14 @@ export default function AdminDashboardPage() {
                 </button>
                 <div>
                   <h1 className="text-xl md:text-2xl font-bold text-gray-900">
-                    {getUserGreeting(user, 'Admin')}
+                    {greeting}
                   </h1>
                   <p className="text-sm text-gray-500">
-                    {new Date().toLocaleDateString('es-DO', { 
-                      weekday: 'long', 
-                      year: 'numeric', 
-                      month: 'long', 
-                      day: 'numeric' 
+                    {new Date().toLocaleDateString(en ? 'en-US' : 'es-DO', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
                     })}
                   </p>
                 </div>
@@ -345,7 +353,7 @@ export default function AdminDashboardPage() {
                   onClick={loadStats}
                   disabled={loading}
                   className="rounded-lg p-2 transition-colors hover:bg-gray-100 dark:hover:bg-slate-800"
-                  title="Actualizar datos"
+                  title={en ? 'Refresh data' : 'Actualizar datos'}
                 >
                   <RefreshCw className={`w-5 h-5 text-gray-600 ${loading ? 'animate-spin' : ''}`} />
                 </button>
@@ -359,7 +367,7 @@ export default function AdminDashboardPage() {
           <div className="p-4 md:p-8">
             {loadError && (
               <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {loadError}. Vuelve a iniciar sesion si el problema continua.
+                {loadError}. {en ? 'Sign in again if the problem continues.' : 'Vuelve a iniciar sesion si el problema continua.'}
               </div>
             )}
 
@@ -376,55 +384,55 @@ export default function AdminDashboardPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 <StatCard
-                  title="Usuarios Totales"
+                  title={en ? 'Total users' : 'Usuarios Totales'}
                   value={stats.totalUsers}
                   icon={Users}
                   gradient="bg-gradient-to-br from-blue-500 to-blue-600"
                 />
                 <StatCard
-                  title="Médicos"
+                  title={en ? 'Doctors' : 'Médicos'}
                   value={stats.totalDoctors}
                   icon={Stethoscope}
                   gradient="bg-gradient-to-br from-purple-500 to-purple-600"
                 />
                 <StatCard
-                  title="Pacientes"
+                  title={en ? 'Patients' : 'Pacientes'}
                   value={stats.totalPatients}
                   icon={UserCheck}
                   gradient="bg-gradient-to-br from-green-500 to-green-600"
                 />
                 <StatCard
-                  title="Citas médicas totales"
+                  title={en ? 'Total appointments' : 'Citas médicas totales'}
                   value={stats.totalAppointments}
                   icon={CalendarCheck}
                   gradient="bg-gradient-to-br from-orange-500 to-orange-600"
                 />
                 <StatCard
-                  title="Centros de Salud"
+                  title={en ? 'Health centers' : 'Centros de Salud'}
                   value={stats.totalHealthCenters}
                   icon={Building2}
                   gradient="bg-gradient-to-br from-indigo-500 to-indigo-600"
                 />
                 <StatCard
-                  title="Laboratorios"
+                  title={en ? 'Laboratories' : 'Laboratorios'}
                   value={stats.totalLaboratories}
                   icon={Beaker}
                   gradient="bg-gradient-to-br from-cyan-500 to-cyan-600"
                 />
                 <StatCard
-                  title="Solicitudes Pendientes"
+                  title={en ? 'Pending requests' : 'Solicitudes Pendientes'}
                   value={stats.pendingDoctorRequests}
                   icon={Clock}
                   gradient="bg-gradient-to-br from-red-500 to-red-600"
                 />
                 <StatCard
-                  title="Citas médicas hoy"
+                  title={en ? 'Appointments today' : 'Citas médicas hoy'}
                   value={stats.todayAppointments || 0}
                   icon={Activity}
                   gradient="bg-gradient-to-br from-teal-500 to-teal-600"
                 />
                 <StatCard
-                  title="Usuarios Activos"
+                  title={en ? 'Active users' : 'Usuarios Activos'}
                   value={stats.activeUsers || 0}
                   icon={TrendingUp}
                   gradient="bg-gradient-to-br from-pink-500 to-pink-600"
@@ -435,7 +443,7 @@ export default function AdminDashboardPage() {
             {/* Última actualización */}
             {lastUpdate && (
               <p className="text-xs text-gray-500 mb-6">
-                Última actualización: {lastUpdate}
+                {en ? 'Last updated' : 'Última actualización'}: {lastUpdate}
               </p>
             )}
 
@@ -446,59 +454,59 @@ export default function AdminDashboardPage() {
                 <div className="dashboard-panel p-6">
                   <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                     <Settings className="w-5 h-5 text-blue-600" />
-                    Gestión Rápida
+                    {en ? 'Quick management' : 'Gestión Rápida'}
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <QuickLink
                       href="/admin/doctor-requests"
                       icon={Stethoscope}
-                      label="Solicitudes de Médicos"
+                      label={en ? 'Doctor requests' : 'Solicitudes de Médicos'}
                       badge={stats.pendingDoctorRequests}
                     />
                     <QuickLink
                       href="/admin/featured-doctors"
                       icon={Star}
-                      label="Especialistas destacados"
+                      label={en ? 'Featured specialists' : 'Especialistas destacados'}
                     />
                     <QuickLink
                       href="/admin/users"
                       icon={Users}
-                      label="Gestionar Usuarios"
+                      label={en ? 'Manage users' : 'Gestionar Usuarios'}
                     />
                     <QuickLink
                       href="/admin/health-centers"
                       icon={Building2}
-                      label="Centros de Salud"
+                      label={en ? 'Health centers' : 'Centros de Salud'}
                     />
                     <QuickLink
                       href="/admin/laboratories"
                       icon={Beaker}
-                      label="Laboratorios"
+                      label={en ? 'Laboratories' : 'Laboratorios'}
                     />
                     <QuickLink
                       href="/admin/appointments"
                       icon={CalendarCheck}
-                      label="Ver citas médicas"
+                      label={en ? 'View appointments' : 'Ver citas médicas'}
                     />
                     <QuickLink
                       href="/admin/doctor-payments"
                       icon={CreditCard}
-                      label="Pagos Médicos"
+                      label={en ? 'Doctor payments' : 'Pagos Médicos'}
                     />
                     <QuickLink
                       href="/admin/feedback"
                       icon={MessageSquare}
-                      label="Preguntas y Recomendaciones"
+                      label={en ? 'Feedback and suggestions' : 'Preguntas y Recomendaciones'}
                     />
                     <QuickLink
                       href="/admin/users/create"
                       icon={UserPlus}
-                      label="Crear Usuario"
+                      label={en ? 'Create user' : 'Crear Usuario'}
                     />
                     <QuickLink
                       href="/admin/reports"
                       icon={FileText}
-                      label="Generar Reporte"
+                      label={en ? 'Generate report' : 'Generar Reporte'}
                     />
                   </div>
                 </div>
@@ -508,11 +516,11 @@ export default function AdminDashboardPage() {
               <div className="dashboard-panel flex h-[420px] flex-col p-6">
                 <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2 shrink-0">
                   <Activity className="w-5 h-5 text-blue-600" />
-                  Actividad Reciente
+                  {en ? 'Recent activity' : 'Actividad Reciente'}
                 </h2>
                 <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-2">
                   {recentActivity.length === 0 && (
-                    <p className="text-sm text-gray-500">Sin actividad reciente.</p>
+                    <p className="text-sm text-gray-500">{en ? 'No recent activity.' : 'Sin actividad reciente.'}</p>
                   )}
                   {recentActivity.map((activity) => (
                     <div key={activity.id} className="flex items-start gap-3 pb-3 border-b border-gray-50 last:border-0">

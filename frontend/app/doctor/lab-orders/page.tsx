@@ -147,6 +147,7 @@ export default function DoctorLabOrdersPage() {
       setStudyCatalog(catalogResponse?.data || []);
       if (!selectedPatientId && patientData[0]?.id) setSelectedPatientId(patientData[0].id);
       if (centers[0]?.id) setForm((current) => ({ ...current, healthCenterId: current.healthCenterId || centers[0].id }));
+      window.dispatchEvent(new Event('saludclick:content-change'));
     } catch (err: any) {
       console.error(err);
       setError(err?.message || 'No se pudo cargar la informacion inicial.');
@@ -173,6 +174,7 @@ export default function DoctorLabOrdersPage() {
         diagnosis: current.diagnosis || recordData[0]?.diagnosis || '',
         icd10Code: current.icd10Code || recordData[0]?.icd10_code || suggestIcd10(recordData[0]?.diagnosis || '')?.code || '',
       }));
+      window.dispatchEvent(new Event('saludclick:content-change'));
     } catch (err: any) {
       console.error(err);
       setError(err?.message || 'No se pudieron cargar las ordenes del paciente.');

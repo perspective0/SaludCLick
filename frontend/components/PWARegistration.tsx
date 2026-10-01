@@ -2,8 +2,22 @@
 
 import { useEffect } from 'react';
 
+declare global {
+  interface Window {
+    saludclickInstallPrompt?: Event;
+  }
+}
+
 export default function PWARegistration() {
   useEffect(() => {
+    const captureInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      window.saludclickInstallPrompt = event;
+      window.dispatchEvent(new Event('saludclick:install-available'));
+    };
+
+    window.addEventListener('beforeinstallprompt', captureInstallPrompt);
+
     if (!('serviceWorker' in navigator) || !window.isSecureContext) return;
 
     const registerServiceWorker = () => {
@@ -15,11 +29,14 @@ export default function PWARegistration() {
 
     if (document.readyState === 'complete') {
       registerServiceWorker();
-      return;
+    } else {
+      window.addEventListener('load', registerServiceWorker, { once: true });
     }
 
-    window.addEventListener('load', registerServiceWorker, { once: true });
-    return () => window.removeEventListener('load', registerServiceWorker);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', captureInstallPrompt);
+      window.removeEventListener('load', registerServiceWorker);
+    };
   }, []);
 
   return null;
