@@ -1,10 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react';
 import { useParams } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { appointmentAPI } from '@/utils/api';
-import { CalendarCheck, Mic, MicOff, PhoneOff, Video, VideoOff } from 'lucide-react';
+import { CalendarCheck, Clock3, Copy, Maximize2, Mic, MicOff, Minimize2, MonitorUp, PhoneOff, Video, VideoOff, Volume2, VolumeX } from 'lucide-react';
 
 function buildIceServers(): RTCIceServer[] {
   const servers: RTCIceServer[] = [{ urls: 'stun:stun.l.google.com:19302' }];
@@ -41,6 +41,10 @@ export default function TeleconsultationRoomPage() {
   const mediaHealthRef = useRef<number | null>(null);
   const videoStatsRef = useRef({ framesDecoded: 0, staleChecks: 0 });
   const startingRef = useRef(false);
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  const localPreviewRef = useRef<HTMLDivElement | null>(null);
+  const dragRef = useRef({ active: false, offsetX: 0, offsetY: 0 });
+  const screenTrackRef = useRef<MediaStreamTrack | null>(null);
 
   const [room, setRoom] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -49,6 +53,13 @@ export default function TeleconsultationRoomPage() {
   const [joined, setJoined] = useState(false);
   const [micEnabled, setMicEnabled] = useState(true);
   const [cameraEnabled, setCameraEnabled] = useState(true);
+  const [sharingScreen, setSharingScreen] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
+  const [remoteAudioEnabled, setRemoteAudioEnabled] = useState(true);
+  const [connectionState, setConnectionState] = useState<RTCPeerConnectionState>('new');
+  const [callStartedAt, setCallStartedAt] = useState<number | null>(null);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [localPosition, setLocalPosition] = useState<{ left: number; top: number } | null>(null);
 
   const attachLocalPreview = useCallback(() => {
     if (!localVideoRef.current || !localStreamRef.current) return;
@@ -59,8 +70,9 @@ export default function TeleconsultationRoomPage() {
   const attachRemotePreview = useCallback((stream = remoteStreamRef.current) => {
     if (!remoteVideoRef.current || !stream) return;
     remoteVideoRef.current.srcObject = stream;
+    remoteVideoRef.current.muted = !remoteAudioEnabled;
     remoteVideoRef.current.play().catch(() => null);
-  }, []);
+  }, [remoteAudioEnabled]);
 
   const sendSignal = useCallback(
     async (type: string, payload: any) => {
@@ -172,6 +184,7 @@ export default function TeleconsultationRoomPage() {
 
     peer.onconnectionstatechange = () => {
       const state = peer.connectionState;
+      setConnectionState(state);
       if (state === 'connected') {
         if (offerRetryRef.current) window.clearInterval(offerRetryRef.current);
         if (connectionTimeoutRef.current) window.clearTimeout(connectionTimeoutRef.current);
@@ -269,8 +282,24 @@ export default function TeleconsultationRoomPage() {
       if (mediaHealthRef.current) window.clearInterval(mediaHealthRef.current);
       peerRef.current?.close();
       localStreamRef.current?.getTracks().forEach((track) => track.stop());
+      screenTrackRef.current?.stop();
     };
   }, [loadRoom]);
+
+  useEffect(() => {
+    const onFullscreenChange = () => setFullscreen(document.fullscreenElement === stageRef.current);
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', onFullscreenChange);
+  }, []);
+
+  useEffect(() => {
+    if (!callStartedAt) {
+      setElapsedSeconds(0);
+      return;
+    }
+    const timer = window.setInterval(() => setElapsedSeconds(Math.floor((Date.now() - callStartedAt) / 1000)), 1000);
+    return () => window.clearInterval(timer);
+  }, [callStartedAt]);
 
   useEffect(() => {
     if (joined) {
@@ -286,11 +315,15 @@ export default function TeleconsultationRoomPage() {
     setError('');
 
     try {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw new Error('unsupported-media');
+      }
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       localStreamRef.current = stream;
       attachLocalPreview();
 
       setJoined(true);
+      setCallStartedAt(Date.now());
       setStatus(room?.is_moderator ? 'Iniciando sala interna...' : 'Esperando al medico...');
       const peer = ensurePeer();
       startPolling();
@@ -312,7 +345,15 @@ export default function TeleconsultationRoomPage() {
       }
     } catch (err: any) {
       console.error(err);
-      setError('No se pudo acceder a camara o microfono. Revisa los permisos del navegador.');
+      if (err?.message === 'unsupported-media') {
+        setError('Este navegador no permite llamadas de video. Abre la sala en Safari o Chrome actualizado usando HTTPS.');
+      } else if (err?.name === 'NotAllowedError' || err?.name === 'SecurityError') {
+        setError('El navegador bloqueo la camara o el microfono. Concede los permisos y vuelve a entrar.');
+      } else if (err?.name === 'NotFoundError') {
+        setError('No se encontro una camara o un microfono disponible en este dispositivo.');
+      } else {
+        setError('No se pudo acceder a camara o microfono. Revisa los permisos del navegador.');
+      }
     } finally {
       startingRef.current = false;
     }
@@ -334,6 +375,105 @@ export default function TeleconsultationRoomPage() {
     setCameraEnabled(next);
   };
 
+  const toggleRemoteAudio = () => {
+    const next = !remoteAudioEnabled;
+    if (remoteVideoRef.current) remoteVideoRef.current.muted = !next;
+    setRemoteAudioEnabled(next);
+    if (next) remoteVideoRef.current?.play().catch(() => null);
+  };
+
+  const copyRoomLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setStatus('Enlace copiado');
+    } catch (err) {
+      console.error('Copy room link error:', err);
+      setStatus('No se pudo copiar el enlace');
+    }
+  };
+
+  const startDraggingLocalPreview = (event: PointerEvent<HTMLDivElement>) => {
+    const stage = stageRef.current;
+    const preview = localPreviewRef.current;
+    if (!stage || !preview) return;
+
+    const stageRect = stage.getBoundingClientRect();
+    const previewRect = preview.getBoundingClientRect();
+    setLocalPosition({ left: previewRect.left - stageRect.left, top: previewRect.top - stageRect.top });
+    dragRef.current = {
+      active: true,
+      offsetX: event.clientX - previewRect.left,
+      offsetY: event.clientY - previewRect.top,
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const dragLocalPreview = (event: PointerEvent<HTMLDivElement>) => {
+    if (!dragRef.current.active || !stageRef.current || !localPreviewRef.current) return;
+    const stageRect = stageRef.current.getBoundingClientRect();
+    const preview = localPreviewRef.current;
+    const maxLeft = Math.max(8, stageRect.width - preview.offsetWidth - 8);
+    const maxTop = Math.max(8, stageRect.height - preview.offsetHeight - 8);
+    const left = Math.min(maxLeft, Math.max(8, event.clientX - stageRect.left - dragRef.current.offsetX));
+    const top = Math.min(maxTop, Math.max(8, event.clientY - stageRect.top - dragRef.current.offsetY));
+    setLocalPosition({ left, top });
+  };
+
+  const stopDraggingLocalPreview = (event: PointerEvent<HTMLDivElement>) => {
+    dragRef.current.active = false;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+  };
+
+  const toggleScreenShare = async () => {
+    const peer = peerRef.current;
+    if (!peer) return;
+
+    try {
+      const sender = peer.getSenders().find((item) => item.track?.kind === 'video');
+      if (!sender) return;
+
+      if (sharingScreen) {
+        const cameraTrack = localStreamRef.current?.getVideoTracks()[0];
+        await sender.replaceTrack(cameraTrack || null);
+        screenTrackRef.current?.stop();
+        screenTrackRef.current = null;
+        setSharingScreen(false);
+        return;
+      }
+
+      const displayStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+      const screenTrack = displayStream.getVideoTracks()[0];
+      await sender.replaceTrack(screenTrack);
+      screenTrackRef.current = screenTrack;
+      setSharingScreen(true);
+      screenTrack.onended = () => {
+        const cameraTrack = localStreamRef.current?.getVideoTracks()[0];
+        sender.replaceTrack(cameraTrack || null).catch(() => null);
+        screenTrackRef.current = null;
+        setSharingScreen(false);
+      };
+    } catch (err) {
+      console.error('Screen sharing error:', err);
+    }
+  };
+
+  const toggleFullscreen = async () => {
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+        return;
+      }
+      if (stageRef.current?.requestFullscreen) {
+        await stageRef.current.requestFullscreen();
+      } else {
+        setFullscreen(true);
+      }
+    } catch (err) {
+      console.error('Fullscreen error:', err);
+      setFullscreen(true);
+    }
+  };
+
   const leaveRoom = () => {
     if (pollingRef.current) window.clearInterval(pollingRef.current);
     if (offerRetryRef.current) window.clearInterval(offerRetryRef.current);
@@ -348,12 +488,24 @@ export default function TeleconsultationRoomPage() {
     peerRef.current?.close();
     peerRef.current = null;
     localStreamRef.current?.getTracks().forEach((track) => track.stop());
+    screenTrackRef.current?.stop();
+    screenTrackRef.current = null;
     localStreamRef.current = null;
     remoteStreamRef.current = null;
     if (localVideoRef.current) localVideoRef.current.srcObject = null;
     if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
     setJoined(false);
+    setSharingScreen(false);
+    setFullscreen(false);
+    setCallStartedAt(null);
+    setConnectionState('new');
     setStatus('Saliste de la sala');
+  };
+
+  const formatDuration = (totalSeconds: number) => {
+    const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+    const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+    return `${minutes}:${seconds}`;
   };
 
   return (
@@ -366,7 +518,12 @@ export default function TeleconsultationRoomPage() {
                 <Video className="h-7 w-7 text-violet-300" />
                 <div>
                   <h1 className="text-3xl font-bold">Teleconsulta interna</h1>
-                  <p className="text-sm text-gray-300">{status}</p>
+                  <p className="flex items-center gap-2 text-sm text-gray-300">
+                    <span className={`h-2 w-2 rounded-full ${connectionState === 'connected' ? 'bg-emerald-400' : connectionState === 'failed' ? 'bg-rose-400' : 'bg-amber-400'}`} />
+                    <span>{status}</span>
+                    {joined && <span className="text-gray-500">·</span>}
+                    {joined && <span className="inline-flex items-center gap-1"><Clock3 className="h-3.5 w-3.5" />{formatDuration(elapsedSeconds)}</span>}
+                  </p>
                 </div>
               </div>
               {!joined && !loading && !error && (
@@ -397,6 +554,11 @@ export default function TeleconsultationRoomPage() {
                   <Info label="Rol" value={room.is_moderator ? 'Medico anfitrion' : 'Paciente'} />
                 </div>
 
+                <button onClick={copyRoomLink} className="mt-5 inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 transition hover:bg-gray-50" type="button">
+                  <Copy className="h-4 w-4" />
+                  Copiar enlace de la sala
+                </button>
+
                 {joined && (
                   <div className="mt-5 grid grid-cols-3 gap-2">
                     <button onClick={toggleMic} className="inline-flex h-11 items-center justify-center rounded-xl border border-gray-200 hover:bg-gray-50" aria-label="Microfono">
@@ -413,8 +575,8 @@ export default function TeleconsultationRoomPage() {
               </aside>
 
               <div className="grid gap-4">
-                <div className="relative min-h-[420px] overflow-hidden rounded-2xl bg-gray-950">
-                  <video ref={remoteVideoRef} autoPlay playsInline className="h-[62vh] min-h-[420px] w-full object-cover" />
+                <div ref={stageRef} className={`relative min-h-[420px] overflow-hidden rounded-2xl bg-gray-950 ${fullscreen ? 'fixed inset-0 z-[100] h-screen rounded-none' : ''}`}>
+                  <video ref={remoteVideoRef} autoPlay muted={!remoteAudioEnabled} playsInline className="h-[62vh] min-h-[420px] w-full object-cover" />
                   {!joined && (
                     <div className="absolute inset-0 flex items-center justify-center text-center text-white">
                       <div>
@@ -425,7 +587,35 @@ export default function TeleconsultationRoomPage() {
                     </div>
                   )}
                   {joined && (
-                    <video ref={localVideoRef} autoPlay muted playsInline className="absolute bottom-4 right-4 h-36 w-48 rounded-xl border border-white/20 bg-black object-cover shadow-2xl" />
+                    <>
+                      <div className="absolute left-4 top-4 rounded-full bg-black/60 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur">
+                        {connectionState === 'connected' ? 'Conectado' : connectionState === 'failed' ? 'Conexion fallida' : 'Conectando...'}
+                      </div>
+                      <button onClick={toggleRemoteAudio} className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur hover:bg-black/80" type="button" aria-label={remoteAudioEnabled ? 'Silenciar audio remoto' : 'Activar audio remoto'} title={remoteAudioEnabled ? 'Silenciar audio remoto' : 'Activar audio remoto'}>
+                        {remoteAudioEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
+                      </button>
+                      <div
+                        ref={localPreviewRef}
+                        onPointerDown={startDraggingLocalPreview}
+                        onPointerMove={dragLocalPreview}
+                        onPointerUp={stopDraggingLocalPreview}
+                        onPointerCancel={stopDraggingLocalPreview}
+                        style={localPosition ? { left: localPosition.left, top: localPosition.top, touchAction: 'none' } : { right: 16, bottom: 96, touchAction: 'none' }}
+                        className="absolute h-28 w-40 cursor-grab overflow-hidden rounded-xl border border-white/20 bg-black shadow-2xl active:cursor-grabbing sm:h-36 sm:w-48"
+                        title="Mueve tu cámara"
+                      >
+                        <video ref={localVideoRef} autoPlay muted playsInline className="h-full w-full scale-x-[-1] object-cover" />
+                        {!cameraEnabled && <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-gray-900 text-center text-white"><VideoOff className="h-6 w-6 text-rose-300" /><span className="text-xs">Camara apagada</span></div>}
+                        {!micEnabled && <span className="absolute bottom-2 left-2 rounded-full bg-rose-600 p-1.5 text-white"><MicOff className="h-3 w-3" /></span>}
+                      </div>
+                      <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-2xl bg-gray-950/90 p-2 text-white shadow-2xl backdrop-blur">
+                        <ActionButton onClick={toggleMic} active={micEnabled} label={micEnabled ? 'Silenciar microfono' : 'Activar microfono'}>{micEnabled ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}</ActionButton>
+                        <ActionButton onClick={toggleCamera} active={cameraEnabled} label={cameraEnabled ? 'Apagar camara' : 'Encender camara'}>{cameraEnabled ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}</ActionButton>
+                        <ActionButton onClick={toggleScreenShare} active={sharingScreen} label={sharingScreen ? 'Dejar de compartir' : 'Compartir pantalla'}><MonitorUp className="h-5 w-5" /></ActionButton>
+                        <ActionButton onClick={toggleFullscreen} active={fullscreen} label={fullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}>{fullscreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}</ActionButton>
+                        <button onClick={leaveRoom} className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-rose-600 text-white hover:bg-rose-700" aria-label="Salir de la sala" title="Salir de la sala"><PhoneOff className="h-5 w-5" /></button>
+                      </div>
+                    </>
                   )}
                 </div>
               </div>
@@ -434,6 +624,14 @@ export default function TeleconsultationRoomPage() {
         </main>
       </div>
     </ProtectedRoute>
+  );
+}
+
+function ActionButton({ onClick, active, label, children }: { onClick: () => void; active: boolean; label: string; children: ReactNode }) {
+  return (
+    <button onClick={onClick} className={`inline-flex h-11 w-11 items-center justify-center rounded-full transition ${active ? 'bg-white/10 hover:bg-white/20' : 'bg-rose-600 hover:bg-rose-700'}`} aria-label={label} title={label}>
+      {children}
+    </button>
   );
 }
 

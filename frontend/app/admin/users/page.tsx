@@ -5,6 +5,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { adminAPI } from '@/utils/api';
+import { useI18n } from '@/i18n';
 import { 
   Users, 
   Search, 
@@ -57,6 +58,8 @@ type UserItem = {
 };
 
 export default function AdminUsersPage() {
+  const { locale } = useI18n();
+  const en = locale === 'en';
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [roleFilter, setRoleFilter] = useState('');
@@ -134,7 +137,7 @@ export default function AdminUsersPage() {
       setUsers(response.data || []);
     } catch (err) {
       console.error(err);
-      setError('No se pudo cargar la lista de usuarios.');
+      setError(en ? 'Could not load the user list.' : 'No se pudo cargar la lista de usuarios.');
     } finally {
       setLoading(false);
     }
@@ -148,7 +151,7 @@ export default function AdminUsersPage() {
       loadUsers();
     } catch (err) {
       console.error(err);
-      setError('No se pudo eliminar el usuario.');
+      setError(en ? 'Could not delete the user.' : 'No se pudo eliminar el usuario.');
     }
   };
 
@@ -177,7 +180,7 @@ export default function AdminUsersPage() {
       await loadUsers();
     } catch (err: any) {
       console.error(err);
-      setError(err?.message || 'No se pudo actualizar el usuario.');
+      setError(err?.message || (en ? 'Could not update the user.' : 'No se pudo actualizar el usuario.'));
     }
   };
 
@@ -193,7 +196,7 @@ export default function AdminUsersPage() {
     if (!passwordUser) return;
 
     if (newPassword.length < 8) {
-      setError('La contraseña debe tener al menos 8 caracteres.');
+      setError(en ? 'The password must be at least 8 characters.' : 'La contraseña debe tener al menos 8 caracteres.');
       return;
     }
 
@@ -206,7 +209,7 @@ export default function AdminUsersPage() {
       setNewPassword('');
     } catch (err: any) {
       console.error(err);
-      setError(err?.message || 'No se pudo actualizar la contraseña.');
+      setError(err?.message || (en ? 'Could not update the password.' : 'No se pudo actualizar la contraseña.'));
     } finally {
       setPasswordSaving(false);
     }
@@ -222,7 +225,7 @@ export default function AdminUsersPage() {
       )));
     } catch (err: any) {
       console.error(err);
-      setError(err?.message || 'No se pudo actualizar si el médico aparece en inicio.');
+      setError(err?.message || (en ? 'Could not update the doctor featured status.' : 'No se pudo actualizar si el médico aparece en inicio.'));
     } finally {
       setFeaturedSavingId('');
     }
@@ -256,10 +259,10 @@ export default function AdminUsersPage() {
 
   const getRoleName = (role: string) => {
     switch (role) {
-      case 'admin': return 'Administrador';
-      case 'doctor': return 'Médico';
-      case 'patient': return 'Paciente';
-      case 'secretary': return 'Secretaria';
+      case 'admin': return en ? 'Administrator' : 'Administrador';
+      case 'doctor': return en ? 'Doctor' : 'Médico';
+      case 'patient': return en ? 'Patient' : 'Paciente';
+      case 'secretary': return en ? 'Secretary' : 'Secretaria';
       default: return role;
     }
   };
@@ -291,81 +294,81 @@ export default function AdminUsersPage() {
                 <Shield className="w-8 h-8 text-blue-600" />
                 <div>
                   <h1 className="text-lg font-bold text-gray-900">SaludClick</h1>
-                  <p className="text-xs text-gray-500">Panel Admin</p>
+                  <p className="text-xs text-gray-500">{en ? 'Admin panel' : 'Panel Admin'}</p>
                 </div>
               </Link>
             </div>
 
             <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
               <p className="text-xs font-semibold text-gray-400 uppercase mb-3 px-2">
-                Principal
+                {en ? 'Main' : 'Principal'}
               </p>
               <Link
                 href="/admin"
                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 transition-colors"
               >
                 <Home className="w-5 h-5" />
-                Dashboard
+                {en ? 'Dashboard' : 'Dashboard'}
               </Link>
               <Link
                 href="/admin/users"
                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-blue-50 text-blue-700 font-medium"
               >
                 <Users className="w-5 h-5" />
-                Usuarios
+                {en ? 'Users' : 'Usuarios'}
               </Link>
               <Link
                 href="/admin/doctor-requests"
                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 transition-colors"
               >
                 <Stethoscope className="w-5 h-5" />
-                Solicitudes Médicos
+                {en ? 'Doctor requests' : 'Solicitudes Médicos'}
               </Link>
               <Link
                 href="/admin/featured-doctors"
                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 transition-colors"
               >
                 <Star className="w-5 h-5" />
-                Especialistas destacados
+                {en ? 'Featured specialists' : 'Especialistas destacados'}
               </Link>
               <Link
                 href="/admin/appointments"
                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 transition-colors"
               >
                 <Calendar className="w-5 h-5" />
-                Citas médicas
+                {en ? 'Appointments' : 'Citas médicas'}
               </Link>
               <Link
                 href="/admin/doctor-payments"
                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 transition-colors"
               >
                 <CreditCard className="w-5 h-5" />
-                Pagos Médicos
+                {en ? 'Doctor payments' : 'Pagos Médicos'}
               </Link>
 
               <p className="text-xs font-semibold text-gray-400 uppercase mb-3 mt-6 px-2">
-                Gestión
+                {en ? 'Management' : 'Gestión'}
               </p>
               <Link
                 href="/admin/health-centers"
                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 transition-colors"
               >
                 <Building2 className="w-5 h-5" />
-                Centros de Salud
+                {en ? 'Health centers' : 'Centros de Salud'}
               </Link>
               <Link
                 href="/admin/reports"
                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 transition-colors"
               >
                 <BarChart3 className="w-5 h-5" />
-                Reportes
+                {en ? 'Reports' : 'Reportes'}
               </Link>
               <Link
                 href="/admin/settings"
                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 transition-colors"
               >
                 <Settings className="w-5 h-5" />
-                Configuración
+                {en ? 'Settings' : 'Configuración'}
               </Link>
             </nav>
 
@@ -378,7 +381,7 @@ export default function AdminUsersPage() {
                   <p className="text-sm font-medium text-gray-900 truncate">
                     {user?.firstName} {user?.lastName}
                   </p>
-                  <p className="text-xs text-gray-500">Administrador</p>
+                  <p className="text-xs text-gray-500">{en ? 'Administrator' : 'Administrador'}</p>
                 </div>
               </div>
               <button
@@ -386,7 +389,7 @@ export default function AdminUsersPage() {
                 className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
               >
                 <LogOut className="w-4 h-4" />
-                Cerrar Sesión
+                {en ? 'Sign out' : 'Cerrar Sesión'}
               </button>
             </div>
           </div>
@@ -413,10 +416,10 @@ export default function AdminUsersPage() {
                 </button>
                 <div>
                   <h1 className="text-xl md:text-2xl font-bold text-gray-900">
-                    Gestión de Usuarios
+                    {en ? 'User management' : 'Gestión de Usuarios'}
                   </h1>
                   <p className="text-sm text-gray-500">
-                    Administra cuentas, roles y permisos
+                    {en ? 'Manage accounts, roles and permissions' : 'Administra cuentas, roles y permisos'}
                   </p>
                 </div>
               </div>
@@ -440,23 +443,23 @@ export default function AdminUsersPage() {
             {/* Stats rápidas */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
               <div className="bg-white rounded-xl p-4 shadow-sm">
-                <p className="text-xs text-gray-500">Total</p>
+                <p className="text-xs text-gray-500">{en ? 'Total' : 'Total'}</p>
                 <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
               </div>
               <div className="bg-white rounded-xl p-4 shadow-sm">
-                <p className="text-xs text-gray-500">Admins</p>
+                <p className="text-xs text-gray-500">{en ? 'Admins' : 'Admins'}</p>
                 <p className="text-2xl font-bold text-purple-600">{stats.admins}</p>
               </div>
               <div className="bg-white rounded-xl p-4 shadow-sm">
-                <p className="text-xs text-gray-500">Médicos</p>
+                <p className="text-xs text-gray-500">{en ? 'Doctors' : 'Médicos'}</p>
                 <p className="text-2xl font-bold text-blue-600">{stats.doctors}</p>
               </div>
               <div className="bg-white rounded-xl p-4 shadow-sm">
-                <p className="text-xs text-gray-500">Pacientes</p>
+                <p className="text-xs text-gray-500">{en ? 'Patients' : 'Pacientes'}</p>
                 <p className="text-2xl font-bold text-green-600">{stats.patients}</p>
               </div>
               <div className="bg-white rounded-xl p-4 shadow-sm">
-                <p className="text-xs text-gray-500">Activos</p>
+                <p className="text-xs text-gray-500">{en ? 'Active' : 'Activos'}</p>
                 <p className="text-2xl font-bold text-emerald-600">{stats.active}</p>
               </div>
             </div>
@@ -468,7 +471,7 @@ export default function AdminUsersPage() {
                   <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
-                    placeholder="Buscar por nombre, email o rol..."
+                    placeholder={en ? 'Search by name, email or role...' : 'Buscar por nombre, email o rol...'}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -486,7 +489,7 @@ export default function AdminUsersPage() {
                           : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300'
                       }`}
                     >
-                      {role ? getRoleName(role) : 'Todos'}
+                      {role ? getRoleName(role) : (en ? 'All' : 'Todos')}
                     </Link>
                   ))}
                 </div>
@@ -495,7 +498,7 @@ export default function AdminUsersPage() {
                   className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
                 >
                   <Plus className="w-4 h-4" />
-                  <span className="font-medium">Nuevo Usuario</span>
+                  <span className="font-medium">{en ? 'New user' : 'Nuevo Usuario'}</span>
                 </Link>
               </div>
             </div>
@@ -528,22 +531,22 @@ export default function AdminUsersPage() {
                       <thead>
                         <tr className="bg-gray-50 border-b border-gray-100">
                           <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                            Usuario
+                            {en ? 'User' : 'Usuario'}
                           </th>
                           <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                            Rol
+                            {en ? 'Role' : 'Rol'}
                           </th>
                           <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                            Contacto
+                            {en ? 'Contact' : 'Contacto'}
                           </th>
                           <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                            Estado
+                            {en ? 'Status' : 'Estado'}
                           </th>
                           <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                            Registro
+                            {en ? 'Registered' : 'Registro'}
                           </th>
                           <th className="text-right px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                            Acciones
+                            {en ? 'Actions' : 'Acciones'}
                           </th>
                         </tr>
                       </thead>
@@ -589,38 +592,38 @@ export default function AdminUsersPage() {
                               {user.is_active ? (
                                 <span className="inline-flex items-center gap-1 text-sm text-green-600">
                                   <CheckCircle className="w-4 h-4" />
-                                  Activo
+                                  {en ? 'Active' : 'Activo'}
                                 </span>
                               ) : (
                                 <span className="inline-flex items-center gap-1 text-sm text-red-600">
                                   <XCircle className="w-4 h-4" />
-                                  Inactivo
+                                  {en ? 'Inactive' : 'Inactivo'}
                                 </span>
                               )}
                             </td>
                             <td className="px-6 py-4 text-sm text-gray-500">
-                              {new Date(user.created_at).toLocaleDateString('es-DO')}
+                              {new Date(user.created_at).toLocaleDateString(en ? 'en-US' : 'es-DO')}
                             </td>
                             <td className="px-6 py-4">
                               <div className="flex items-center justify-end gap-2">
                                 <Link
                                   href={`/admin/users/${user.id}`}
                                   className="p-2 hover:bg-blue-50 rounded-lg text-blue-600 transition-colors"
-                                  title="Ver detalles"
+                                  title={en ? 'View details' : 'Ver detalles'}
                                 >
                                   <Eye className="w-4 h-4" />
                                 </Link>
                                 <button
                                   onClick={() => openEditModal(user)}
                                   className="p-2 hover:bg-gray-100 rounded-lg text-gray-600 transition-colors"
-                                  title="Editar"
+                                  title={en ? 'Edit' : 'Editar'}
                                 >
                                   <Edit className="w-4 h-4" />
                                 </button>
                                 <button
                                   onClick={() => openPasswordModal(user)}
                                   className="p-2 hover:bg-amber-50 rounded-lg text-amber-600 transition-colors"
-                                  title="Cambiar contraseña"
+                                  title={en ? 'Change password' : 'Cambiar contraseña'}
                                 >
                                   <KeyRound className="w-4 h-4" />
                                 </button>
@@ -633,7 +636,9 @@ export default function AdminUsersPage() {
                                         ? 'bg-yellow-50 text-yellow-600 hover:bg-yellow-100'
                                         : 'text-gray-500 hover:bg-yellow-50 hover:text-yellow-600'
                                     } disabled:opacity-50`}
-                                    title={user.featured_on_home ? 'Quitar de pantalla principal' : 'Mostrar en pantalla principal'}
+                                    title={user.featured_on_home
+                                      ? (en ? 'Remove from home page' : 'Quitar de pantalla principal')
+                                      : (en ? 'Show on home page' : 'Mostrar en pantalla principal')}
                                   >
                                     <Star className={`w-4 h-4 ${user.featured_on_home ? 'fill-current' : ''}`} />
                                   </button>
@@ -644,7 +649,7 @@ export default function AdminUsersPage() {
                                     setShowDeleteModal(true);
                                   }}
                                   className="p-2 hover:bg-red-50 rounded-lg text-red-600 transition-colors"
-                                  title="Eliminar"
+                                  title={en ? 'Delete' : 'Eliminar'}
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>
@@ -656,9 +661,11 @@ export default function AdminUsersPage() {
                           <tr>
                             <td colSpan={6} className="px-6 py-12 text-center">
                               <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                              <p className="text-gray-500 font-medium">No se encontraron usuarios</p>
+                              <p className="text-gray-500 font-medium">{en ? 'No users found' : 'No se encontraron usuarios'}</p>
                               <p className="text-sm text-gray-400 mt-1">
-                                {searchTerm ? 'Intenta con otros términos de búsqueda' : 'Crea el primer usuario'}
+                                {searchTerm
+                                  ? (en ? 'Try different search terms' : 'Intenta con otros términos de búsqueda')
+                                  : (en ? 'Create the first user' : 'Crea el primer usuario')}
                               </p>
                             </td>
                           </tr>
@@ -671,7 +678,7 @@ export default function AdminUsersPage() {
                   {totalPages > 1 && (
                     <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
                       <p className="text-sm text-gray-500">
-                        Mostrando {indexOfFirstUser + 1}-{Math.min(indexOfLastUser, filteredUsers.length)} de {filteredUsers.length}
+                        {en ? 'Showing' : 'Mostrando'} {indexOfFirstUser + 1}-{Math.min(indexOfLastUser, filteredUsers.length)} {en ? 'of' : 'de'} {filteredUsers.length}
                       </p>
                       <div className="flex gap-2">
                         <button
@@ -718,9 +725,11 @@ export default function AdminUsersPage() {
                 <div className="inline-flex p-3 bg-red-100 rounded-full mb-4">
                   <AlertCircle className="w-6 h-6 text-red-600" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900">¿Eliminar usuario?</h3>
+                <h3 className="text-lg font-bold text-gray-900">{en ? 'Delete user?' : '¿Eliminar usuario?'}</h3>
                 <p className="text-sm text-gray-500 mt-2">
-                  Esta acción no se puede deshacer. Todos los datos asociados a este usuario serán eliminados permanentemente.
+                  {en
+                    ? 'This action cannot be undone. All data associated with this user will be permanently deleted.'
+                    : 'Esta acción no se puede deshacer. Todos los datos asociados a este usuario serán eliminados permanentemente.'}
                 </p>
               </div>
               <div className="flex gap-3">
@@ -731,13 +740,13 @@ export default function AdminUsersPage() {
                   }}
                   className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition-colors"
                 >
-                  Cancelar
+                  {en ? 'Cancel' : 'Cancelar'}
                 </button>
                 <button
                   onClick={() => userToDelete && handleDelete(userToDelete)}
                   className="flex-1 px-4 py-2.5 bg-red-500 text-white rounded-xl font-medium hover:bg-red-600 transition-colors"
                 >
-                  Eliminar
+                  {en ? 'Delete' : 'Eliminar'}
                 </button>
               </div>
             </div>
@@ -750,7 +759,7 @@ export default function AdminUsersPage() {
             <div className="bg-white rounded-2xl max-w-md w-full p-6">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">Cambiar contraseña</h3>
+                  <h3 className="text-lg font-bold text-gray-900">{en ? 'Change password' : 'Cambiar contraseña'}</h3>
                   <p className="text-sm text-gray-500">
                     {passwordUser.first_name} {passwordUser.last_name}
                   </p>
@@ -769,12 +778,12 @@ export default function AdminUsersPage() {
 
               <form onSubmit={handlePasswordUpdate} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nueva contraseña</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{en ? 'New password' : 'Nueva contraseña'}</label>
                   <input
                     type="text"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Mínimo 8 caracteres"
+                    placeholder={en ? 'At least 8 characters' : 'Mínimo 8 caracteres'}
                     required
                     minLength={8}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -791,14 +800,14 @@ export default function AdminUsersPage() {
                     }}
                     className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-gray-700 font-medium hover:bg-gray-50"
                   >
-                    Cancelar
+                    {en ? 'Cancel' : 'Cancelar'}
                   </button>
                   <button
                     type="submit"
                     disabled={passwordSaving}
                     className="flex-1 px-4 py-2.5 bg-amber-500 text-white rounded-xl font-medium hover:bg-amber-600 disabled:opacity-50"
                   >
-                    {passwordSaving ? 'Guardando...' : 'Actualizar'}
+                    {passwordSaving ? (en ? 'Saving...' : 'Guardando...') : (en ? 'Update' : 'Actualizar')}
                   </button>
                 </div>
               </form>
@@ -812,9 +821,9 @@ export default function AdminUsersPage() {
             <div className="bg-white rounded-2xl max-w-2xl w-full p-6">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">Editar usuario</h3>
+                  <h3 className="text-lg font-bold text-gray-900">{en ? 'Edit user' : 'Editar usuario'}</h3>
                   <p className="text-sm text-gray-500">
-                    Actualiza los datos de {selectedUser.first_name} {selectedUser.last_name}
+                    {en ? 'Update the details for' : 'Actualiza los datos de'} {selectedUser.first_name} {selectedUser.last_name}
                   </p>
                 </div>
                 <button
@@ -831,7 +840,7 @@ export default function AdminUsersPage() {
               <form onSubmit={handleUpdate} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{en ? 'First name' : 'Nombre'}</label>
                     <input
                       value={editForm.firstName}
                       onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })}
@@ -840,7 +849,7 @@ export default function AdminUsersPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Apellido</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{en ? 'Last name' : 'Apellido'}</label>
                     <input
                       value={editForm.lastName}
                       onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })}
@@ -862,7 +871,7 @@ export default function AdminUsersPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{en ? 'Phone' : 'Teléfono'}</label>
                     <input
                       value={editForm.phone}
                       onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
@@ -873,16 +882,16 @@ export default function AdminUsersPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Rol</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{en ? 'Role' : 'Rol'}</label>
                     <select
                       value={editForm.role}
                       onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="patient">Paciente</option>
-                      <option value="doctor">Médico</option>
-                      <option value="secretary">Secretaria</option>
-                      <option value="admin">Administrador</option>
+                      <option value="patient">{en ? 'Patient' : 'Paciente'}</option>
+                      <option value="doctor">{en ? 'Doctor' : 'Médico'}</option>
+                      <option value="secretary">{en ? 'Secretary' : 'Secretaria'}</option>
+                      <option value="admin">{en ? 'Administrator' : 'Administrador'}</option>
                     </select>
                   </div>
                   <label className="flex items-center gap-3 px-4 py-2.5 border border-gray-300 rounded-xl mt-6">
@@ -892,7 +901,7 @@ export default function AdminUsersPage() {
                       onChange={(e) => setEditForm({ ...editForm, isActive: e.target.checked })}
                       className="w-4 h-4"
                     />
-                    <span className="text-sm font-medium text-gray-700">Usuario activo</span>
+                    <span className="text-sm font-medium text-gray-700">{en ? 'Active user' : 'Usuario activo'}</span>
                   </label>
                 </div>
 
@@ -905,13 +914,13 @@ export default function AdminUsersPage() {
                     }}
                     className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-gray-700 font-medium hover:bg-gray-50"
                   >
-                    Cancelar
+                    {en ? 'Cancel' : 'Cancelar'}
                   </button>
                   <button
                     type="submit"
                     className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700"
                   >
-                    Guardar cambios
+                    {en ? 'Save changes' : 'Guardar cambios'}
                   </button>
                 </div>
               </form>

@@ -1,8 +1,16 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { CalendarCheck, HeartPulse, House, ShieldCheck, Users } from 'lucide-react';
+import { useI18n } from '@/i18n';
 
 export default function AboutPage() {
+  const { locale, ready } = useI18n();
+  const en = locale === 'en';
+
+  if (!ready) return null;
+
   return (
     <main className="min-h-screen bg-slate-50 text-slate-950">
       <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/88 shadow-sm backdrop-blur-xl">
@@ -14,26 +22,26 @@ export default function AboutPage() {
             <div className="hidden items-center gap-4 text-sm font-semibold text-slate-600 lg:flex">
               <Link href="/" className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-2 text-slate-700 hover:bg-sky-50 hover:text-sky-700">
                 <House className="h-4 w-4" />
-                Volver al inicio
+                {en ? 'Back to home' : 'Volver al inicio'}
               </Link>
-              <Link href="/about" className="text-sky-700">Sobre nosotros</Link>
+              <Link href="/about" className="text-sky-700">{en ? 'About us' : 'Sobre nosotros'}</Link>
               <Link href="/faq" className="hover:text-sky-700">FAQ</Link>
-              <Link href="/contact" className="hover:text-sky-700">Contacto</Link>
-              <Link href="/developer" className="hover:text-sky-700">Desarrollador</Link>
+              <Link href="/contact" className="hover:text-sky-700">{en ? 'Contact' : 'Contacto'}</Link>
+              <Link href="/developer" className="hover:text-sky-700">{en ? 'Developer' : 'Desarrollador'}</Link>
             </div>
-            <Link href="/login" className="rounded-lg bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-700 ring-1 ring-sky-100 hover:bg-sky-100">Iniciar sesión</Link>
-            <Link href="/register" className="rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-slate-950/15 hover:bg-sky-700">Registrarse</Link>
+            <Link href="/login" className="rounded-lg bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-700 ring-1 ring-sky-100 hover:bg-sky-100">{en ? 'Sign in' : 'Iniciar sesión'}</Link>
+            <Link href="/register" className="rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-slate-950/15 hover:bg-sky-700">{en ? 'Create account' : 'Registrarse'}</Link>
           </div>
         </div>
         <nav className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-4 pb-3 text-sm font-semibold text-slate-600 md:px-8 lg:hidden">
           <Link href="/" className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-2 text-slate-700 hover:bg-sky-50 hover:text-sky-700">
             <House className="h-4 w-4" />
-            Volver al inicio
+            {en ? 'Back to home' : 'Volver al inicio'}
           </Link>
-          <Link href="/about" className="shrink-0 rounded-lg px-3 py-2 bg-sky-50 text-sky-700">Sobre nosotros</Link>
+          <Link href="/about" className="shrink-0 rounded-lg px-3 py-2 bg-sky-50 text-sky-700">{en ? 'About us' : 'Sobre nosotros'}</Link>
           <Link href="/faq" className="shrink-0 rounded-lg px-3 py-2 hover:bg-slate-100 hover:text-sky-700">FAQ</Link>
-          <Link href="/contact" className="shrink-0 rounded-lg px-3 py-2 hover:bg-slate-100 hover:text-sky-700">Contacto</Link>
-          <Link href="/developer" className="shrink-0 rounded-lg px-3 py-2 hover:bg-slate-100 hover:text-sky-700">Desarrollador</Link>
+          <Link href="/contact" className="shrink-0 rounded-lg px-3 py-2 hover:bg-slate-100 hover:text-sky-700">{en ? 'Contact' : 'Contacto'}</Link>
+          <Link href="/developer" className="shrink-0 rounded-lg px-3 py-2 hover:bg-slate-100 hover:text-sky-700">{en ? 'Developer' : 'Desarrollador'}</Link>
         </nav>
       </header>
 
@@ -41,26 +49,26 @@ export default function AboutPage() {
         <div className="mb-8">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-sky-100 px-3 py-1 text-sm font-bold text-sky-700">
             <HeartPulse className="h-4 w-4" />
-            Sobre nosotros
+            {en ? 'About us' : 'Sobre nosotros'}
           </div>
-          <h1 className="text-4xl font-black md:text-5xl">SaludClick nace para hacer más simple la atención médica digital</h1>
+          <h1 className="text-4xl font-black md:text-5xl">{en ? 'SaludClick was created to make digital healthcare simpler' : 'SaludClick nace para hacer más simple la atención médica digital'}</h1>
           <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-600">
-            La plataforma ayuda a pacientes a encontrar médicos, agendar citas y mantener información importante organizada. Para profesionales, ofrece una forma clara de administrar perfil, centros, horarios, consultas y seguimiento.
+            {en ? 'The platform helps patients find doctors, book appointments and keep important information organized. For professionals, it provides a clear way to manage profiles, centers, schedules, consultations and follow-up.' : 'La plataforma ayuda a pacientes a encontrar médicos, agendar citas y mantener información importante organizada. Para profesionales, ofrece una forma clara de administrar perfil, centros, horarios, consultas y seguimiento.'}
           </p>
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <HeartPulse className="mb-4 h-8 w-8 text-sky-600" />
-          <h2 className="text-2xl font-black text-slate-950">Nuestra idea central</h2>
+          <h2 className="text-2xl font-black text-slate-950">{en ? 'Our central idea' : 'Nuestra idea central'}</h2>
           <p className="mt-4 leading-7 text-slate-600">
-            Reducir fricción en los procesos de salud: menos llamadas perdidas, menos información dispersa y más claridad para pacientes, doctores y administradores.
+            {en ? 'Reduce friction in healthcare processes: fewer missed calls, less scattered information and more clarity for patients, doctors and administrators.' : 'Reducir fricción en los procesos de salud: menos llamadas perdidas, menos información dispersa y más claridad para pacientes, doctores y administradores.'}
           </p>
         </div>
 
         <div className="mt-8 grid gap-4 md:grid-cols-3">
-          <Value icon={CalendarCheck} title="Agenda clara" text="Citas, horarios y centros se organizan en un flujo facil de revisar." />
-          <Value icon={ShieldCheck} title="Validación responsable" text="Los médicos pasan por revisión de credenciales antes de activar su cuenta." />
-          <Value icon={Users} title="Conexión real" text="Pacientes, médicos, secretarias y administración trabajan sobre la misma información." />
+          <Value icon={CalendarCheck} title={en ? 'Clear scheduling' : 'Agenda clara'} text={en ? 'Appointments, schedules and centers are organized in an easy-to-review flow.' : 'Citas, horarios y centros se organizan en un flujo fácil de revisar.'} />
+          <Value icon={ShieldCheck} title={en ? 'Responsible verification' : 'Validación responsable'} text={en ? 'Doctors go through credential review before their account is activated.' : 'Los médicos pasan por revisión de credenciales antes de activar su cuenta.'} />
+          <Value icon={Users} title={en ? 'Real connection' : 'Conexión real'} text={en ? 'Patients, doctors, secretaries and administrators work with the same information.' : 'Pacientes, médicos, secretarias y administración trabajan sobre la misma información.'} />
         </div>
       </section>
     </main>

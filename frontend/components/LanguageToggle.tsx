@@ -1,97 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-
-type Locale = 'es' | 'en';
-
-const STORAGE_KEY = 'saludclick_locale';
-const SCRIPT_ID = 'google-translate-script';
-
-declare global {
-  interface Window {
-    google?: {
-      translate?: {
-        TranslateElement?: new (
-          options: Record<string, unknown>,
-          elementId: string
-        ) => unknown;
-      };
-    };
-    googleTranslateElementInit?: () => void;
-  }
-}
-
-function setTranslateCookie(locale: Locale) {
-  try {
-    const value = locale === 'en' ? '/es/en' : '/es/es';
-    const expires = 'expires=Fri, 31 Dec 9999 23:59:59 GMT';
-    document.cookie = `googtrans=${value}; ${expires}; path=/; SameSite=Lax`;
-    document.cookie = `googtrans=${value}; ${expires}; path=/; domain=${window.location.hostname}; SameSite=Lax`;
-  } catch {
-    // El navegador puede bloquear cookies en algunos modos móviles.
-  }
-}
-
-function initGoogleTranslate() {
-  if (!window.google?.translate?.TranslateElement) return;
-
-  new window.google.translate.TranslateElement(
-    {
-      pageLanguage: 'es',
-      includedLanguages: 'es,en',
-      autoDisplay: false,
-    },
-    'google_translate_element'
-  );
-}
-
-function loadGoogleTranslate() {
-  try {
-    window.googleTranslateElementInit = initGoogleTranslate;
-
-    if (document.getElementById(SCRIPT_ID)) {
-      initGoogleTranslate();
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.id = SCRIPT_ID;
-    script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
-    script.async = true;
-    document.body.appendChild(script);
-  } catch {
-    // Algunos navegadores móviles bloquean la inyección del script.
-  }
-}
+import { useI18n, type Locale } from '@/i18n';
 
 export default function LanguageToggle({ floating = false }: { floating?: boolean }) {
-  const [locale, setLocale] = useState<Locale>('es');
-
-  useEffect(() => {
-    try {
-      const savedLocale = (localStorage.getItem(STORAGE_KEY) as Locale | null) || 'es';
-      const normalizedLocale = savedLocale === 'en' ? 'en' : 'es';
-      setLocale(normalizedLocale);
-      document.documentElement.lang = normalizedLocale;
-      setTranslateCookie(normalizedLocale);
-      loadGoogleTranslate();
-    } catch {
-      setLocale('es');
-      document.documentElement.lang = 'es';
-    }
-  }, []);
-
-  const selectLocale = (nextLocale: Locale) => {
-    setLocale(nextLocale);
-    try {
-      localStorage.setItem(STORAGE_KEY, nextLocale);
-    } catch {
-      // El almacenamiento puede estar deshabilitado en móvil.
-    }
-    document.documentElement.lang = nextLocale === 'en' ? 'en' : 'es';
-    setTranslateCookie(nextLocale);
-    window.location.reload();
-  };
+  const { locale, setLocale, t } = useI18n();
 
   return (
     <div
@@ -100,15 +12,16 @@ export default function LanguageToggle({ floating = false }: { floating?: boolea
           ? 'notranslate fixed bottom-4 right-4 z-[60] flex rounded-full border border-gray-200 bg-white p-1 shadow-lg'
           : 'notranslate inline-flex rounded-full border border-gray-200 bg-white p-1 shadow-sm'
       }
-      aria-label="Cambiar idioma"
+      aria-label={t('language')}
       translate="no"
     >
-      <div id="google_translate_element" className="hidden" />
-      {(['es', 'en'] as const).map((item) => (
+      {(['es', 'en'] as Locale[]).map((item) => (
         <button
           key={item}
           type="button"
-          onClick={() => selectLocale(item)}
+          onClick={() => setLocale(item)}
+          aria-pressed={locale === item}
+          aria-label={item === 'es' ? t('spanish') : t('english')}
           className={`min-w-10 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
             locale === item
               ? 'bg-blue-600 text-white'

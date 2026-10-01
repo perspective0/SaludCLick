@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { AlertCircle, CalendarCheck, ClipboardList, Pill } from 'lucide-react';
 import { formatDate } from '@/utils/helpers';
+import { useI18n } from '@/i18n';
 
 type ConsultationPanelProps = {
   patientId: string;
@@ -19,9 +20,17 @@ const mockClinicalContext = {
 };
 
 export default function ConsultationPanel({ patientId, appointments, prescriptions, records }: ConsultationPanelProps) {
+  const { locale } = useI18n();
+  const en = locale === 'en';
+  const context = en ? {
+    diagnoses: ['General check-up', 'Hypertension follow-up', 'Acute pain'],
+    medications: ['No current medication documented'],
+    allergies: ['No allergies recorded'],
+    history: ['Medical history not documented'],
+  } : mockClinicalContext;
   return (
     <aside className="space-y-5">
-      <Panel title="Historial de citas" icon={CalendarCheck}>
+      <Panel title={en ? 'Appointment history' : 'Historial de citas'} icon={CalendarCheck}>
         {appointments.length ? (
           <div className="space-y-3">
             {appointments.slice(0, 5).map((appointment) => (
@@ -32,33 +41,33 @@ export default function ConsultationPanel({ patientId, appointments, prescriptio
             ))}
           </div>
         ) : (
-          <Empty text="Sin citas previas." />
+          <Empty text={en ? 'No previous appointments.' : 'Sin citas previas.'} />
         )}
       </Panel>
 
-      <Panel title="Recetas recientes" icon={Pill}>
+      <Panel title={en ? 'Recent prescriptions' : 'Recetas recientes'} icon={Pill}>
         {prescriptions.length ? (
           <div className="space-y-3">
             {prescriptions.slice(0, 4).map((prescription) => (
               <div key={prescription.id} className="rounded-xl bg-gray-50 p-3">
-                <p className="text-sm font-semibold text-gray-900">{formatMedications(prescription.medications)}</p>
-                <p className="text-xs text-gray-500">{formatRecordDate(prescription.created_at)}</p>
+                <p className="text-sm font-semibold text-gray-900">{formatMedications(prescription.medications, en)}</p>
+                <p className="text-xs text-gray-500">{formatRecordDate(prescription.created_at, en)}</p>
               </div>
             ))}
           </div>
         ) : (
-          <Empty text="Sin recetas emitidas." />
+          <Empty text={en ? 'No prescriptions issued.' : 'Sin recetas emitidas.'} />
         )}
         <Link href={`/doctor/prescriptions?patientId=${patientId}`} className="mt-3 h-10 rounded-xl border border-gray-200 text-sm font-semibold hover:bg-gray-50 flex items-center justify-center">
-          Generar receta
+          {en ? 'Generate prescription' : 'Generar receta'}
         </Link>
       </Panel>
 
-      <Panel title="Contexto clinico" icon={ClipboardList}>
-        <ContextList title="Diagnosticos frecuentes" items={records.length ? records.slice(0, 3).map((record) => record.diagnosis || 'Registro clinico') : mockClinicalContext.diagnoses} />
-        <ContextList title="Medicamentos actuales" items={mockClinicalContext.medications} />
-        <ContextList title="Alergias" items={mockClinicalContext.allergies} />
-        <ContextList title="Antecedentes" items={mockClinicalContext.history} />
+      <Panel title={en ? 'Clinical context' : 'Contexto clínico'} icon={ClipboardList}>
+        <ContextList title={en ? 'Frequent diagnoses' : 'Diagnósticos frecuentes'} items={records.length ? records.slice(0, 3).map((record) => record.diagnosis || (en ? 'Clinical record' : 'Registro clínico')) : context.diagnoses} />
+        <ContextList title={en ? 'Current medications' : 'Medicamentos actuales'} items={context.medications} />
+        <ContextList title={en ? 'Allergies' : 'Alergias'} items={context.allergies} />
+        <ContextList title={en ? 'Medical history' : 'Antecedentes'} items={context.history} />
       </Panel>
     </aside>
   );
@@ -98,15 +107,15 @@ function Empty({ text }: { text: string }) {
   );
 }
 
-function formatRecordDate(value?: string) {
-  if (!value) return 'Sin fecha';
-  return new Date(value).toLocaleDateString('es-DO');
+function formatRecordDate(value?: string, en = false) {
+  if (!value) return en ? 'No date' : 'Sin fecha';
+  return new Date(value).toLocaleDateString(en ? 'en-US' : 'es-DO');
 }
 
-function formatMedications(value: any) {
+function formatMedications(value: any, en = false) {
   const medications = typeof value === 'string' ? safeJson(value) : value;
-  if (!Array.isArray(medications) || medications.length === 0) return 'Sin medicamentos registrados';
-  return medications.map((item) => `${item.name || item.medication || 'Medicamento'} ${item.dosage || ''}`.trim()).join(', ');
+  if (!Array.isArray(medications) || medications.length === 0) return en ? 'No medications recorded' : 'Sin medicamentos registrados';
+  return medications.map((item) => `${item.name || item.medication || (en ? 'Medication' : 'Medicamento')} ${item.dosage || ''}`.trim()).join(', ');
 }
 
 function safeJson(value: string) {

@@ -4,9 +4,14 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { FormEvent, useState } from 'react';
 import { House, Mail, MapPin, MessageSquare, Phone } from 'lucide-react';
+import { useI18n } from '@/i18n';
 
 export default function ContactPage() {
   const [sent, setSent] = useState(false);
+  const { locale, ready } = useI18n();
+  const en = locale === 'en';
+
+  if (!ready) return null;
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -14,10 +19,10 @@ export default function ContactPage() {
     const subject = encodeURIComponent(String(data.get('subject') || 'Contacto SaludClick'));
     const body = encodeURIComponent(
       [
-        `Nombre: ${data.get('name') || ''}`,
-        `Correo: ${data.get('email') || ''}`,
-        `Telefono: ${data.get('phone') || ''}`,
-        `Tipo: ${data.get('type') || ''}`,
+        `${en ? 'Name' : 'Nombre'}: ${data.get('name') || ''}`,
+        `${en ? 'Email' : 'Correo'}: ${data.get('email') || ''}`,
+        `${en ? 'Phone' : 'Telefono'}: ${data.get('phone') || ''}`,
+        `${en ? 'Type' : 'Tipo'}: ${data.get('type') || ''}`,
         '',
         String(data.get('message') || ''),
       ].join('\n')
@@ -38,26 +43,26 @@ export default function ContactPage() {
             <div className="hidden items-center gap-4 text-sm font-semibold text-slate-600 lg:flex">
               <Link href="/" className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-2 text-slate-700 hover:bg-sky-50 hover:text-sky-700">
                 <House className="h-4 w-4" />
-                Volver al inicio
+                {en ? 'Back to home' : 'Volver al inicio'}
               </Link>
-              <Link href="/about" className="hover:text-sky-700">Sobre nosotros</Link>
+              <Link href="/about" className="hover:text-sky-700">{en ? 'About us' : 'Sobre nosotros'}</Link>
               <Link href="/faq" className="hover:text-sky-700">FAQ</Link>
-              <Link href="/contact" className="text-sky-700">Contacto</Link>
-              <Link href="/developer" className="hover:text-sky-700">Desarrollador</Link>
+              <Link href="/contact" className="text-sky-700">{en ? 'Contact' : 'Contacto'}</Link>
+              <Link href="/developer" className="hover:text-sky-700">{en ? 'Developer' : 'Desarrollador'}</Link>
             </div>
-            <Link href="/login" className="rounded-lg bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-700 ring-1 ring-sky-100 hover:bg-sky-100">Iniciar sesión</Link>
-            <Link href="/register" className="rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-slate-950/15 hover:bg-sky-700">Registrarse</Link>
+            <Link href="/login" className="rounded-lg bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-700 ring-1 ring-sky-100 hover:bg-sky-100">{en ? 'Sign in' : 'Iniciar sesión'}</Link>
+            <Link href="/register" className="rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-slate-950/15 hover:bg-sky-700">{en ? 'Create account' : 'Registrarse'}</Link>
           </div>
         </div>
         <nav className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-4 pb-3 text-sm font-semibold text-slate-600 md:px-8 lg:hidden">
           <Link href="/" className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-2 text-slate-700 hover:bg-sky-50 hover:text-sky-700">
             <House className="h-4 w-4" />
-            Volver al inicio
+            {en ? 'Back to home' : 'Volver al inicio'}
           </Link>
-          <Link href="/about" className="shrink-0 rounded-lg px-3 py-2 hover:bg-slate-100 hover:text-sky-700">Sobre nosotros</Link>
+          <Link href="/about" className="shrink-0 rounded-lg px-3 py-2 hover:bg-slate-100 hover:text-sky-700">{en ? 'About us' : 'Sobre nosotros'}</Link>
           <Link href="/faq" className="shrink-0 rounded-lg px-3 py-2 hover:bg-slate-100 hover:text-sky-700">FAQ</Link>
-          <Link href="/contact" className="shrink-0 rounded-lg px-3 py-2 bg-sky-50 text-sky-700">Contacto</Link>
-          <Link href="/developer" className="shrink-0 rounded-lg px-3 py-2 hover:bg-slate-100 hover:text-sky-700">Desarrollador</Link>
+          <Link href="/contact" className="shrink-0 rounded-lg px-3 py-2 bg-sky-50 text-sky-700">{en ? 'Contact' : 'Contacto'}</Link>
+          <Link href="/developer" className="shrink-0 rounded-lg px-3 py-2 hover:bg-slate-100 hover:text-sky-700">{en ? 'Developer' : 'Desarrollador'}</Link>
         </nav>
       </header>
 
@@ -65,61 +70,61 @@ export default function ContactPage() {
         <div className="mb-8">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-sky-100 px-3 py-1 text-sm font-bold text-sky-700">
             <MessageSquare className="h-4 w-4" />
-            Contacto
+            {en ? 'Contact' : 'Contacto'}
           </div>
-          <h1 className="text-4xl font-black md:text-5xl">Hablemos de SaludClick</h1>
+          <h1 className="text-4xl font-black md:text-5xl">{en ? 'Let’s talk about SaludClick' : 'Hablemos de SaludClick'}</h1>
           <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
-            Para soporte, solicitudes médicas, centros de salud o colaboraciones, puedes escribirnos por los canales principales.
+            {en ? 'For support, medical requests, health centers or partnerships, you can reach us through our main channels.' : 'Para soporte, solicitudes médicas, centros de salud o colaboraciones, puedes escribirnos por los canales principales.'}
           </p>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
-          <ContactCard icon={Mail} title="Correo" text="francisco.leocadio@saludclick.com.do" href="mailto:francisco.leocadio@saludclick.com.do" />
-          <ContactCard icon={Phone} title="Telefono" text="Configurar numero oficial" href="#" />
-          <ContactCard icon={MapPin} title="Ubicacion" text="Republica Dominicana" href="#" />
+          <ContactCard icon={Mail} title={en ? 'Email' : 'Correo'} text="francisco.leocadio@saludclick.com.do" href="mailto:francisco.leocadio@saludclick.com.do" />
+          <ContactCard icon={Phone} title={en ? 'Phone' : 'Telefono'} text={en ? 'Official number to be configured' : 'Configurar numero oficial'} href="#" />
+          <ContactCard icon={MapPin} title={en ? 'Location' : 'Ubicacion'} text={en ? 'Dominican Republic' : 'Republica Dominicana'} href="#" />
         </div>
 
         <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <MessageSquare className="mb-4 h-7 w-7 text-sky-600" />
-          <h2 className="text-2xl font-black">Enviar mensaje</h2>
+          <h2 className="text-2xl font-black">{en ? 'Send a message' : 'Enviar mensaje'}</h2>
           <form onSubmit={handleSubmit} className="mt-5 grid gap-4">
             <div className="grid gap-4 md:grid-cols-2">
-              <Field label="Nombre completo" name="name" placeholder="Tu nombre" required />
-              <Field label="Correo electronico" name="email" placeholder="correo@ejemplo.com" type="email" required />
-              <Field label="Telefono" name="phone" placeholder="+1 809 000 0000" />
+              <Field label={en ? 'Full name' : 'Nombre completo'} name="name" placeholder={en ? 'Your name' : 'Tu nombre'} required />
+              <Field label={en ? 'Email address' : 'Correo electronico'} name="email" placeholder="correo@ejemplo.com" type="email" required />
+              <Field label={en ? 'Phone' : 'Telefono'} name="phone" placeholder="+1 809 000 0000" />
               <label>
-                <span className="mb-1 block text-sm font-semibold text-slate-700">Tipo de consulta</span>
+                <span className="mb-1 block text-sm font-semibold text-slate-700">{en ? 'Request type' : 'Tipo de consulta'}</span>
                 <select
                   name="type"
                   className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-sky-500"
-                  defaultValue="Soporte"
+                  defaultValue={en ? 'Support' : 'Soporte'}
                 >
-                  <option>Soporte</option>
-                  <option>Solicitud médica</option>
-                  <option>Centro de salud</option>
-                  <option>Alianza o colaboracion</option>
-                  <option>Otro</option>
+                  <option>{en ? 'Support' : 'Soporte'}</option>
+                  <option>{en ? 'Medical request' : 'Solicitud médica'}</option>
+                  <option>{en ? 'Health center' : 'Centro de salud'}</option>
+                  <option>{en ? 'Partnership or collaboration' : 'Alianza o colaboracion'}</option>
+                  <option>{en ? 'Other' : 'Otro'}</option>
                 </select>
               </label>
             </div>
-            <Field label="Asunto" name="subject" placeholder="Motivo del mensaje" required />
+            <Field label={en ? 'Subject' : 'Asunto'} name="subject" placeholder={en ? 'Message subject' : 'Motivo del mensaje'} required />
             <label>
-              <span className="mb-1 block text-sm font-semibold text-slate-700">Mensaje</span>
+              <span className="mb-1 block text-sm font-semibold text-slate-700">{en ? 'Message' : 'Mensaje'}</span>
               <textarea
                 name="message"
                 rows={6}
                 required
-                placeholder="Describe brevemente lo que necesitas..."
+                placeholder={en ? 'Briefly describe what you need...' : 'Describe brevemente lo que necesitas...'}
                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-sky-500"
               />
             </label>
             {sent && (
               <p className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
-                Se abrio tu cliente de correo con el mensaje preparado.
+                {en ? 'Your email client opened with the message prepared.' : 'Se abrio tu cliente de correo con el mensaje preparado.'}
               </p>
             )}
             <button type="submit" className="inline-flex h-11 items-center justify-center rounded-xl bg-sky-600 px-5 text-sm font-bold text-white hover:bg-sky-700 md:w-fit">
-              Enviar mensaje
+              {en ? 'Send message' : 'Enviar mensaje'}
             </button>
           </form>
         </div>

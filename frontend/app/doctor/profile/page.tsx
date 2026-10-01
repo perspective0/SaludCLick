@@ -6,6 +6,7 @@ import DoctorShell from '@/components/DoctorShell';
 import { doctorAPI } from '@/utils/api';
 import { dominicanHealthInsurers } from '@/utils/dominicanInsurance';
 import { BadgeDollarSign, Building2, Camera, Clock, Eye, FileText, Save, Star, Trash2, Upload, Video } from 'lucide-react';
+import { useI18n } from '@/i18n';
 
 const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
 const defaultAvailability = dayNames.map((_, index) => ({
@@ -69,6 +70,8 @@ function buildDefaultAvailability(healthCenterId = '') {
 }
 
 export default function DoctorProfilePage() {
+  const { locale } = useI18n();
+  const en = locale === 'en';
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -183,6 +186,7 @@ export default function DoctorProfilePage() {
         teleconsultation: Boolean(data?.teleconsultation_enabled),
         vacationMode: Boolean(data?.vacation_mode),
       });
+      window.dispatchEvent(new Event('saludclick:content-change'));
       const saved = Array.isArray(data?.availability) ? data.availability : [];
       if (saved.length) {
         const normalizedSaved = saved
@@ -223,9 +227,11 @@ export default function DoctorProfilePage() {
         (!form.hasIdFrontImage && !form.idFrontImage) ||
         (!form.hasIdBackImage && !form.idBackImage) ||
         (!form.hasExequaturImage && !form.exequaturImage) ||
-        (!form.hasSpecialtyProofImage && !form.specialtyProofImage)
+        (requiresSpecialtyProof && !form.hasSpecialtyProofImage && !form.specialtyProofImage)
       ) {
-        setError('Debes adjuntar cédula frontal, cédula reverso, exequátur y soporte de especialidad para completar tu perfil.');
+        setError(en
+          ? `Upload the front and back of your ID, your professional license${requiresSpecialtyProof ? ' and specialty proof' : ''} to complete your profile.`
+          : `Debes adjuntar cédula frontal, cédula reverso, exequátur${requiresSpecialtyProof ? ' y soporte de especialidad' : ''} para completar tu perfil.`);
         setSaving(false);
         return;
       }
@@ -368,13 +374,15 @@ export default function DoctorProfilePage() {
     reader.readAsDataURL(file);
   };
 
-  const completion = getProfileCompletion(form, availability);
+  const isGeneralDoctor = /medicina\s+general|m[eé]dico\s+general|general\s+medicine|general\s+practitioner/i.test(form.specialtiesText);
+  const requiresSpecialtyProof = !isGeneralDoctor;
+  const completion = getProfileCompletion(form, availability, requiresSpecialtyProof);
   const documentsComplete = Boolean(
     form.documentNumber.trim() &&
     (form.hasIdFrontImage || form.idFrontImage) &&
     (form.hasIdBackImage || form.idBackImage) &&
     (form.hasExequaturImage || form.exequaturImage) &&
-    (form.hasSpecialtyProofImage || form.specialtyProofImage)
+    (!requiresSpecialtyProof || form.hasSpecialtyProofImage || form.specialtyProofImage)
   );
   const assignedCenters = Array.isArray(profile?.health_centers) ? profile.health_centers : [];
   const assignedCenterLabel = assignedCenters.length
@@ -437,23 +445,23 @@ export default function DoctorProfilePage() {
 
   return (
     <ProtectedRoute requiredRole="doctor">
-      <DoctorShell title="Perfil profesional" subtitle="Informacion visible para pacientes y equipo administrativo">
+      <DoctorShell title={en ? 'Professional profile' : 'Perfil profesional'} subtitle={en ? 'Information visible to patients and the administrative team' : 'Información visible para pacientes y equipo administrativo'}>
         <div className="space-y-6">
           {error && <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
           {success && <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{success}</div>}
 
           <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Metric title={assignedCenters.length > 1 ? 'Centros' : 'Centro'} value={assignedCenters.length ? assignedCenters.length : assignedCenterLabel} icon={Building2} />
-            <Metric title="Consulta" value={profile?.consultation_price ? `$${profile.consultation_price}` : 'Sin precio'} icon={BadgeDollarSign} />
-            <Metric title="Valoracion" value={profile?.average_rating || 'Sin valoracion'} icon={Star} />
+            <Metric title={assignedCenters.length > 1 ? (en ? 'Centers' : 'Centros') : (en ? 'Center' : 'Centro')} value={assignedCenters.length ? assignedCenters.length : assignedCenterLabel} icon={Building2} />
+            <Metric title={en ? 'Consultation' : 'Consulta'} value={profile?.consultation_price ? `$${profile.consultation_price}` : (en ? 'No price' : 'Sin precio')} icon={BadgeDollarSign} />
+            <Metric title={en ? 'Rating' : 'Valoración'} value={profile?.average_rating || (en ? 'No rating' : 'Sin valoración')} icon={Star} />
           </section>
 
           <section className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
             <div className="rounded-2xl bg-white border border-gray-200 p-5">
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <h2 className="text-lg font-bold text-gray-900">Perfil {completion}% completo</h2>
-                  <p className="text-sm text-gray-500">Completa la informacion para mejorar conversion de reservas.</p>
+                  <h2 className="text-lg font-bold text-gray-900">{en ? 'Profile' : 'Perfil'} {completion}% {en ? 'complete' : 'completo'}</h2>
+                  <p className="text-sm text-gray-500">{en ? 'Complete the information to improve booking conversions.' : 'Completa la información para mejorar la conversión de reservas.'}</p>
                 </div>
                 <Eye className="w-5 h-5 text-blue-600" />
               </div>
@@ -465,15 +473,15 @@ export default function DoctorProfilePage() {
                 {!form.specialtiesText && <span>Faltan especialidades</span>}
                 {!form.avatar && <span>Falta foto</span>}
                 {!availability.some((slot) => slot.enabled) && <span>Faltan horarios</span>}
-                {!documentsComplete && <span>Faltan documentos</span>}
+                {!documentsComplete && <span>{en ? 'Documents missing' : 'Faltan documentos'}</span>}
               </div>
             </div>
 
             <div className="rounded-2xl bg-white border border-gray-200 p-5">
-              <p className="text-sm text-gray-500 mb-1">Asi te veran los pacientes</p>
+              <p className="text-sm text-gray-500 mb-1">{en ? 'This is how patients will see you' : 'Así te verán los pacientes'}</p>
               <h2 className="font-bold text-gray-900">{profile?.first_name || user?.firstName || 'Doctor'} {profile?.last_name || user?.lastName || ''}</h2>
-              <p className="text-sm text-gray-600 mt-1">{form.specialtiesText || 'Especialidad pendiente'}</p>
-              <p className="text-sm text-gray-500 mt-3 line-clamp-3">{form.bio || 'Agrega una biografia profesional para tu perfil publico.'}</p>
+              <p className="text-sm text-gray-600 mt-1">{form.specialtiesText || (en ? 'Specialty pending' : 'Especialidad pendiente')}</p>
+              <p className="text-sm text-gray-500 mt-3 line-clamp-3">{form.bio || (en ? 'Add a professional biography to your public profile.' : 'Agrega una biografía profesional para tu perfil público.')}</p>
             </div>
           </section>
 
@@ -492,10 +500,10 @@ export default function DoctorProfilePage() {
                         <Camera className="w-12 h-12 text-gray-300" />
                       )}
                     </div>
-                    <label className="block text-sm font-semibold text-gray-700 mt-4 mb-1">Foto publica</label>
+                    <label className="block text-sm font-semibold text-gray-700 mt-4 mb-1">{en ? 'Public photo' : 'Foto pública'}</label>
                     <label className="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gray-900 px-3 text-sm font-semibold text-white hover:bg-gray-800">
                       <Upload className="w-4 h-4" />
-                      {avatarUploading ? 'Subiendo...' : 'Subir foto'}
+                      {avatarUploading ? (en ? 'Uploading...' : 'Subiendo...') : (en ? 'Upload photo' : 'Subir foto')}
                       <input
                         type="file"
                         accept="image/*"
@@ -517,10 +525,10 @@ export default function DoctorProfilePage() {
                           <FileText className="h-9 w-9 text-gray-300" />
                         )}
                       </div>
-                      <label className="mt-3 block text-sm font-semibold text-gray-700">Logo para recetas</label>
+                      <label className="mt-3 block text-sm font-semibold text-gray-700">{en ? 'Prescription logo' : 'Logo para recetas'}</label>
                       <label className="mt-1 inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-800 hover:bg-gray-50">
                         <Upload className="w-4 h-4" />
-                        {logoUploading ? 'Subiendo...' : 'Subir logo'}
+                        {logoUploading ? (en ? 'Uploading...' : 'Subiendo...') : (en ? 'Upload logo' : 'Subir logo')}
                         <input
                           type="file"
                           accept="image/*"
@@ -535,7 +543,7 @@ export default function DoctorProfilePage() {
                           onClick={() => setForm((current) => ({ ...current, prescriptionLogo: '' }))}
                           className="mt-2 w-full rounded-xl px-3 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50"
                         >
-                          Quitar logo
+                          {en ? 'Remove logo' : 'Quitar logo'}
                         </button>
                       )}
                       <p className="mt-2 text-xs text-gray-500">
@@ -552,10 +560,10 @@ export default function DoctorProfilePage() {
                           <FileText className="h-9 w-9 text-gray-300" />
                         )}
                       </div>
-                      <label className="mt-3 block text-sm font-semibold text-gray-700">Sello para recetas y ordenes</label>
+                      <label className="mt-3 block text-sm font-semibold text-gray-700">{en ? 'Seal for prescriptions and orders' : 'Sello para recetas y órdenes'}</label>
                       <label className="mt-1 inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-800 hover:bg-gray-50">
                         <Upload className="w-4 h-4" />
-                        {sealUploading ? 'Subiendo...' : 'Subir sello'}
+                        {sealUploading ? (en ? 'Uploading...' : 'Subiendo...') : (en ? 'Upload seal' : 'Subir sello')}
                         <input
                           type="file"
                           accept="image/*"
@@ -570,7 +578,7 @@ export default function DoctorProfilePage() {
                           onClick={() => setForm((current) => ({ ...current, prescriptionSeal: '' }))}
                           className="mt-2 w-full rounded-xl px-3 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50"
                         >
-                          Quitar sello
+                          {en ? 'Remove seal' : 'Quitar sello'}
                         </button>
                       )}
                       <p className="mt-2 text-xs text-gray-500">
@@ -581,7 +589,7 @@ export default function DoctorProfilePage() {
 
                   <div className="space-y-5">
                     <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 space-y-3">
-                      <p className="text-sm font-semibold text-blue-900">Centros/clinicas donde trabajas</p>
+                      <p className="text-sm font-semibold text-blue-900">{en ? 'Health centers/clinics where you work' : 'Centros/clínicas donde trabajas'}</p>
                       <p className="text-sm text-blue-700 mt-1">
                         {assignedCenterLabel}
                       </p>
@@ -596,14 +604,14 @@ export default function DoctorProfilePage() {
                             />
                             <span>
                               <span className="block font-semibold">{center.name}</span>
-                              <span className="block text-xs text-blue-600">{center.city || 'Ciudad no indicada'}{center.address ? ` · ${center.address}` : ''}</span>
+                              <span className="block text-xs text-blue-600">{center.city || (en ? 'City not provided' : 'Ciudad no indicada')}{center.address ? ` · ${center.address}` : ''}</span>
                             </span>
                           </label>
                         ))}
                       </div>
                       {form.selectedHealthCenterIds.length > 1 && (
                         <label>
-                          <span className="mb-1 block text-xs font-semibold text-blue-900">Centro principal</span>
+                          <span className="mb-1 block text-xs font-semibold text-blue-900">{en ? 'Primary center' : 'Centro principal'}</span>
                           <select
                             value={form.healthCenterId}
                               onChange={(event) => {
@@ -629,29 +637,29 @@ export default function DoctorProfilePage() {
                           }}
                           className="h-11 rounded-xl border border-blue-100 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
-                          <option value="">Agregar otro centro</option>
-                          <option value="new">Mi centro no aparece</option>
+                          <option value="">{en ? 'Add another center' : 'Agregar otro centro'}</option>
+                          <option value="new">{en ? 'My center is not listed' : 'Mi centro no aparece'}</option>
                         </select>
                       </div>
                       {form.healthCenterMode === 'new' && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          <input value={form.newHealthCenterName} onChange={(event) => setForm({ ...form, newHealthCenterName: event.target.value })} className="h-10 rounded-xl border border-blue-100 px-3 text-sm" placeholder="Nombre del centro" />
-                          <input value={form.newHealthCenterCity} onChange={(event) => setForm({ ...form, newHealthCenterCity: event.target.value })} className="h-10 rounded-xl border border-blue-100 px-3 text-sm" placeholder="Ciudad" />
-                          <input value={form.newHealthCenterAddress} onChange={(event) => setForm({ ...form, newHealthCenterAddress: event.target.value })} className="h-10 rounded-xl border border-blue-100 px-3 text-sm" placeholder="Direccion" />
-                          <input value={form.newHealthCenterPhone} onChange={(event) => setForm({ ...form, newHealthCenterPhone: event.target.value })} className="h-10 rounded-xl border border-blue-100 px-3 text-sm" placeholder="Telefono" />
-                          <input value={form.newHealthCenterEmail} onChange={(event) => setForm({ ...form, newHealthCenterEmail: event.target.value })} className="h-10 rounded-xl border border-blue-100 px-3 text-sm md:col-span-2" placeholder="Correo del centro" />
+                          <input value={form.newHealthCenterName} onChange={(event) => setForm({ ...form, newHealthCenterName: event.target.value })} className="h-10 rounded-xl border border-blue-100 px-3 text-sm" placeholder={en ? 'Center name' : 'Nombre del centro'} />
+                          <input value={form.newHealthCenterCity} onChange={(event) => setForm({ ...form, newHealthCenterCity: event.target.value })} className="h-10 rounded-xl border border-blue-100 px-3 text-sm" placeholder={en ? 'City' : 'Ciudad'} />
+                          <input value={form.newHealthCenterAddress} onChange={(event) => setForm({ ...form, newHealthCenterAddress: event.target.value })} className="h-10 rounded-xl border border-blue-100 px-3 text-sm" placeholder={en ? 'Address' : 'Dirección'} />
+                          <input value={form.newHealthCenterPhone} onChange={(event) => setForm({ ...form, newHealthCenterPhone: event.target.value })} className="h-10 rounded-xl border border-blue-100 px-3 text-sm" placeholder={en ? 'Phone' : 'Teléfono'} />
+                          <input value={form.newHealthCenterEmail} onChange={(event) => setForm({ ...form, newHealthCenterEmail: event.target.value })} className="h-10 rounded-xl border border-blue-100 px-3 text-sm md:col-span-2" placeholder={en ? 'Center email' : 'Correo del centro'} />
                         </div>
                       )}
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">Biografia profesional</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">{en ? 'Professional biography' : 'Biografía profesional'}</label>
                       <textarea
                         value={form.bio}
                         onChange={(event) => setForm({ ...form, bio: event.target.value })}
                         rows={6}
                         className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Describe tu experiencia, enfoque clinico y servicios..."
+                        placeholder={en ? 'Describe your experience, clinical approach and services...' : 'Describe tu experiencia, enfoque clínico y servicios...'}
                       />
                     </div>
                   </div>
@@ -729,12 +737,12 @@ export default function DoctorProfilePage() {
                   <div className="mb-4 flex items-center gap-2">
                     <FileText className="h-5 w-5 text-blue-600" />
                     <div>
-                      <h3 className="text-base font-bold text-blue-950">Documentos de validación</h3>
-                      <p className="text-sm text-blue-700">Obligatorios para completar tu perfil profesional.</p>
+                    <h3 className="text-base font-bold text-blue-950">{en ? 'Verification documents' : 'Documentos de validación'}</h3>
+                      <p className="text-sm text-blue-700">{en ? 'Required to complete your professional profile.' : 'Obligatorios para completar tu perfil profesional.'}</p>
                     </div>
                   </div>
                   <div className="mb-4">
-                    <label className="block text-sm font-semibold text-blue-950 mb-1">Cédula o documento de identidad</label>
+                    <label className="block text-sm font-semibold text-blue-950 mb-1">{en ? 'National ID or identity document' : 'Cédula o documento de identidad'}</label>
                     <input
                       value={form.documentNumber}
                       onChange={(event) => setForm({ ...form, documentNumber: event.target.value })}
@@ -744,40 +752,42 @@ export default function DoctorProfilePage() {
                   </div>
                   <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                     <DocumentInput
-                      label="Foto cédula frontal"
+                      label={en ? 'Front ID photo' : 'Foto cédula frontal'}
                       ready={form.hasIdFrontImage || Boolean(form.idFrontImage)}
                       onChange={(file) => handleDocumentFile('idFrontImage', file)}
                     />
                     <DocumentInput
-                      label="Foto cédula reverso"
+                      label={en ? 'Back ID photo' : 'Foto cédula reverso'}
                       ready={form.hasIdBackImage || Boolean(form.idBackImage)}
                       onChange={(file) => handleDocumentFile('idBackImage', file)}
                     />
                     <DocumentInput
-                      label="Foto o captura del exequátur"
+                      label={en ? 'Professional license photo or screenshot' : 'Foto o captura del exequátur'}
                       ready={form.hasExequaturImage || Boolean(form.exequaturImage)}
                       onChange={(file) => handleDocumentFile('exequaturImage', file)}
                     />
-                    <DocumentInput
-                      label="Soporte de especialidad"
-                      ready={form.hasSpecialtyProofImage || Boolean(form.specialtyProofImage)}
-                      onChange={(file) => handleDocumentFile('specialtyProofImage', file)}
-                    />
+                    {requiresSpecialtyProof && (
+                      <DocumentInput
+                        label={en ? 'Specialty proof' : 'Soporte de especialidad'}
+                        ready={form.hasSpecialtyProofImage || Boolean(form.specialtyProofImage)}
+                        onChange={(file) => handleDocumentFile('specialtyProofImage', file)}
+                      />
+                    )}
                   </div>
                 </div>
 
                 <div className="rounded-2xl border border-gray-200 p-5">
                   <div className="flex items-center justify-between gap-4 mb-4">
                     <div>
-                      <h3 className="text-base font-bold text-gray-900">Horario por centro/clinica</h3>
-                      <p className="text-sm text-gray-500">Configura dias y horas para cada centro donde atiendes.</p>
+                      <h3 className="text-base font-bold text-gray-900">{en ? 'Schedule by center/clinic' : 'Horario por centro/clínica'}</h3>
+                      <p className="text-sm text-gray-500">{en ? 'Set days and hours for each center where you see patients.' : 'Configura días y horas para cada centro donde atiendes.'}</p>
                     </div>
                     <Clock className="w-5 h-5 text-blue-600" />
                   </div>
 
                   {scheduleCenters.length > 1 && (
                     <label className="mb-4 block">
-                      <span className="mb-1 block text-sm font-semibold text-gray-700">Centro para editar horarios</span>
+                      <span className="mb-1 block text-sm font-semibold text-gray-700">{en ? 'Center for schedule editing' : 'Centro para editar horarios'}</span>
                       <select
                         value={activeScheduleCenterId}
                         onChange={(event) => setScheduleHealthCenterId(event.target.value)}
@@ -802,7 +812,7 @@ export default function DoctorProfilePage() {
                             }}
                             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                           />
-                          {dayNames[slot.dayOfWeek]}
+                          {(en ? ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] : dayNames)[slot.dayOfWeek]}
                         </label>
                         <div className="grid grid-cols-2 gap-3">
                           <input
@@ -812,7 +822,7 @@ export default function DoctorProfilePage() {
                             onChange={(event) => {
                               updateAvailabilityForActiveCenter(slot.dayOfWeek, { startTime: event.target.value });
                             }}
-                            className="h-10 rounded-lg border border-gray-200 px-3 text-sm disabled:bg-gray-100"
+                            className="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 accent-blue-600 disabled:bg-gray-100 disabled:text-gray-900 [color-scheme:light]"
                           />
                           <input
                             type="time"
@@ -821,7 +831,7 @@ export default function DoctorProfilePage() {
                             onChange={(event) => {
                               updateAvailabilityForActiveCenter(slot.dayOfWeek, { endTime: event.target.value });
                             }}
-                            className="h-10 rounded-lg border border-gray-200 px-3 text-sm disabled:bg-gray-100"
+                            className="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 accent-blue-600 disabled:bg-gray-100 disabled:text-gray-900 [color-scheme:light]"
                           />
                         </div>
                         <button
@@ -841,39 +851,39 @@ export default function DoctorProfilePage() {
                 <div className="rounded-2xl border border-gray-200 p-5">
                   <div className="flex items-center gap-2 mb-4">
                     <Video className="w-5 h-5 text-blue-600" />
-                    <h3 className="text-base font-bold text-gray-900">Configuracion profesional</h3>
+                    <h3 className="text-base font-bold text-gray-900">{en ? 'Professional settings' : 'Configuración profesional'}</h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <label>
-                      <span className="block text-sm font-semibold text-gray-700 mb-1">Duracion consulta</span>
+                      <span className="block text-sm font-semibold text-gray-700 mb-1">{en ? 'Consultation duration' : 'Duración de consulta'}</span>
                       <select
                         value={settings.consultationDuration}
                         onChange={(event) => setSettings({ ...settings, consultationDuration: event.target.value })}
                         className="w-full h-11 rounded-xl border border-gray-200 px-3 text-sm"
                       >
-                        <option value="20">20 minutos</option>
-                        <option value="30">30 minutos</option>
-                        <option value="45">45 minutos</option>
-                        <option value="60">60 minutos</option>
+                        <option value="20">20 {en ? 'minutes' : 'minutos'}</option>
+                        <option value="30">30 {en ? 'minutes' : 'minutos'}</option>
+                        <option value="45">45 {en ? 'minutes' : 'minutos'}</option>
+                        <option value="60">60 {en ? 'minutes' : 'minutos'}</option>
                       </select>
                     </label>
                     <label className="flex items-center gap-3 rounded-xl bg-gray-50 px-4 py-3">
                       <input type="checkbox" checked={settings.teleconsultation} onChange={(event) => setSettings({ ...settings, teleconsultation: event.target.checked })} />
                       <span>
-                        <span className="block text-sm font-semibold text-gray-700">Teleconsulta</span>
-                        <span className="block text-xs text-gray-500">Permite que los pacientes agenden citas virtuales contigo.</span>
+                        <span className="block text-sm font-semibold text-gray-700">{en ? 'Telehealth' : 'Teleconsulta'}</span>
+                        <span className="block text-xs text-gray-500">{en ? 'Allows patients to book virtual appointments with you.' : 'Permite que los pacientes agenden citas virtuales contigo.'}</span>
                       </span>
                     </label>
                     <label className="flex items-center gap-3 rounded-xl bg-gray-50 px-4 py-3">
                       <input type="checkbox" checked={settings.vacationMode} onChange={(event) => setSettings({ ...settings, vacationMode: event.target.checked })} />
-                      <span className="text-sm font-semibold text-gray-700">Modo vacaciones</span>
+                      <span className="text-sm font-semibold text-gray-700">{en ? 'Vacation mode' : 'Modo vacaciones'}</span>
                     </label>
                   </div>
                 </div>
 
                 <button disabled={saving} className="inline-flex items-center gap-2 px-5 h-11 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:opacity-60">
                   <Save className="w-4 h-4" />
-                  {saving ? 'Guardando...' : 'Guardar cambios'}
+                  {saving ? (en ? 'Saving...' : 'Guardando...') : (en ? 'Save changes' : 'Guardar cambios')}
                 </button>
               </form>
             )}
@@ -884,7 +894,7 @@ export default function DoctorProfilePage() {
   );
 }
 
-function getProfileCompletion(form: any, availability: any[]) {
+function getProfileCompletion(form: any, availability: any[], requiresSpecialtyProof = true) {
   const checks = [
     form.bio,
     form.consultationPrice,
@@ -895,7 +905,7 @@ function getProfileCompletion(form: any, availability: any[]) {
       (form.hasIdFrontImage || form.idFrontImage) &&
       (form.hasIdBackImage || form.idBackImage) &&
       (form.hasExequaturImage || form.exequaturImage) &&
-      (form.hasSpecialtyProofImage || form.specialtyProofImage),
+      (!requiresSpecialtyProof || form.hasSpecialtyProofImage || form.specialtyProofImage),
     availability.some((slot) => slot.enabled),
   ];
   return Math.round((checks.filter(Boolean).length / checks.length) * 100);

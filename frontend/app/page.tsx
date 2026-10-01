@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import type { CSSProperties } from 'react';
 import { useEffect, useState } from 'react';
+import { useI18n } from '@/i18n';
 import { doctorAPI } from '@/utils/api';
 import { formatDoctorName } from '@/utils/names';
 import { absoluteUrl } from '@/lib/seo';
@@ -28,6 +29,7 @@ import {
 type Audience = 'paciente' | 'medico';
 
 export default function Home() {
+  const { locale } = useI18n();
   const [isScrolled, setIsScrolled] = useState(false);
   const [audience, setAudience] = useState<Audience>('paciente');
   const [pointer, setPointer] = useState({ x: 50, y: 50 });
@@ -85,39 +87,44 @@ export default function Home() {
   ];
 
   const steps = audience === 'paciente'
+    ? locale === 'en'
+      ? [
+          'Search by specialty or health center',
+          'Choose the time that works best for you',
+          'Receive confirmations, reminders and records',
+        ]
+      : [
+          'Busca por especialidad o centro médico',
+          'Elige el horario que mejor calza contigo',
+          'Recibe confirmacion, recordatorio e historial',
+        ]
+    : locale === 'en'
+      ? [
+          'Receive organized patient requests',
+          'Manage your schedule, records and consultations in one place',
+          'Keep professional follow-up after every visit',
+        ]
+      : [
+          'Recibe solicitudes de pacientes ordenadas',
+          'Administra agenda, ficha y consulta en un lugar',
+          'Mantiene seguimiento profesional después de atender',
+        ];
+
+  const faqs = locale === 'en'
     ? [
-        'Busca por especialidad o centro médico',
-        'Elige el horario que mejor calza contigo',
-        'Recibe confirmacion, recordatorio e historial',
+        { question: 'Do I need to sign up to search for doctors?', answer: 'You can explore doctors and specialties from the home page. To book, confirm appointments and view your records, you need a patient account.' },
+        { question: 'Does SaludClick provide medical consultations directly?', answer: 'SaludClick connects patients with healthcare professionals and health centers. Care, diagnosis and treatment always depend on the doctor you choose.' },
+        { question: 'Can I book in-person appointments and telehealth visits?', answer: 'Yes. Availability depends on each doctor or center, and the appointment will show whether care is in person, virtual or both.' },
+        { question: 'Where can I see my prescriptions and records?', answer: 'When you sign in as a patient, you can access your appointments, prescriptions, profile and organized medical information from your dashboard.' },
+        { question: 'Can everyone see my personal and insurance information?', answer: 'No. This information is shown only to the doctor and authorized staff involved in your appointment, to support care and administration.' },
       ]
     : [
-        'Recibe solicitudes de pacientes ordenadas',
-        'Administra agenda, ficha y consulta en un lugar',
-        'Mantiene seguimiento profesional después de atender',
+        { question: '¿Necesito registrarme para buscar médicos?', answer: 'Puedes explorar médicos y especialidades desde la pantalla principal. Para agendar, confirmar citas y ver tu historial, necesitas crear una cuenta de paciente.' },
+        { question: '¿SaludClick ofrece consultas médicas directamente?', answer: 'SaludClick conecta pacientes con profesionales y centros de salud. La atención, el diagnóstico y el tratamiento siempre dependen del médico que selecciones.' },
+        { question: '¿Puedo agendar citas presenciales y teleconsultas?', answer: 'Sí. La disponibilidad depende de cada médico o centro, y en la cita podrás ver si la atención es presencial, virtual o ambas modalidades.' },
+        { question: '¿Dónde veo mis recetas e historial?', answer: 'Al iniciar sesión como paciente tendrás acceso a tus citas, recetas, perfil e información médica organizada desde tu panel.' },
+        { question: '¿Mis datos personales y de seguro son visibles para todos?', answer: 'No. Esa información se muestra solo al médico y al personal autorizado relacionado con tu cita, para facilitar la atención y la gestión administrativa.' },
       ];
-
-  const faqs = [
-    {
-      question: '¿Necesito registrarme para buscar médicos?',
-      answer: 'Puedes explorar médicos y especialidades desde la pantalla principal. Para agendar, confirmar citas y ver tu historial, necesitas crear una cuenta de paciente.',
-    },
-    {
-      question: '¿SaludClick ofrece consultas médicas directamente?',
-      answer: 'SaludClick conecta pacientes con profesionales y centros de salud. La atención, el diagnóstico y el tratamiento siempre dependen del médico que selecciones.',
-    },
-    {
-      question: '¿Puedo agendar citas presenciales y teleconsultas?',
-      answer: 'Sí. La disponibilidad depende de cada médico o centro, y en la cita podrás ver si la atención es presencial, virtual o ambas modalidades.',
-    },
-    {
-      question: '¿Dónde veo mis recetas e historial?',
-      answer: 'Al iniciar sesión como paciente tendrás acceso a tus citas, recetas, perfil e información médica organizada desde tu panel.',
-    },
-    {
-      question: '¿Mis datos personales y de seguro son visibles para todos?',
-      answer: 'No. Esa información se muestra solo al médico y al personal autorizado relacionado con tu cita, para facilitar la atención y la gestión administrativa.',
-    },
-  ];
 
   return (
     <div className="home-page min-h-screen bg-slate-50 text-slate-950">
@@ -518,6 +525,7 @@ export default function Home() {
           </div>
         </section>
 
+        {featuredDoctors.length > 0 && (
         <section className="home-section-muted bg-slate-50 py-20">
           <div className="container-main grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
             <div>
@@ -558,14 +566,10 @@ export default function Home() {
                   </Link>
                 </article>
               ))}
-              {!featuredDoctors.length && (
-                <div className="home-card rounded-2xl border border-dashed border-slate-200 bg-white p-6 text-slate-600 sm:col-span-2">
-                  Selecciona médicos destacados desde el panel de administrador.
-                </div>
-              )}
             </div>
           </div>
         </section>
+        )}
 
         <section className="home-section-light bg-white py-20">
           <div className="container-main">

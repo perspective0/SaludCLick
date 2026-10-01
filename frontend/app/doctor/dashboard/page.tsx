@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { appointmentAPI, doctorAPI, notificationAPI, secretaryAPI } from '@/utils/api';
+import { useI18n } from '@/i18n';
 import { formatDate, getUserGreeting } from '@/utils/helpers';
 import {
   Activity,
@@ -107,6 +108,32 @@ const appointmentFilters: { value: AppointmentFilter; label: string }[] = [
   { value: 'all', label: 'Todas' },
 ];
 
+const appointmentFilterLabels: Record<AppointmentFilter, { es: string; en: string }> = {
+  scheduled: { es: 'Programadas', en: 'Scheduled' },
+  confirmed: { es: 'Confirmadas', en: 'Confirmed' },
+  waiting: { es: 'En espera', en: 'Waiting' },
+  completed: { es: 'Completadas', en: 'Completed' },
+  cancelled: { es: 'Canceladas', en: 'Cancelled' },
+  'no-show': { es: 'No asistio', en: 'No-show' },
+  all: { es: 'Todas', en: 'All' },
+};
+
+const taskTranslations: Record<string, string> = {
+  'Llamar para confirmar control': 'Call to confirm follow-up',
+  'Revisar resultado de laboratorio': 'Review lab result',
+  'Completar expediente clinico': 'Complete clinical record',
+  'Paciente pendiente': 'Pending patient',
+  'Paciente reciente': 'Recent patient',
+  'Siguiente paciente': 'Next patient',
+  'Hoy 10:30': 'Today 10:30',
+  'Hoy 13:00': 'Today 1:00 PM',
+  'Antes de cierre': 'Before closing',
+};
+
+function localizeTaskText(value: string, en: boolean) {
+  return en ? taskTranslations[value] || value : value;
+}
+
 const defaultTasks: ClinicalTask[] = [
   { id: 'task-1', title: 'Llamar para confirmar control', patient: 'Paciente pendiente', type: 'call', due: 'Hoy 10:30', completed: false },
   { id: 'task-2', title: 'Revisar resultado de laboratorio', patient: 'Paciente reciente', type: 'review', due: 'Hoy 13:00', completed: false },
@@ -117,6 +144,8 @@ const dayNames = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
 const completedTaskVisibleMs = 8000;
 
 export default function DoctorDashboardPage() {
+  const { locale } = useI18n();
+  const en = locale === 'en';
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [appointments, setAppointments] = useState<AppointmentItem[]>([]);
@@ -237,7 +266,7 @@ export default function DoctorDashboardPage() {
     try {
       if (!('Notification' in window)) {
         setPushStatus('unsupported');
-        setError('Este navegador no soporta notificaciones push.');
+      setError(en ? 'This browser does not support push notifications.' : 'Este navegador no soporta notificaciones push.');
         return;
       }
 
@@ -248,11 +277,11 @@ export default function DoctorDashboardPage() {
         await registerPushDevice();
         await loadNotifications();
       } else if (permission === 'denied') {
-        setError('Las notificaciones estan bloqueadas en este dispositivo.');
+      setError(en ? 'Notifications are blocked on this device.' : 'Las notificaciones estan bloqueadas en este dispositivo.');
       }
     } catch (err) {
       console.error('Error enabling notifications:', err);
-      setError('No se pudieron activar las notificaciones en este dispositivo.');
+      setError(en ? 'Notifications could not be enabled on this device.' : 'No se pudieron activar las notificaciones en este dispositivo.');
     }
   };
 
@@ -281,7 +310,7 @@ export default function DoctorDashboardPage() {
       setDoctorProfile(response?.data || null);
     } catch (err) {
       console.error('Error loading doctor profile:', err);
-      setError('No se pudo cargar el perfil medico.');
+      setError(en ? 'The doctor profile could not be loaded.' : 'No se pudo cargar el perfil medico.');
     }
   };
 
@@ -302,7 +331,7 @@ export default function DoctorDashboardPage() {
       setAppointments(response.data || []);
     } catch (err) {
       console.error('Error loading appointments:', err);
-      setError('No se pudieron cargar las citas medicas.');
+      setError(en ? 'Appointments could not be loaded.' : 'No se pudieron cargar las citas medicas.');
     }
   };
 
@@ -365,7 +394,7 @@ export default function DoctorDashboardPage() {
       await loadAppointments();
     } catch (err) {
       console.error('Error updating appointment:', err);
-      setError('No se pudo actualizar el estado de la cita.');
+      setError(en ? 'The appointment status could not be updated.' : 'No se pudo actualizar el estado de la cita.');
     }
   };
 
@@ -381,7 +410,7 @@ export default function DoctorDashboardPage() {
       await loadAppointments();
     } catch (err) {
       console.error('Error rescheduling appointment:', err);
-      setError('No se pudo reagendar la cita.');
+      setError(en ? 'The appointment could not be rescheduled.' : 'No se pudo reagendar la cita.');
     }
   };
 
@@ -457,17 +486,17 @@ export default function DoctorDashboardPage() {
   }, [doctorProfile]);
 
   const clinicalAlerts = [
-    ...(todayAppointments.length ? [`${todayAppointments.length} citas activas para hoy.`] : []),
-    ...(pendingTasks.length ? [`${pendingTasks.length} tareas clinicas pendientes.`] : []),
-    ...(profileCompletion < 80 ? ['Perfil profesional incompleto.'] : []),
-    ...(cancelledAppointments.length ? [`${cancelledAppointments.length} citas canceladas en la agenda visible.`] : []),
+    ...(todayAppointments.length ? [`${todayAppointments.length} ${en ? 'active appointments today.' : 'citas activas para hoy.'}`] : []),
+    ...(pendingTasks.length ? [`${pendingTasks.length} ${en ? 'clinical tasks pending.' : 'tareas clinicas pendientes.'}`] : []),
+    ...(profileCompletion < 80 ? [en ? 'Professional profile is incomplete.' : 'Perfil profesional incompleto.'] : []),
+    ...(cancelledAppointments.length ? [`${cancelledAppointments.length} ${en ? 'cancelled appointments in the visible schedule.' : 'citas canceladas en la agenda visible.'}`] : []),
   ];
 
   return (
     <ProtectedRoute requiredRole="doctor">
       <div className="min-h-screen bg-[#f6f8fb] text-gray-950">
         <div className="flex min-h-screen">
-          <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl transform transition-transform duration-300 lg:sticky lg:top-0 lg:translate-x-0 lg:inset-auto h-screen ${
+          <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl transform transition-transform duration-300 lg:fixed lg:top-0 lg:bottom-0 lg:translate-x-0 h-screen ${
             sidebarOpen ? 'translate-x-0' : '-translate-x-full'
           }`}>
             <div className="h-full min-h-0 flex flex-col">
@@ -485,20 +514,20 @@ export default function DoctorDashboardPage() {
               </div>
 
               <nav className="flex-1 min-h-0 p-3 space-y-1 overflow-y-auto">
-                <p className="px-2 mb-2 text-[11px] font-semibold uppercase text-gray-400">Principal</p>
+                <p className="px-2 mb-2 text-[11px] font-semibold uppercase text-gray-400">{en ? 'Main' : 'Principal'}</p>
                 <DoctorNavLink href="/doctor/dashboard" active icon={Home} label="Dashboard" />
-                <DoctorNavLink href="/doctor/patients" icon={Users} label="Pacientes" />
-                <DoctorNavLink href="/doctor/medical-records" icon={ClipboardList} label="Registros medicos" />
-                <DoctorNavLink href="/doctor/prescriptions" icon={Pill} label="Recetas" />
-                <DoctorNavLink href="/doctor/vademecum" icon={Search} label="Vademecum" />
-                <DoctorNavLink href="/doctor/lab-orders" icon={FlaskConical} label="Analiticas y estudios" />
-                <DoctorNavLink href="/doctor/documents" icon={FileText} label="Documentos medicos" />
-                <DoctorNavLink href="/doctor/feedback" icon={MessageSquare} label="Preguntas y recomendaciones" />
+                <DoctorNavLink href="/doctor/patients" icon={Users} label={en ? 'Patients' : 'Pacientes'} />
+                <DoctorNavLink href="/appointments" icon={CalendarCheck} label={en ? 'Appointments' : 'Citas medicas'} />
+                <DoctorNavLink href="/doctor/medical-records" icon={ClipboardList} label={en ? 'Medical records' : 'Registros medicos'} />
+                <DoctorNavLink href="/doctor/prescriptions" icon={Pill} label={en ? 'Prescriptions' : 'Recetas'} />
+                <DoctorNavLink href="/doctor/vademecum" icon={Search} label={en ? 'Drug reference' : 'Vademecum'} />
+                <DoctorNavLink href="/doctor/lab-orders" icon={FlaskConical} label={en ? 'Labs and studies' : 'Analiticas y estudios'} />
+                <DoctorNavLink href="/doctor/documents" icon={FileText} label={en ? 'Medical documents' : 'Documentos medicos'} />
+                <DoctorNavLink href="/doctor/feedback" icon={MessageSquare} label={en ? 'Feedback and suggestions' : 'Preguntas y recomendaciones'} />
 
-                <p className="px-2 mt-6 mb-2 text-[11px] font-semibold uppercase text-gray-400">Operacion</p>
-                <DoctorNavLink href="/appointments" icon={CalendarCheck} label="Citas medicas" />
-                <DoctorNavLink href="/secretary/dashboard" icon={Users} label="Equipo de apoyo" />
-                <DoctorNavLink href="/doctor/profile" icon={Settings} label="Perfil profesional" />
+                <p className="px-2 mt-6 mb-2 text-[11px] font-semibold uppercase text-gray-400">{en ? 'Operations' : 'Operacion'}</p>
+                <DoctorNavLink href="/secretary/dashboard" icon={Users} label={en ? 'Support team' : 'Equipo de apoyo'} />
+                <DoctorNavLink href="/doctor/profile" icon={Settings} label={en ? 'Professional profile' : 'Perfil profesional'} />
               </nav>
 
               <div className="p-3 border-t border-gray-100 shrink-0">
@@ -508,7 +537,7 @@ export default function DoctorDashboardPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold truncate">{user?.firstName} {user?.lastName}</p>
-                    <p className="text-xs text-gray-500">Medico</p>
+                    <p className="text-xs text-gray-500">{en ? 'Doctor' : 'Medico'}</p>
                   </div>
                 </div>
                 <button
@@ -516,7 +545,7 @@ export default function DoctorDashboardPage() {
                   className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
-                  Cerrar sesion
+                  {en ? 'Sign out' : 'Cerrar sesion'}
                 </button>
               </div>
             </div>
@@ -530,7 +559,7 @@ export default function DoctorDashboardPage() {
             />
           )}
 
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 lg:pl-64">
             <header className="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-gray-200">
               <div className="h-20 px-4 md:px-8 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4 min-w-0">
@@ -542,8 +571,11 @@ export default function DoctorDashboardPage() {
                     {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
                   </button>
                   <div className="min-w-0">
-                    <h1 className="text-xl md:text-2xl font-bold truncate">{getUserGreeting(user, 'Doctor')}</h1>
-                    <p className="text-sm text-gray-500 truncate">Agenda clinica, pacientes y seguimiento del dia</p>
+                    <h1 className="text-xl md:text-2xl font-bold truncate">{getUserGreeting(user, 'Doctor')
+                      .replace('Buenos días', en ? 'Good morning' : 'Buenos días')
+                      .replace('Buenas tardes', en ? 'Good afternoon' : 'Buenas tardes')
+                      .replace('Buenas noches', en ? 'Good evening' : 'Buenas noches')}</h1>
+                    <p className="text-sm text-gray-500 truncate">{en ? 'Clinical schedule, patients and daily follow-up' : 'Agenda clinica, pacientes y seguimiento del dia'}</p>
                   </div>
                 </div>
 
@@ -552,7 +584,7 @@ export default function DoctorDashboardPage() {
                     onClick={refreshDashboard}
                     disabled={loading || refreshing}
                     className="w-10 h-10 rounded-lg hover:bg-gray-100 flex items-center justify-center transition-colors disabled:opacity-60"
-                    title="Actualizar"
+                    title={en ? 'Refresh' : 'Actualizar'}
                   >
                     <RefreshCw className={`w-5 h-5 text-gray-600 ${refreshing ? 'animate-spin' : ''}`} />
                   </button>
@@ -560,7 +592,7 @@ export default function DoctorDashboardPage() {
                     <button
                       onClick={openNotifications}
                       className="relative w-10 h-10 rounded-lg hover:bg-gray-100 flex items-center justify-center transition-colors"
-                      title="Notificaciones"
+                      title={en ? 'Notifications' : 'Notificaciones'}
                     >
                       <Bell className="w-5 h-5 text-gray-600" />
                       {unreadNotifications > 0 && (
@@ -574,26 +606,26 @@ export default function DoctorDashboardPage() {
                       <div className="absolute right-0 top-12 w-[min(360px,calc(100vw-2rem))] rounded-2xl border border-gray-200 bg-white shadow-xl overflow-hidden">
                         <div className="p-4 border-b border-gray-100 flex items-start justify-between gap-3">
                           <div>
-                            <p className="font-bold text-gray-900">Notificaciones</p>
-                            <p className="text-xs text-gray-500">Citas nuevas, cambios y cancelaciones</p>
+                            <p className="font-bold text-gray-900">{en ? 'Notifications' : 'Notificaciones'}</p>
+                            <p className="text-xs text-gray-500">{en ? 'New appointments, changes and cancellations' : 'Citas nuevas, cambios y cancelaciones'}</p>
                           </div>
                           {pushStatus !== 'granted' && (
                             <button
                               onClick={enableNotifications}
                               className="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700"
                             >
-                              Activar
+                              {en ? 'Enable' : 'Activar'}
                             </button>
                           )}
                         </div>
                         <div className="max-h-96 overflow-y-auto">
                           {pushStatus === 'unsupported' && (
                             <div className="p-4 text-sm text-amber-700 bg-amber-50">
-                              Este navegador no soporta notificaciones push.
+                              {en ? 'This browser does not support push notifications.' : 'Este navegador no soporta notificaciones push.'}
                             </div>
                           )}
                           {notifications.length === 0 ? (
-                            <div className="p-6 text-center text-sm text-gray-500">No hay notificaciones por ahora.</div>
+                            <div className="p-6 text-center text-sm text-gray-500">{en ? 'No notifications right now.' : 'No hay notificaciones por ahora.'}</div>
                           ) : (
                             notifications.map((notification) => (
                               <Link
@@ -604,7 +636,7 @@ export default function DoctorDashboardPage() {
                               >
                                 <p className="font-semibold text-sm text-gray-900">{notification.title}</p>
                                 <p className="text-sm text-gray-500 mt-1">{notification.body}</p>
-                                <p className="text-xs text-gray-400 mt-2">{new Date(notification.created_at).toLocaleString('es-DO')}</p>
+                                <p className="text-xs text-gray-400 mt-2">{new Date(notification.created_at).toLocaleString(en ? 'en-US' : 'es-DO')}</p>
                               </Link>
                             ))
                           )}
@@ -627,28 +659,28 @@ export default function DoctorDashboardPage() {
               <section className="grid grid-cols-1 xl:grid-cols-[1.25fr_0.9fr] gap-6">
                 <div className="rounded-2xl bg-gray-950 text-white p-5 md:p-6 overflow-hidden">
                   <div className="max-w-3xl">
-                    <p className="text-sm text-blue-200 font-medium mb-2">Panel medico</p>
+                    <p className="text-sm text-blue-200 font-medium mb-2">{en ? 'Doctor panel' : 'Panel medico'}</p>
                     <h2 className="text-2xl md:text-3xl font-bold leading-tight mb-2 text-white">
-                      Consulta de hoy
+                      {en ? 'Today\'s visits' : 'Consulta de hoy'}
                     </h2>
                     <p className="text-sm text-gray-300 max-w-2xl">
-                      Agenda, tareas, alertas y pacientes recientes en una vista de trabajo.
+                      {en ? 'Appointments, tasks, alerts and recent patients in one workspace.' : 'Agenda, tareas, alertas y pacientes recientes en una vista de trabajo.'}
                     </p>
                   </div>
                   <div className="mt-5 grid grid-cols-2 md:grid-cols-5 gap-3">
-                    <HeroMetric label="Hoy" value={todayAppointments.length} icon={Clock3} />
-                    <HeroMetric label="Programadas" value={scheduledAppointments.length} icon={CalendarCheck} />
-                    <HeroMetric label="Completadas" value={completedAppointments.length} icon={CheckCircle2} />
-                    <HeroMetric label="Canceladas" value={cancelledAppointments.length} icon={X} />
-                    <HeroMetric label="Secretarias" value={secretaries.length} icon={Users} />
+                    <HeroMetric label={en ? 'Today' : 'Hoy'} value={todayAppointments.length} icon={Clock3} />
+                    <HeroMetric label={en ? 'Scheduled' : 'Programadas'} value={scheduledAppointments.length} icon={CalendarCheck} />
+                    <HeroMetric label={en ? 'Completed' : 'Completadas'} value={completedAppointments.length} icon={CheckCircle2} />
+                    <HeroMetric label={en ? 'Cancelled' : 'Canceladas'} value={cancelledAppointments.length} icon={X} />
+                    <HeroMetric label={en ? 'Secretaries' : 'Secretarias'} value={secretaries.length} icon={Users} />
                   </div>
                 </div>
 
                 <div className="rounded-2xl bg-white border border-gray-200 p-6">
                   <div className="flex items-start justify-between gap-3 mb-5">
                     <div>
-                      <p className="text-sm text-gray-500">Proxima atencion</p>
-                      <h2 className="text-xl font-bold text-gray-900">Siguiente paciente</h2>
+                      <p className="text-sm text-gray-500">{en ? 'Next visit' : 'Proxima atencion'}</p>
+                      <h2 className="text-xl font-bold text-gray-900">{en ? 'Next patient' : 'Siguiente paciente'}</h2>
                     </div>
                     <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
                       <HeartPulse className="w-5 h-5" />
@@ -665,48 +697,48 @@ export default function DoctorDashboardPage() {
                         </div>
                         <div className="min-w-0">
                           <p className="font-bold text-gray-900 truncate">{getPatientName(nextAppointment)}</p>
-                          <p className="text-sm text-gray-500">{formatDate(nextAppointment.appointment_date)} a las {nextAppointment.appointment_time}</p>
+                          <p className="text-sm text-gray-500">{formatDate(nextAppointment.appointment_date)} {en ? 'at' : 'a las'} {nextAppointment.appointment_time}</p>
                         </div>
                       </div>
                       <div className="rounded-xl bg-gray-50 p-4 mb-5">
-                        <p className="text-xs font-semibold text-gray-400 uppercase mb-1">Motivo</p>
-                        <p className="text-sm text-gray-700">{nextAppointment.reason_for_visit || 'Sin motivo registrado'}</p>
+                        <p className="text-xs font-semibold text-gray-400 uppercase mb-1">{en ? 'Reason' : 'Motivo'}</p>
+                        <p className="text-sm text-gray-700">{nextAppointment.reason_for_visit || (en ? 'No reason recorded' : 'Sin motivo registrado')}</p>
                       </div>
                       <div className="flex gap-2">
                         <Link
                           href={`/appointments/${nextAppointment.id}`}
                           className="flex-1 h-11 rounded-xl bg-gray-900 text-white text-sm font-semibold flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors"
                         >
-                          Abrir cita
+                          {en ? 'Open appointment' : 'Abrir cita'}
                           <ArrowRight className="w-4 h-4" />
                         </Link>
                         <button
                           onClick={() => handleUpdateAppointmentStatus(nextAppointment.id, 'completed')}
                           className="h-11 px-4 rounded-xl border border-emerald-200 text-emerald-700 hover:bg-emerald-50 transition-colors"
-                          title="Marcar completada"
+                          title={en ? 'Mark as completed' : 'Marcar completada'}
                         >
                           <CheckCircle2 className="w-5 h-5" />
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <EmptyState icon={CalendarCheck} title="Sin citas programadas" text="No tienes atenciones pendientes en este momento." />
+                    <EmptyState icon={CalendarCheck} title={en ? 'No scheduled appointments' : 'Sin citas programadas'} text={en ? 'You have no pending visits right now.' : 'No tienes atenciones pendientes en este momento.'} />
                   )}
                 </div>
               </section>
 
               <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-4">
-                <QuickAction href="/doctor/patients" icon={Users} title="Mis pacientes" text="Historial y seguimiento" />
-                <QuickAction href="/doctor/medical-records" icon={FileText} title="Registros medicos" text="Notas clinicas" />
-                <QuickAction href="/doctor/prescriptions" icon={Pill} title="Recetas" text="Indicaciones y farmacos" />
-                <QuickAction href="/doctor/vademecum" icon={Search} title="Vademecum" text="Medicamentos y advertencias" />
-                <QuickAction href="/doctor/lab-orders" icon={FlaskConical} title="Analiticas" text="Ordenes de laboratorio" />
-                <QuickAction href="/doctor/documents" icon={FileText} title="Documentos" text="Certificados y referimientos" />
-                <QuickAction href="/doctor/feedback" icon={MessageSquare} title="Feedback" text="Preguntas y recomendaciones" />
+                <QuickAction href="/doctor/patients" icon={Users} title={en ? 'My patients' : 'Mis pacientes'} text={en ? 'History and follow-up' : 'Historial y seguimiento'} />
+                <QuickAction href="/doctor/medical-records" icon={FileText} title={en ? 'Medical records' : 'Registros medicos'} text={en ? 'Clinical notes' : 'Notas clinicas'} />
+                <QuickAction href="/doctor/prescriptions" icon={Pill} title={en ? 'Prescriptions' : 'Recetas'} text={en ? 'Instructions and medications' : 'Indicaciones y farmacos'} />
+                <QuickAction href="/doctor/vademecum" icon={Search} title={en ? 'Drug reference' : 'Vademecum'} text={en ? 'Medications and warnings' : 'Medicamentos y advertencias'} />
+                <QuickAction href="/doctor/lab-orders" icon={FlaskConical} title={en ? 'Lab orders' : 'Analiticas'} text={en ? 'Laboratory orders' : 'Ordenes de laboratorio'} />
+                <QuickAction href="/doctor/documents" icon={FileText} title={en ? 'Documents' : 'Documentos'} text={en ? 'Certificates and referrals' : 'Certificados y referimientos'} />
+                <QuickAction href="/doctor/feedback" icon={MessageSquare} title={en ? 'Feedback' : 'Feedback'} text={en ? 'Questions and suggestions' : 'Preguntas y recomendaciones'} />
               </section>
 
               <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <DashboardPanel title="Alertas clinicas" subtitle="Prioridad del dia" icon={AlertCircle}>
+                <DashboardPanel title={en ? 'Clinical alerts' : 'Alertas clinicas'} subtitle={en ? 'Today\'s priority' : 'Prioridad del dia'} icon={AlertCircle}>
                   {clinicalAlerts.length ? (
                     <div className="space-y-2">
                       {clinicalAlerts.map((alert) => (
@@ -716,29 +748,29 @@ export default function DoctorDashboardPage() {
                       ))}
                     </div>
                   ) : (
-                    <EmptyState icon={CheckCircle2} title="Sin alertas" text="Todo esta al dia por ahora." compact />
+                    <EmptyState icon={CheckCircle2} title={en ? 'No alerts' : 'Sin alertas'} text={en ? 'Everything is up to date for now.' : 'Todo esta al dia por ahora.'} compact />
                   )}
                 </DashboardPanel>
 
-                <DashboardPanel title="Tareas clinicas" subtitle={`${pendingTasks.length} pendientes`} icon={ClipboardList}>
+                <DashboardPanel title={en ? 'Clinical tasks' : 'Tareas clinicas'} subtitle={`${pendingTasks.length} ${en ? 'pending' : 'pendientes'}`} icon={ClipboardList}>
                   <form onSubmit={addClinicalTask} className="mb-3 space-y-2">
                     <input
                       value={newTask.title}
                       onChange={(event) => setNewTask({ ...newTask, title: event.target.value })}
-                      placeholder="Nueva tarea clinica"
+                      placeholder={en ? 'New clinical task' : 'Nueva tarea clinica'}
                       className="h-10 w-full rounded-xl border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     <div className="grid grid-cols-2 gap-2">
                       <input
                         value={newTask.patient}
                         onChange={(event) => setNewTask({ ...newTask, patient: event.target.value })}
-                        placeholder="Paciente"
+                        placeholder={en ? 'Patient' : 'Paciente'}
                         className="h-9 min-w-0 rounded-xl border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                       <input
                         value={newTask.due}
                         onChange={(event) => setNewTask({ ...newTask, due: event.target.value })}
-                        placeholder="Vence"
+                        placeholder={en ? 'Due' : 'Vence'}
                         className="h-9 min-w-0 rounded-xl border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -746,7 +778,7 @@ export default function DoctorDashboardPage() {
                       type="submit"
                       className="h-9 w-full rounded-xl bg-gray-900 px-3 text-sm font-semibold text-white hover:bg-gray-800 transition-colors"
                     >
-                      Agregar tarea
+                      {en ? 'Add task' : 'Agregar tarea'}
                     </button>
                   </form>
 
@@ -762,18 +794,18 @@ export default function DoctorDashboardPage() {
                             {task.completed && <CheckCircle2 className="w-3.5 h-3.5" />}
                           </span>
                           <span className="min-w-0">
-                            <span className={`block text-sm font-semibold ${task.completed ? 'text-gray-400 line-through' : 'text-gray-900'}`}>{task.title}</span>
-                            <span className="block text-xs text-gray-500">{task.patient} · {task.due}</span>
+                            <span className={`block text-sm font-semibold ${task.completed ? 'text-gray-400 line-through' : 'text-gray-900'}`}>{localizeTaskText(task.title, en)}</span>
+                            <span className="block text-xs text-gray-500">{localizeTaskText(task.patient, en)} · {localizeTaskText(task.due, en)}</span>
                           </span>
                         </div>
                       </button>
                     )) : (
-                      <EmptyState icon={CheckCircle2} title="Sin tareas" text="Agrega tareas de seguimiento clinico." compact />
+                      <EmptyState icon={CheckCircle2} title={en ? 'No tasks' : 'Sin tareas'} text={en ? 'Add clinical follow-up tasks.' : 'Agrega tareas de seguimiento clinico.'} compact />
                     )}
                   </div>
                 </DashboardPanel>
 
-                <DashboardPanel title="Pacientes recientes" subtitle="Ultima actividad" icon={Users}>
+                <DashboardPanel title={en ? 'Recent patients' : 'Pacientes recientes'} subtitle={en ? 'Latest activity' : 'Ultima actividad'} icon={Users}>
                   {recentPatients.length ? (
                     <div className="space-y-3">
                       {recentPatients.map((appointment) => (
@@ -781,13 +813,13 @@ export default function DoctorDashboardPage() {
                           <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm">{getInitials(appointment)}</div>
                           <div className="min-w-0">
                             <p className="text-sm font-semibold text-gray-900 truncate">{getPatientName(appointment)}</p>
-                            <p className="text-xs text-gray-500 truncate">{formatDate(appointment.appointment_date)} · {statusLabels[appointment.status] || appointment.status}</p>
+                            <p className="text-xs text-gray-500 truncate">{formatDate(appointment.appointment_date)} · {en ? ({ scheduled: 'Scheduled', confirmed: 'Confirmed', waiting: 'Waiting', completed: 'Completed', cancelled: 'Cancelled', 'no-show': 'No-show' } as Record<string, string>)[appointment.status] || appointment.status : statusLabels[appointment.status] || appointment.status}</p>
                           </div>
                         </Link>
                       ))}
                     </div>
                   ) : (
-                    <EmptyState icon={UserRound} title="Sin pacientes recientes" text="La actividad aparecera cuando tengas citas." compact />
+                    <EmptyState icon={UserRound} title={en ? 'No recent patients' : 'Sin pacientes recientes'} text={en ? 'Activity will appear when you have appointments.' : 'La actividad aparecera cuando tengas citas.'} compact />
                   )}
                 </DashboardPanel>
               </section>
@@ -796,8 +828,8 @@ export default function DoctorDashboardPage() {
                 <div className="rounded-2xl bg-white border border-gray-200 overflow-hidden">
                   <div className="p-5 border-b border-gray-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     <div>
-                      <h2 className="text-xl font-bold text-gray-900">Agenda clinica</h2>
-                      <p className="text-sm text-gray-500">Citas medicas filtradas por estado y paciente</p>
+                        <h2 className="text-xl font-bold text-gray-900">{en ? 'Clinical schedule' : 'Agenda clinica'}</h2>
+                        <p className="text-sm text-gray-500">{en ? 'Appointments filtered by status and patient' : 'Citas medicas filtradas por estado y paciente'}</p>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-3">
                       <input
@@ -806,13 +838,13 @@ export default function DoctorDashboardPage() {
                         type="date"
                         className="h-10 w-full sm:w-40 rounded-xl border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
-                      <div className="relative">
-                        <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <div className="flex h-10 w-full items-center rounded-xl border border-gray-200 bg-white focus-within:ring-2 focus-within:ring-blue-500 sm:w-56">
+                        <Search className="ml-3 h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
                         <input
                           value={search}
                           onChange={(event) => setSearch(event.target.value)}
-                          placeholder="Buscar paciente..."
-                          className="h-10 w-full sm:w-56 rounded-xl border border-gray-200 pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder={en ? 'Search patient...' : 'Buscar paciente...'}
+                          className="h-full min-w-0 flex-1 border-0 bg-transparent px-2 pr-3 text-sm outline-none focus:ring-0"
                         />
                       </div>
                       <div className="flex flex-wrap rounded-xl border border-gray-200 bg-gray-50 p-1 gap-1">
@@ -824,7 +856,7 @@ export default function DoctorDashboardPage() {
                               filter === value ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-500 hover:text-gray-900'
                             }`}
                           >
-                            {label}
+                            {appointmentFilterLabels[value][en ? 'en' : 'es']}
                           </button>
                         ))}
                       </div>
@@ -836,13 +868,14 @@ export default function DoctorDashboardPage() {
                       [...Array(5)].map((_, index) => <AppointmentSkeleton key={index} />)
                     ) : visibleAppointments.length === 0 ? (
                       <div className="p-10">
-                        <EmptyState icon={NotebookPen} title="No hay citas para mostrar" text="Cambia el filtro o revisa nuevamente mas tarde." />
+                        <EmptyState icon={NotebookPen} title={en ? 'No appointments to show' : 'No hay citas para mostrar'} text={en ? 'Change the filter or check again later.' : 'Cambia el filtro o revisa nuevamente mas tarde.'} />
                       </div>
                     ) : (
                       visibleAppointments.slice(0, 12).map((appointment) => (
                         <AppointmentRow
                           key={appointment.id}
                           appointment={appointment}
+                          en={en}
                           onStatusChange={handleUpdateAppointmentStatus}
                           onReschedule={handleRescheduleAppointment}
                           onCancel={handleCancelAppointment}
@@ -856,8 +889,8 @@ export default function DoctorDashboardPage() {
                   <section className="rounded-2xl bg-white border border-gray-200 p-6">
                     <div className="flex items-center justify-between mb-5">
                       <div>
-                        <h2 className="text-lg font-bold">Perfil profesional</h2>
-                        <p className="text-sm text-gray-500">Configuracion publica</p>
+                        <h2 className="text-lg font-bold">{en ? 'Professional profile' : 'Perfil profesional'}</h2>
+                        <p className="text-sm text-gray-500">{en ? 'Public settings' : 'Configuracion publica'}</p>
                       </div>
                       <ShieldCheck className="w-5 h-5 text-blue-600" />
                     </div>
@@ -865,28 +898,28 @@ export default function DoctorDashboardPage() {
                       <div className="space-y-5">
                         <div>
                           <div className="flex items-center justify-between text-sm mb-2">
-                            <span className="text-gray-500">Completitud</span>
+                            <span className="text-gray-500">{en ? 'Completeness' : 'Completitud'}</span>
                             <span className="font-semibold text-gray-900">{profileCompletion}%</span>
                           </div>
                           <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
                             <div className="h-full bg-blue-600" style={{ width: `${profileCompletion}%` }} />
                           </div>
                         </div>
-                        <InfoLine label="Centro" value={doctorProfile.health_center_name || 'No asignado'} />
-                        <InfoLine label="Especialidades" value={doctorProfile.specialties?.join(', ') || 'Sin especialidades'} />
-                        <InfoLine label="Consulta" value={doctorProfile.consultation_price ? `$${doctorProfile.consultation_price}` : 'Sin precio'} />
-                        <InfoLine label="Valoracion" value={doctorProfile.average_rating || 'Sin valoracion'} />
+                        <InfoLine label={en ? 'Health center' : 'Centro'} value={doctorProfile.health_center_name || (en ? 'Not assigned' : 'No asignado')} />
+                        <InfoLine label={en ? 'Specialties' : 'Especialidades'} value={doctorProfile.specialties?.join(', ') || (en ? 'No specialties' : 'Sin especialidades')} />
+                        <InfoLine label={en ? 'Consultation' : 'Consulta'} value={doctorProfile.consultation_price ? `$${doctorProfile.consultation_price}` : (en ? 'No price' : 'Sin precio')} />
+                        <InfoLine label={en ? 'Rating' : 'Valoracion'} value={doctorProfile.average_rating || (en ? 'No rating' : 'Sin valoracion')} />
                       </div>
                     ) : (
-                      <EmptyState icon={UserRound} title="Perfil no disponible" text="No se pudo cargar la informacion profesional." compact />
+                      <EmptyState icon={UserRound} title={en ? 'Profile unavailable' : 'Perfil no disponible'} text={en ? 'Professional information could not be loaded.' : 'No se pudo cargar la informacion profesional.'} compact />
                     )}
                   </section>
 
                   <section className="rounded-2xl bg-white border border-gray-200 p-6">
                     <div className="flex items-center justify-between mb-5">
                       <div>
-                        <h2 className="text-lg font-bold">Disponibilidad</h2>
-                        <p className="text-sm text-gray-500">Horarios configurados</p>
+                        <h2 className="text-lg font-bold">{en ? 'Availability' : 'Disponibilidad'}</h2>
+                        <p className="text-sm text-gray-500">{en ? 'Configured schedules' : 'Horarios configurados'}</p>
                       </div>
                       <Activity className="w-5 h-5 text-emerald-600" />
                     </div>
@@ -894,13 +927,13 @@ export default function DoctorDashboardPage() {
                       <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
                         {doctorProfile.availability.map((slot: any, index: number) => (
                           <div key={index} className="flex items-center justify-between rounded-xl bg-gray-50 px-3 py-2">
-                            <span className="text-sm font-semibold">{dayNames[slot.day_of_week] || 'Dia'}</span>
+                            <span className="text-sm font-semibold">{en ? ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][slot.day_of_week] || 'Day' : dayNames[slot.day_of_week] || 'Dia'}</span>
                             <span className="text-sm text-gray-600">{slot.start_time} - {slot.end_time}</span>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <EmptyState icon={Clock3} title="Sin horarios" text="Configura disponibilidad para recibir reservas." compact />
+                      <EmptyState icon={Clock3} title={en ? 'No schedules' : 'Sin horarios'} text={en ? 'Set your availability to receive bookings.' : 'Configura disponibilidad para recibir reservas.'} compact />
                     )}
                   </section>
 
@@ -977,11 +1010,13 @@ function HeroMetric({ label, value, icon: Icon }: { label: string; value: number
 
 function AppointmentRow({
   appointment,
+  en,
   onStatusChange,
   onReschedule,
   onCancel,
 }: {
   appointment: AppointmentItem;
+  en: boolean;
   onStatusChange: (id: string, status: AppointmentFilter) => void;
   onReschedule: (appointment: AppointmentItem) => void;
   onCancel: (id: string) => void;
@@ -999,13 +1034,13 @@ function AppointmentRow({
             <div className="flex flex-wrap items-center gap-2 mb-1">
               <h3 className="font-bold text-gray-900">{getPatientName(appointment)}</h3>
               <span className={`inline-flex border px-2.5 py-0.5 rounded-full text-xs font-semibold ${statusClasses[appointment.status] || 'bg-gray-50 text-gray-700 border-gray-200'}`}>
-                {statusLabels[appointment.status] || appointment.status}
+                {en ? ({ scheduled: 'Scheduled', confirmed: 'Confirmed', waiting: 'Waiting', completed: 'Completed', cancelled: 'Cancelled', 'no-show': 'No-show' } as Record<string, string>)[appointment.status] || appointment.status : statusLabels[appointment.status] || appointment.status}
               </span>
               <span className={`inline-flex border px-2.5 py-0.5 rounded-full text-xs font-semibold ${appointment.appointment_type === 'teleconsulta' ? 'bg-violet-50 text-violet-700 border-violet-200' : 'bg-gray-50 text-gray-700 border-gray-200'}`}>
-                {appointment.appointment_type === 'teleconsulta' ? 'Teleconsulta' : 'Presencial'}
+                {appointment.appointment_type === 'teleconsulta' ? (en ? 'Telehealth' : 'Teleconsulta') : (en ? 'In person' : 'Presencial')}
               </span>
             </div>
-            <p className="text-sm text-gray-500 truncate">{appointment.patient_email || appointment.email || 'Sin correo registrado'}</p>
+            <p className="text-sm text-gray-500 truncate">{appointment.patient_email || appointment.email || (en ? 'No email registered' : 'Sin correo registrado')}</p>
             <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-sm text-gray-600">
               <span className="inline-flex items-center gap-1.5">
                 <CalendarCheck className="w-4 h-4 text-gray-400" />
@@ -1032,7 +1067,7 @@ function AppointmentRow({
               className="h-10 px-3 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition-colors inline-flex items-center gap-2"
             >
               <Stethoscope className="w-4 h-4" />
-              Iniciar
+              {en ? 'Start' : 'Iniciar'}
             </Link>
           )}
           {appointment.appointment_type === 'teleconsulta' && appointment.video_room_url && (
@@ -1040,17 +1075,17 @@ function AppointmentRow({
               href={appointment.video_room_url}
               className="h-10 px-3 rounded-xl border border-violet-200 text-violet-700 text-sm font-semibold hover:bg-violet-50 transition-colors inline-flex items-center gap-2"
             >
-              Teleconsulta
+              {en ? 'Telehealth' : 'Teleconsulta'}
             </Link>
           )}
           {canManage && (
             <button
               onClick={() => onReschedule(appointment)}
               className="h-10 px-3 rounded-xl border border-blue-200 text-blue-700 text-sm font-semibold hover:bg-blue-50 transition-colors inline-flex items-center gap-2"
-              title="Reagendar"
+              title={en ? 'Reschedule' : 'Reagendar'}
             >
               <CalendarClock className="w-4 h-4" />
-              Reagendar
+              {en ? 'Reschedule' : 'Reagendar'}
             </button>
           )}
           {canManage && (
@@ -1059,24 +1094,24 @@ function AppointmentRow({
               className="h-10 px-3 rounded-xl border border-emerald-200 text-emerald-700 text-sm font-semibold hover:bg-emerald-50 transition-colors inline-flex items-center gap-2"
             >
               <CheckCircle2 className="w-4 h-4" />
-              Completar
+              {en ? 'Complete' : 'Completar'}
             </button>
           )}
           {canManage && (
             <button
               onClick={() => onCancel(appointment.id)}
               className="h-10 px-3 rounded-xl border border-rose-200 text-rose-700 text-sm font-semibold hover:bg-rose-50 transition-colors inline-flex items-center gap-2"
-              title="Cancelar"
+              title={en ? 'Cancel' : 'Cancelar'}
             >
               <X className="w-4 h-4" />
-              Cancelar
+              {en ? 'Cancel' : 'Cancelar'}
             </button>
           )}
           <Link
             href={`/appointments/${appointment.id}`}
             className="h-10 px-3 rounded-xl border border-gray-200 text-gray-700 text-sm font-semibold hover:bg-white transition-colors inline-flex items-center gap-2"
           >
-            Ver
+            {en ? 'View' : 'Ver'}
             <ChevronRight className="w-4 h-4" />
           </Link>
         </div>

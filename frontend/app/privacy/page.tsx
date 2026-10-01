@@ -186,7 +186,7 @@ export default function PrivacyPage() {
                 <ul className="list-disc list-inside space-y-2 text-gray-600">
                   <li><strong>Derecho de acceso:</strong> Solicitar una copia de todos los datos personales que tenemos sobre ti.</li>
                   <li><strong>Derecho de rectificación:</strong> Corregir información inexacta o incompleta en tu perfil.</li>
-                  <li><strong>Derecho de supresión:</strong> Solicitar la eliminación de tus datos personales ("derecho al olvido").</li>
+                  <li><strong>Derecho de supresión:</strong> Solicitar la eliminación de tus datos personales (&quot;derecho al olvido&quot;).</li>
                   <li><strong>Derecho de oposición:</strong> Oponerte al procesamiento de tus datos para fines específicos.</li>
                   <li><strong>Derecho de portabilidad:</strong> Recibir tus datos en un formato estructurado y transferirlos a otro servicio.</li>
                   <li><strong>Derecho de limitación:</strong> Restringir el procesamiento de tus datos en ciertas circunstancias.</li>
@@ -243,7 +243,7 @@ export default function PrivacyPage() {
                 <ul className="list-disc list-inside space-y-2 text-gray-600">
                   <li>Un aviso destacado en nuestra plataforma con 30 días de anticipación.</li>
                   <li>Notificación por correo electrónico a la dirección registrada en tu cuenta.</li>
-                  <li>Actualización de la fecha de "Última actualización" al inicio de este documento.</li>
+                  <li>Actualización de la fecha de &quot;Última actualización&quot; al inicio de este documento.</li>
                 </ul>
                 <p className="text-gray-600 leading-relaxed mt-3">
                   El uso continuado de la plataforma después de la entrada en vigor de los cambios constituye tu aceptación de la política actualizada.

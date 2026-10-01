@@ -4,8 +4,11 @@ import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store';
 import { appointmentAPI } from '@/utils/api';
 import { formatDate, getUserGreeting } from '@/utils/helpers';
+import { useI18n } from '@/i18n';
 
 export default function DashboardPage() {
+  const { locale } = useI18n();
+  const en = locale === 'en';
   const { user, isAuthenticated } = useAuthStore();
   const [appointments, setAppointments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,27 +46,27 @@ export default function DashboardPage() {
           </h1>
           <p className="text-gray-600">
             {user?.role === 'patient'
-              ? 'Gestiona tus citas y historial médico'
-              : 'Gestiona tus citas y pacientes'}
+              ? (en ? 'Manage your appointments and medical records' : 'Gestiona tus citas y historial médico')
+              : (en ? 'Manage your appointments and patients' : 'Gestiona tus citas y pacientes')}
           </p>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="card bg-gradient-to-br from-primary to-blue-600 text-white">
-            <h3 className="text-sm font-semibold opacity-90">Citas médicas próximas</h3>
+            <h3 className="text-sm font-semibold opacity-90">{en ? 'Upcoming appointments' : 'Citas médicas próximas'}</h3>
             <p className="text-3xl font-bold">
               {appointments.filter(a => a.status === 'scheduled').length}
             </p>
           </div>
           <div className="card bg-gradient-to-br from-secondary to-green-600 text-white">
-            <h3 className="text-sm font-semibold opacity-90">Citas médicas completadas</h3>
+            <h3 className="text-sm font-semibold opacity-90">{en ? 'Completed appointments' : 'Citas médicas completadas'}</h3>
             <p className="text-3xl font-bold">
               {appointments.filter(a => a.status === 'completed').length}
             </p>
           </div>
           <div className="card bg-gradient-to-br from-accent to-red-600 text-white">
-            <h3 className="text-sm font-semibold opacity-90">Perfil Completo</h3>
+            <h3 className="text-sm font-semibold opacity-90">{en ? 'Complete profile' : 'Perfil Completo'}</h3>
             <p className="text-3xl font-bold">
               {user ? '100%' : '0%'}
             </p>
@@ -72,16 +75,16 @@ export default function DashboardPage() {
 
         {/* Appointments Section */}
         <div className="card mb-8">
-          <h2 className="text-2xl font-bold mb-6">Tus citas médicas</h2>
+          <h2 className="text-2xl font-bold mb-6">{en ? 'Your appointments' : 'Tus citas médicas'}</h2>
 
           {loading ? (
-            <p>Cargando citas...</p>
+            <p>{en ? 'Loading appointments...' : 'Cargando citas...'}</p>
           ) : appointments.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-600 mb-4">No tienes citas agendadas</p>
+              <p className="text-gray-600 mb-4">{en ? 'You have no scheduled appointments' : 'No tienes citas agendadas'}</p>
               {user?.role === 'patient' && (
                 <a href="/doctors" className="btn-primary inline-block">
-                  Buscar Médicos
+                  {en ? 'Find doctors' : 'Buscar Médicos'}
                 </a>
               )}
             </div>
@@ -101,11 +104,11 @@ export default function DashboardPage() {
                         {apt.health_center_name}
                       </p>
                       <p className="text-sm">
-                        📅 {formatDate(apt.appointment_date)} a las {apt.appointment_time}
+                        📅 {formatDate(apt.appointment_date)} {en ? 'at' : 'a las'} {apt.appointment_time}
                       </p>
                       {apt.reason_for_visit && (
                         <p className="text-sm text-gray-600 mt-2">
-                          Motivo: {apt.reason_for_visit}
+                          {en ? 'Reason' : 'Motivo'}: {apt.reason_for_visit}
                         </p>
                       )}
                     </div>
@@ -120,10 +123,10 @@ export default function DashboardPage() {
                         }`}
                       >
                         {apt.status === 'scheduled'
-                          ? 'Programada'
+                          ? (en ? 'Scheduled' : 'Programada')
                           : apt.status === 'completed'
-                          ? 'Completada'
-                          : 'Cancelada'}
+                          ? (en ? 'Completed' : 'Completada')
+                          : (en ? 'Cancelled' : 'Cancelada')}
                       </span>
                     </div>
                   </div>
@@ -137,7 +140,7 @@ export default function DashboardPage() {
         {user?.role === 'patient' && (
           <div className="flex gap-4">
             <a href="/doctors" className="btn-primary">
-              Agendar Nueva Cita
+              {en ? 'Book a new appointment' : 'Agendar Nueva Cita'}
             </a>
           </div>
         )}

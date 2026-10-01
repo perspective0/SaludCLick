@@ -71,6 +71,10 @@ function RegisterContent() {
     }
   }, []);
 
+  useEffect(() => {
+    window.dispatchEvent(new Event('saludclick:content-change'));
+  }, [userType]);
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
