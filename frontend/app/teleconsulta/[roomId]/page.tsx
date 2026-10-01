@@ -56,6 +56,9 @@ export default function TeleconsultationRoomPage() {
   const [sharingScreen, setSharingScreen] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const [remoteAudioEnabled, setRemoteAudioEnabled] = useState(true);
+  const [remoteMicEnabled, setRemoteMicEnabled] = useState(true);
+  const [remoteCameraEnabled, setRemoteCameraEnabled] = useState(true);
+  const [remoteConnected, setRemoteConnected] = useState(false);
   const [connectionState, setConnectionState] = useState<RTCPeerConnectionState>('new');
   const [callStartedAt, setCallStartedAt] = useState<number | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -173,11 +176,21 @@ export default function TeleconsultationRoomPage() {
       const [stream] = event.streams;
       if (stream) {
         remoteStreamRef.current = stream;
+        setRemoteConnected(true);
         attachRemotePreview(stream);
         stream.getVideoTracks().forEach((track) => {
-          track.onmute = () => setStatus('Video pausado por la conexion. Intentando recuperar...');
-          track.onunmute = () => setStatus('Video recuperado');
-          track.onended = () => setStatus('La otra camara dejo de enviar video.');
+          track.onmute = () => {
+            setRemoteCameraEnabled(false);
+            setStatus('La otra persona apago la camara.');
+          };
+          track.onunmute = () => {
+            setRemoteCameraEnabled(true);
+            setStatus('La camara de la otra persona esta activa.');
+          };
+          track.onended = () => {
+            setRemoteCameraEnabled(false);
+            setStatus('La otra camara dejo de enviar video.');
+          };
         });
       }
     };
@@ -242,6 +255,11 @@ export default function TeleconsultationRoomPage() {
             }
           }
 
+          if (signal.type === 'media-state') {
+            setRemoteMicEnabled(signal.payload?.micEnabled !== false);
+            setRemoteCameraEnabled(signal.payload?.cameraEnabled !== false);
+          }
+
           if (signal.type === 'renegotiate-needed' && room?.is_moderator) {
             await publishOffer(true);
           }
@@ -291,6 +309,14 @@ export default function TeleconsultationRoomPage() {
     document.addEventListener('fullscreenchange', onFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', onFullscreenChange);
   }, []);
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    if (fullscreen) document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [fullscreen]);
 
   useEffect(() => {
     if (!callStartedAt) {
@@ -365,6 +391,7 @@ export default function TeleconsultationRoomPage() {
       track.enabled = next;
     });
     setMicEnabled(next);
+    sendSignal('media-state', { micEnabled: next, cameraEnabled }).catch((err) => console.error('Media state signal error:', err));
   };
 
   const toggleCamera = () => {
@@ -373,6 +400,7 @@ export default function TeleconsultationRoomPage() {
       track.enabled = next;
     });
     setCameraEnabled(next);
+    sendSignal('media-state', { micEnabled, cameraEnabled: next }).catch((err) => console.error('Media state signal error:', err));
   };
 
   const toggleRemoteAudio = () => {
@@ -463,6 +491,12 @@ export default function TeleconsultationRoomPage() {
         await document.exitFullscreen();
         return;
       }
+      // Mobile Safari may not expose fullscreen for a div. In that case,
+      // fullscreen is handled by the fixed fallback state below.
+      if (fullscreen) {
+        setFullscreen(false);
+        return;
+      }
       if (stageRef.current?.requestFullscreen) {
         await stageRef.current.requestFullscreen();
       } else {
@@ -492,6 +526,9 @@ export default function TeleconsultationRoomPage() {
     screenTrackRef.current = null;
     localStreamRef.current = null;
     remoteStreamRef.current = null;
+    setRemoteConnected(false);
+    setRemoteMicEnabled(true);
+    setRemoteCameraEnabled(true);
     if (localVideoRef.current) localVideoRef.current.srcObject = null;
     if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
     setJoined(false);
@@ -575,8 +612,8 @@ export default function TeleconsultationRoomPage() {
               </aside>
 
               <div className="grid gap-4">
-                <div ref={stageRef} className={`relative min-h-[420px] overflow-hidden rounded-2xl bg-gray-950 ${fullscreen ? 'fixed inset-0 z-[100] h-screen rounded-none' : ''}`}>
-                  <video ref={remoteVideoRef} autoPlay muted={!remoteAudioEnabled} playsInline className="h-[62vh] min-h-[420px] w-full object-cover" />
+                <div ref={stageRef} style={fullscreen ? { width: '100vw', height: '100dvh', minHeight: '100dvh' } : undefined} className={`relative min-h-[420px] overflow-hidden rounded-2xl bg-gray-950 ${fullscreen ? 'fixed inset-0 z-[100] h-screen min-h-0 rounded-none' : ''}`}>
+                  <video ref={remoteVideoRef} autoPlay muted={!remoteAudioEnabled} playsInline className={fullscreen ? 'h-full min-h-0 w-full bg-black object-contain' : 'h-[62vh] min-h-[420px] w-full object-cover'} />
                   {!joined && (
                     <div className="absolute inset-0 flex items-center justify-center text-center text-white">
                       <div>
@@ -586,11 +623,21 @@ export default function TeleconsultationRoomPage() {
                       </div>
                     </div>
                   )}
+                  {joined && remoteConnected && !remoteCameraEnabled && (
+                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-gray-950/90 text-center text-white">
+                      <div>
+                        <VideoOff className="mx-auto mb-3 h-12 w-12 text-gray-400" />
+                        <p className="text-lg font-bold">La otra persona apago la camara</p>
+                        <p className="mt-1 text-sm text-gray-400">El audio puede continuar activo.</p>
+                      </div>
+                    </div>
+                  )}
                   {joined && (
                     <>
                       <div className="absolute left-4 top-4 rounded-full bg-black/60 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur">
                         {connectionState === 'connected' ? 'Conectado' : connectionState === 'failed' ? 'Conexion fallida' : 'Conectando...'}
                       </div>
+                      {remoteConnected && !remoteMicEnabled && <div className="absolute left-4 top-14 inline-flex items-center gap-1.5 rounded-full bg-rose-600/90 px-3 py-1.5 text-xs font-semibold text-white"><MicOff className="h-3.5 w-3.5" />Microfono apagado</div>}
                       <button onClick={toggleRemoteAudio} className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur hover:bg-black/80" type="button" aria-label={remoteAudioEnabled ? 'Silenciar audio remoto' : 'Activar audio remoto'} title={remoteAudioEnabled ? 'Silenciar audio remoto' : 'Activar audio remoto'}>
                         {remoteAudioEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
                       </button>
