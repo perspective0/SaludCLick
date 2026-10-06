@@ -63,7 +63,7 @@ export default function PatientShell({
   const showBack = !hideBack && Boolean(resolvedBackHref);
 
   return (
-    <div className="dashboard-shell min-h-screen text-gray-950 dark:text-slate-100">
+    <div translate="no" className="dashboard-shell min-h-screen text-gray-950 dark:text-slate-100">
       <div className="flex min-h-screen">
         <aside className={`dashboard-sidebar fixed inset-y-0 left-0 z-50 h-dvh w-[min(18rem,86vw)] transform transition-transform duration-300 lg:w-72 lg:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'

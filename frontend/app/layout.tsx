@@ -5,6 +5,7 @@ import PageTransition from '@/components/PageTransition';
 import InstallAppNotice from '@/components/InstallAppNotice';
 import PWARegistration from '@/components/PWARegistration';
 import RuntimeSettings from '@/components/RuntimeSettings';
+import CookieConsent from '@/components/CookieConsent';
 import { I18nProvider } from '@/i18n';
 import {
   getSiteUrl,
@@ -152,6 +153,7 @@ export default function RootLayout({
           <PageTransition>{children}</PageTransition>
           <ThemeToggle />
           <LanguageToggle floating />
+          <CookieConsent />
         </I18nProvider>
       </body>
     </html>
