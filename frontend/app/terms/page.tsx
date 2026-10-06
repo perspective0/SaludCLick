@@ -1,437 +1,68 @@
 'use client';
 
 import Link from 'next/link';
-import { 
-  FileText, 
-  Shield, 
-  Scale, 
-  AlertTriangle, 
-  Ban, 
-  Clock, 
-  CreditCard,
-  UserCheck,
-  Stethoscope,
-  CalendarCheck,
-  ClipboardList,
-  Phone,
-  Mail,
-  ArrowLeft,
-  CheckCircle,
-  Globe,
-  Lock,
-  Users
-} from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Ban, CalendarCheck, CheckCircle2, ChevronRight, Clock3, FileText, Globe2, LockKeyhole, Mail, Phone, Scale, ShieldCheck, Stethoscope, UserCheck } from 'lucide-react';
+
+const sections = [
+  ['aceptacion', 'Aceptación y alcance'], ['servicio', 'El servicio SaludClick'], ['cuentas', 'Cuentas de usuario'],
+  ['uso', 'Uso permitido'], ['citas', 'Citas y cancelaciones'], ['salud', 'Relación médico-paciente'],
+  ['privacidad', 'Privacidad y datos'], ['pagos', 'Pagos y tarifas'], ['propiedad', 'Propiedad intelectual'],
+  ['cuenta', 'Suspensión y cierre'], ['cambios', 'Cambios a estos términos'], ['ley', 'Ley aplicable y contacto'],
+];
 
 export default function TermsPage() {
-  const lastUpdated = '20 de Mayo de 2026';
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white py-16">
-      <div className="container-main max-w-4xl mx-auto px-4">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex p-4 bg-blue-100 rounded-full mb-6">
-            <Scale className="w-12 h-12 text-blue-600" />
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-            Términos y Condiciones
-          </h1>
-          <p className="text-gray-500 text-sm">
-            Última actualización: {lastUpdated}
-          </p>
+    <div className="min-h-screen bg-[#f6f9fc] text-slate-900">
+      <header className="border-b border-slate-200 bg-white"><div className="mx-auto max-w-6xl px-4 py-5 sm:px-6 lg:px-8"><Link href="/" className="inline-flex items-center gap-2 text-sm font-bold text-blue-700 hover:text-blue-800"><ArrowLeft className="h-4 w-4" /> Volver a SaludClick</Link></div></header>
+      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+        <div className="grid gap-8 lg:grid-cols-[230px_minmax(0,1fr)] lg:items-start">
+          <aside className="hidden lg:sticky lg:top-6 lg:block">
+            <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">En este documento</p>
+            <nav className="space-y-1">{sections.map(([id, label]) => <a key={id} href={`#${id}`} className="block rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-blue-50 hover:text-blue-700">{label}</a>)}</nav>
+            <div className="mt-6 rounded-2xl border border-blue-100 bg-blue-50 p-4"><ShieldCheck className="mb-3 h-5 w-5 text-blue-600" /><p className="text-sm font-bold text-blue-950">¿Tienes dudas?</p><p className="mt-1 text-xs leading-5 text-blue-800">Escríbenos antes de utilizar la plataforma.</p><a href="mailto:legal@saludclick.com" className="mt-3 inline-flex text-xs font-bold text-blue-700 hover:underline">Contactar soporte</a></div>
+          </aside>
+
+          <article className="min-w-0">
+            <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#123baf] via-[#087ec3] to-[#0ca78f] p-6 text-white shadow-xl shadow-blue-900/10 sm:p-10">
+              <div className="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-white/10 blur-2xl" /><div className="relative">
+                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-white/20"><Scale className="h-6 w-6" /></div>
+                <p className="text-sm font-bold uppercase tracking-[0.18em] text-white/70">SaludClick · República Dominicana</p>
+                <h1 className="mt-3 max-w-2xl text-3xl font-black tracking-tight sm:text-5xl">Términos y condiciones</h1>
+                <p className="mt-4 max-w-2xl text-sm leading-6 text-white/80 sm:text-base">Estas condiciones explican cómo puedes utilizar nuestra plataforma de citas y cuáles son las responsabilidades de SaludClick, pacientes y profesionales.</p>
+                <div className="mt-6 flex flex-wrap gap-2 text-xs font-semibold text-white/80"><span className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5">Última actualización: 6 de octubre de 2026</span><span className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5">Lectura aproximada: 6 minutos</span></div>
+              </div>
+            </section>
+
+            <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 sm:p-5"><div className="flex items-start gap-3"><AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" /><div><p className="font-bold text-amber-950">Antes de comenzar</p><p className="mt-1 text-sm leading-6 text-amber-900">SaludClick facilita la búsqueda y gestión de citas; no sustituye una evaluación médica. Si tienes una emergencia, llama al 9-1-1 o acude al centro de salud más cercano.</p></div></div></div>
+
+            <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4 lg:hidden"><p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">Ir a una sección</p><div className="grid grid-cols-1 gap-1 sm:grid-cols-2">{sections.map(([id, label]) => <a key={id} href={`#${id}`} className="flex items-center justify-between rounded-lg px-2 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50"><span>{label}</span><ChevronRight className="h-4 w-4" /></a>)}</div></div>
+
+            <div className="mt-8 space-y-5">
+              <TermsSection id="aceptacion" icon={FileText} number="01" title="Aceptación y alcance"><p>Al acceder, registrarte o utilizar SaludClick, aceptas estos Términos y Condiciones y nuestra <Link href="/privacy" className="font-bold text-blue-700 hover:underline">Política de Privacidad</Link>. Si no estás de acuerdo, no debes utilizar la plataforma.</p><p>Debes proporcionar información veraz y tener capacidad legal para aceptar estas condiciones. Si utilizas SaludClick en nombre de una organización, declaras tener autorización para hacerlo.</p></TermsSection>
+              <TermsSection id="servicio" icon={Globe2} number="02" title="El servicio SaludClick"><p>SaludClick es una plataforma digital que conecta pacientes con profesionales y centros de salud para facilitar la búsqueda, solicitud, confirmación y gestión de citas.</p><div className="mt-4 grid gap-3 sm:grid-cols-2"><Feature text="Buscar profesionales y centros de salud" /><Feature text="Solicitar, revisar o cancelar citas" /><Feature text="Consultar recetas y documentos disponibles" /><Feature text="Recibir comunicaciones relacionadas con el servicio" /></div><p className="mt-4 text-sm text-slate-500">Las funciones disponibles pueden variar según el tipo de cuenta, el profesional y la disponibilidad del servicio.</p></TermsSection>
+              <TermsSection id="cuentas" icon={UserCheck} number="03" title="Cuentas de usuario"><p>Para utilizar determinadas funciones debes crear una cuenta. Eres responsable de mantener actualizada tu información, proteger tus credenciales y avisarnos si detectas un acceso no autorizado.</p><p>Las cuentas de profesionales pueden requerir revisión de identidad, credenciales y demás información profesional antes de publicar o utilizar ciertas funciones.</p></TermsSection>
+              <TermsSection id="uso" icon={ShieldCheck} number="04" title="Uso permitido y prohibiciones"><p>Debes utilizar SaludClick de manera legal, segura y respetuosa. No está permitido:</p><div className="mt-4 grid gap-2 sm:grid-cols-2"><Restriction text="Suplantar a otra persona o proporcionar datos falsos." /><Restriction text="Acceder a cuentas o información sin autorización." /><Restriction text="Usar bots, scraping o automatizaciones no autorizadas." /><Restriction text="Publicar contenido fraudulento, abusivo o difamatorio." /><Restriction text="Intentar interrumpir o vulnerar la seguridad del servicio." /><Restriction text="Utilizar la plataforma para fines ilegales." /></div></TermsSection>
+              <TermsSection id="citas" icon={CalendarCheck} number="05" title="Citas, cambios y cancelaciones"><p>La disponibilidad, duración, modalidad, precio y condiciones de cada cita dependen del profesional o centro de salud. Revisa los detalles antes de confirmar.</p><ul className="mt-4 space-y-3"><Bullet>Una solicitud de cita no siempre equivale a una confirmación; verifica el estado dentro de la plataforma.</Bullet><Bullet>Las cancelaciones y cambios deben realizarse desde los canales habilitados y pueden estar sujetos a la política del profesional.</Bullet><Bullet>Las inasistencias o cancelaciones repetidas pueden generar restricciones razonables para proteger la disponibilidad del servicio.</Bullet><Bullet>Los recordatorios son una ayuda y no sustituyen tu responsabilidad de revisar tus citas.</Bullet></ul></TermsSection>
+              <TermsSection id="salud" icon={Stethoscope} number="06" title="Relación médico-paciente"><div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm leading-6 text-rose-900"><strong>SaludClick no presta servicios médicos.</strong> No diagnostica, prescribe ni garantiza resultados clínicos. La relación asistencial, la evaluación, el diagnóstico, el tratamiento y las indicaciones corresponden al profesional de salud.</div><p className="mt-4">La información de perfiles se ofrece para facilitar la búsqueda, pero debes valorar si el profesional es adecuado para tus necesidades y solicitar aclaraciones directamente cuando corresponda.</p></TermsSection>
+              <TermsSection id="privacidad" icon={LockKeyhole} number="07" title="Privacidad y datos personales"><p>El tratamiento de datos personales y de la información relacionada con la atención se explica en nuestra <Link href="/privacy" className="font-bold text-blue-700 hover:underline">Política de Privacidad</Link>. Al usar funciones de SaludClick, autorizas el tratamiento necesario para prestar el servicio, sujeto a la normativa aplicable de la República Dominicana.</p><p>Las cookies esenciales se utilizan para sesión y seguridad. Las tecnologías no esenciales requieren una elección del usuario mediante el panel de cookies.</p></TermsSection>
+              <TermsSection id="pagos" icon={FileText} number="08" title="Pagos, tarifas y reembolsos"><p>El registro y las funciones básicas para pacientes pueden ser gratuitos. Si una cita, servicio o producto tiene un costo, el importe y las condiciones aplicables deben mostrarse antes de confirmar.</p><p>Los pagos, reembolsos, cargos por cancelación o comisiones pueden depender del profesional, centro de salud o proveedor de pago correspondiente. Conserva tus comprobantes y contacta primero al canal indicado en la transacción.</p></TermsSection>
+              <TermsSection id="propiedad" icon={FileText} number="09" title="Propiedad intelectual"><p>SaludClick, su nombre, logotipo, diseño, software, contenido y estructura pertenecen a SaludClick o a sus licenciantes. Puedes utilizar la plataforma únicamente para sus fines previstos y no puedes copiarla, modificarla, distribuirla, descompilarla o explotarla sin autorización escrita.</p><p>Conservas los derechos sobre el contenido que publiques, pero nos otorgas la autorización necesaria para almacenarlo, mostrarlo y procesarlo con el fin de operar el servicio.</p></TermsSection>
+              <TermsSection id="cuenta" icon={Ban} number="10" title="Suspensión y cierre de cuentas"><p>Podemos limitar, suspender o cerrar una cuenta cuando sea necesario para proteger a los usuarios, investigar fraude, cumplir una obligación legal, atender riesgos de seguridad o responder a una infracción de estos términos.</p><p>También puedes solicitar el cierre de tu cuenta. Algunas obligaciones, registros o información podrán conservarse cuando exista una razón legal, de seguridad o de gestión de la relación asistencial.</p></TermsSection>
+              <TermsSection id="cambios" icon={Clock3} number="11" title="Cambios a estos términos"><p>Podemos actualizar estos términos para reflejar cambios en el servicio, requisitos legales o mejoras de seguridad. Publicaremos la versión vigente indicando la fecha de actualización y, cuando el cambio sea material, procuraremos notificarlo por canales razonables.</p><p>Si continúas utilizando la plataforma después de la entrada en vigor de una actualización, se aplicará la versión vigente. Si no estás de acuerdo, puedes dejar de utilizar el servicio y solicitar el cierre de tu cuenta.</p></TermsSection>
+              <TermsSection id="ley" icon={Scale} number="12" title="Ley aplicable y contacto"><p>Estos términos se interpretan conforme a las leyes de la República Dominicana. Cualquier controversia se someterá a las autoridades y tribunales competentes, sin perjuicio de los derechos irrenunciables que correspondan al usuario.</p><div className="mt-5 grid gap-3 sm:grid-cols-2"><a href="mailto:legal@saludclick.com" className="flex items-center gap-3 rounded-xl bg-blue-50 p-4 text-sm font-semibold text-blue-900 hover:bg-blue-100"><Mail className="h-5 w-5 text-blue-600" /> legal@saludclick.com</a><a href="tel:+18293861067" className="flex items-center gap-3 rounded-xl bg-slate-50 p-4 text-sm font-semibold text-slate-800 hover:bg-slate-100"><Phone className="h-5 w-5 text-slate-600" /> +1 829 386 1067</a></div><p className="mt-4 text-sm text-slate-500">Dirección de contacto: Santo Domingo, República Dominicana.</p></TermsSection>
+            </div>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row"><Link href="/privacy" className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-bold text-slate-700 hover:bg-slate-50"><LockKeyhole className="h-4 w-4" /> Ver política de privacidad</Link><Link href="/register" className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-bold text-white shadow-sm hover:bg-blue-700"><UserCheck className="h-4 w-4" /> Crear cuenta</Link></div>
+          </article>
         </div>
-
-        {/* Contenido */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 md:p-12 space-y-8">
-          
-          {/* 1. Aceptación de los Términos */}
-          <section>
-            <div className="flex items-start gap-3 mb-4">
-              <FileText className="w-6 h-6 text-blue-500 mt-1 flex-shrink-0" />
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-3">1. Aceptación de los Términos</h2>
-                <p className="text-gray-600 leading-relaxed mb-3">
-                  Bienvenido a <strong>SaludClick</strong> (&quot;la Plataforma&quot;). Al acceder, registrarte o utilizar
-                  nuestros servicios de agendamiento de citas médicas, aceptas estar legalmente vinculado por
-                  estos Términos y Condiciones.
-                </p>
-                <p className="text-gray-600 leading-relaxed mb-3">
-                  Si no estás de acuerdo con alguno de estos términos, no debes utilizar la Plataforma. 
-                  Te recomendamos leer detenidamente este documento antes de crear una cuenta.
-                </p>
-                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-                  <div className="flex items-start gap-2">
-                    <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-                    <p className="text-sm text-yellow-800">
-                      <strong>Importante:</strong> Al utilizar SaludClick, confirmas que eres mayor de 18 años 
-                      y tienes capacidad legal para aceptar estos términos.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* 2. Descripción del Servicio */}
-          <section>
-            <div className="flex items-start gap-3 mb-4">
-              <Globe className="w-6 h-6 text-blue-500 mt-1 flex-shrink-0" />
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-3">2. Descripción del Servicio</h2>
-                <p className="text-gray-600 leading-relaxed mb-3">
-                  SaludClick es una plataforma digital que conecta pacientes con profesionales de la salud, 
-                  facilitando el agendamiento de citas médicas. Nuestros servicios incluyen:
-                </p>
-                <ul className="list-disc list-inside space-y-2 text-gray-600 ml-4">
-                  <li>Búsqueda de médicos por especialidad, ubicación y disponibilidad</li>
-                  <li>Agendamiento, modificación y cancelación de citas médicas</li>
-                  <li>Gestión de historial de citas para pacientes</li>
-                  <li>Portal de gestión para profesionales de la salud</li>
-                  <li>Recordatorios automáticos de citas por correo electrónico y SMS</li>
-                  <li>Almacenamiento seguro de información médica básica</li>
-                </ul>
-                <div className="bg-blue-50 rounded-xl p-4 mt-4">
-                  <div className="flex items-start gap-2">
-                    <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                    <p className="text-sm text-blue-800">
-                      <strong>Aclaración importante:</strong> SaludClick <strong>NO</strong> es un servicio médico 
-                      de emergencia. En caso de emergencia, contacta al 9-1-1 o acude al centro de salud más cercano.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* 3. Registro de Usuarios */}
-          <section>
-            <div className="flex items-start gap-3 mb-4">
-              <Users className="w-6 h-6 text-blue-500 mt-1 flex-shrink-0" />
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-3">3. Registro y Cuentas de Usuario</h2>
-                
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">3.1 Tipos de Cuentas</h3>
-                <p className="text-gray-600 leading-relaxed mb-3">
-                  SaludClick ofrece dos tipos de cuentas:
-                </p>
-                <ul className="list-disc list-inside space-y-2 text-gray-600 ml-4 mb-4">
-                  <li><strong>Pacientes:</strong> Acceso inmediato para buscar médicos y agendar citas</li>
-                  <li><strong>Médicos:</strong> Sujeto a verificación de credenciales profesionales</li>
-                </ul>
-
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">3.2 Responsabilidades del Usuario</h3>
-                <ul className="list-disc list-inside space-y-2 text-gray-600 ml-4 mb-4">
-                  <li>Proporcionar información veraz, precisa y actualizada</li>
-                  <li>Mantener la confidencialidad de tu contraseña y credenciales de acceso</li>
-                  <li>Notificar inmediatamente cualquier uso no autorizado de tu cuenta</li>
-                  <li>No compartir tu cuenta con terceros</li>
-                  <li>Ser responsable de todas las actividades realizadas con tu cuenta</li>
-                </ul>
-
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">3.3 Verificación de Médicos</h3>
-                <p className="text-gray-600 leading-relaxed mb-3">
-                  Los profesionales de la salud deben pasar por un proceso de verificación que incluye:
-                </p>
-                <ul className="list-disc list-inside space-y-2 text-gray-600 ml-4">
-                  <li>Validación de número de colegiatura (Colegio Médico Dominicano)</li>
-                  <li>Verificación de identidad (cédula de identidad)</li>
-                  <li>Confirmación de especialidad y credenciales</li>
-                  <li>Revisión de documentos profesionales</li>
-                </ul>
-              </div>
-            </div>
-          </section>
-
-          {/* 4. Uso de la Plataforma */}
-          <section>
-            <div className="flex items-start gap-3 mb-4">
-              <Shield className="w-6 h-6 text-blue-500 mt-1 flex-shrink-0" />
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-3">4. Uso Aceptable de la Plataforma</h2>
-                
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">4.1 Usos Permitidos</h3>
-                <ul className="list-disc list-inside space-y-2 text-gray-600 ml-4 mb-4">
-                  <li>Agendar, modificar y cancelar citas médicas legítimas</li>
-                  <li>Consultar información de profesionales de la salud verificados</li>
-                  <li>Gestionar tu historial de citas personales</li>
-                  <li>Recibir recordatorios y notificaciones de tus citas</li>
-                  <li>Comunicarte con profesionales de salud a través de la plataforma</li>
-                </ul>
-
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">4.2 Actividades Prohibidas</h3>
-                <div className="space-y-3 text-gray-600 ml-4 mb-4">
-                  <div className="flex items-start gap-2">
-                    <Ban className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-                    <p>Usar la plataforma para fines fraudulentos o ilegales</p>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Ban className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-                    <p>Suplantar la identidad de otro usuario o profesional de la salud</p>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Ban className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-                    <p>Publicar contenido falso, engañoso o difamatorio</p>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Ban className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-                    <p>Intentar acceder a datos de otros usuarios sin autorización</p>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Ban className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-                    <p>Utilizar bots, scrapers o herramientas automatizadas</p>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Ban className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-                    <p>Realizar spam o enviar comunicaciones no solicitadas</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* 5. Citas y Cancelaciones */}
-          <section>
-            <div className="flex items-start gap-3 mb-4">
-              <CalendarCheck className="w-6 h-6 text-blue-500 mt-1 flex-shrink-0" />
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-3">5. Política de Citas y Cancelaciones</h2>
-                
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">5.1 Agendamiento de Citas</h3>
-                <ul className="list-disc list-inside space-y-2 text-gray-600 ml-4 mb-4">
-                  <li>Las citas se agendan según la disponibilidad mostrada por cada profesional</li>
-                  <li>Recibirás una confirmación inmediata por correo electrónico</li>
-                  <li>Se enviarán recordatorios 24 horas y 2 horas antes de la cita</li>
-                </ul>
-
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">5.2 Cancelaciones</h3>
-                <ul className="list-disc list-inside space-y-2 text-gray-600 ml-4 mb-4">
-                  <li>Las cancelaciones deben realizarse con al menos 24 horas de anticipación</li>
-                  <li>Cancelaciones tardías pueden estar sujetas a penalizaciones según la política del médico</li>
-                  <li>Las cancelaciones repetitivas sin justificación pueden resultar en restricciones de la cuenta</li>
-                </ul>
-
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">5.3 Inasistencias</h3>
-                <p className="text-gray-600 leading-relaxed ml-4">
-                  Las inasistencias sin previo aviso serán registradas en tu historial. Después de 3 inasistencias 
-                  consecutivas, tu cuenta puede ser suspendida temporalmente.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* 6. Responsabilidad Médica */}
-          <section>
-            <div className="flex items-start gap-3 mb-4">
-              <Stethoscope className="w-6 h-6 text-blue-500 mt-1 flex-shrink-0" />
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-3">6. Responsabilidad Médica y Descargo</h2>
-                
-                <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
-                  <div className="flex items-start gap-2">
-                    <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                    <div className="text-sm text-red-800">
-                      <p className="font-semibold mb-1">Descargo de Responsabilidad Importante:</p>
-                      <p>SaludClick es una plataforma de conexión y agendamiento. NO proporcionamos servicios 
-                      médicos, diagnósticos, tratamientos ni recomendaciones médicas.</p>
-                    </div>
-                  </div>
-                </div>
-
-                <ul className="list-disc list-inside space-y-2 text-gray-600 ml-4">
-                  <li>Los profesionales de la salud son responsables de sus diagnósticos y tratamientos</li>
-                  <li>SaludClick no garantiza la exactitud de la información proporcionada por los médicos</li>
-                  <li>No nos hacemos responsables por daños derivados de la relación médico-paciente</li>
-                  <li>Los pacientes deben verificar las credenciales de los profesionales antes de consultar</li>
-                  <li>En caso de emergencia médica, contacta al 9-1-1 inmediatamente</li>
-                </ul>
-              </div>
-            </div>
-          </section>
-
-          {/* 7. Privacidad y Datos */}
-          <section>
-            <div className="flex items-start gap-3 mb-4">
-              <Lock className="w-6 h-6 text-blue-500 mt-1 flex-shrink-0" />
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-3">7. Privacidad y Protección de Datos</h2>
-                <p className="text-gray-600 leading-relaxed mb-3">
-                  El manejo de tus datos personales se rige por nuestra{' '}
-                  <Link href="/privacy" className="text-blue-600 hover:underline font-medium">
-                    Política de Privacidad
-                  </Link>
-                  , la cual forma parte integral de estos términos. Al utilizar SaludClick, aceptas:
-                </p>
-                <ul className="list-disc list-inside space-y-2 text-gray-600 ml-4">
-                  <li>La recopilación y uso de tus datos según nuestra política de privacidad</li>
-                  <li>El almacenamiento seguro de tu información médica básica</li>
-                  <li>La comunicación por correo electrónico y SMS para recordatorios de citas</li>
-                  <li>El uso de cookies para mejorar la experiencia de usuario</li>
-                </ul>
-              </div>
-            </div>
-          </section>
-
-          {/* 8. Propiedad Intelectual */}
-          <section>
-            <div className="flex items-start gap-3 mb-4">
-              <FileText className="w-6 h-6 text-blue-500 mt-1 flex-shrink-0" />
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-3">8. Propiedad Intelectual</h2>
-                <p className="text-gray-600 leading-relaxed mb-3">
-                  Todos los derechos de propiedad intelectual sobre la Plataforma, incluyendo pero no limitado a:
-                </p>
-                <ul className="list-disc list-inside space-y-2 text-gray-600 ml-4">
-                  <li>El nombre &quot;SaludClick&quot; y su logotipo</li>
-                  <li>El diseño, código fuente y arquitectura de la plataforma</li>
-                  <li>Las bases de datos y algoritmos propietarios</li>
-                  <li>El contenido original publicado por SaludClick</li>
-                </ul>
-                <p className="text-gray-600 leading-relaxed mt-3">
-                  Está prohibida la reproducción, distribución o modificación de cualquier elemento 
-                  de la Plataforma sin autorización previa por escrito.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* 9. Tarifas y Pagos */}
-          <section>
-            <div className="flex items-start gap-3 mb-4">
-              <CreditCard className="w-6 h-6 text-blue-500 mt-1 flex-shrink-0" />
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-3">9. Tarifas y Pagos</h2>
-                
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">9.1 Para Pacientes</h3>
-                <p className="text-gray-600 leading-relaxed mb-3 ml-4">
-                  El registro y uso básico de SaludClick es <strong>completamente gratuito</strong> para pacientes. 
-                  Las consultas médicas pueden tener costos establecidos por cada profesional, los cuales 
-                  serán claramente indicados antes de confirmar la cita.
-                </p>
-
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">9.2 Para Médicos</h3>
-                <p className="text-gray-600 leading-relaxed ml-4">
-                  SaludClick puede cobrar una comisión por cita agendada a través de la plataforma, 
-                  la cual será informada durante el proceso de registro y verificación.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* 10. Suspensión y Terminación */}
-          <section>
-            <div className="flex items-start gap-3 mb-4">
-              <Ban className="w-6 h-6 text-blue-500 mt-1 flex-shrink-0" />
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-3">10. Suspensión y Terminación de Cuentas</h2>
-                <p className="text-gray-600 leading-relaxed mb-3">
-                  SaludClick se reserva el derecho de suspender o terminar cuentas en los siguientes casos:
-                </p>
-                <ul className="list-disc list-inside space-y-2 text-gray-600 ml-4">
-                  <li>Violación de estos Términos y Condiciones</li>
-                  <li>Actividades fraudulentas o ilegales</li>
-                  <li>Inasistencias repetitivas sin justificación (pacientes)</li>
-                  <li>Mala praxis profesional reportada y verificada (médicos)</li>
-                  <li>Suplantación de identidad o información falsa</li>
-                  <li>Por solicitud expresa del titular de la cuenta</li>
-                </ul>
-              </div>
-            </div>
-          </section>
-
-          {/* 11. Modificaciones */}
-          <section>
-            <div className="flex items-start gap-3 mb-4">
-              <Clock className="w-6 h-6 text-blue-500 mt-1 flex-shrink-0" />
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-3">11. Modificaciones a los Términos</h2>
-                <p className="text-gray-600 leading-relaxed mb-3">
-                  SaludClick puede modificar estos términos en cualquier momento. Te notificaremos sobre 
-                  cambios significativos mediante:
-                </p>
-                <ul className="list-disc list-inside space-y-2 text-gray-600 ml-4">
-                  <li>Un aviso destacado en la plataforma con 30 días de anticipación</li>
-                  <li>Notificación por correo electrónico a la dirección registrada</li>
-                  <li>Actualización de la fecha de &quot;Última actualización&quot; al inicio de este documento</li>
-                </ul>
-                <p className="text-gray-600 leading-relaxed mt-3">
-                  El uso continuado de la plataforma después de los cambios constituye tu aceptación 
-                  de los nuevos términos.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* 12. Ley Aplicable */}
-          <section>
-            <div className="flex items-start gap-3 mb-4">
-              <Scale className="w-6 h-6 text-blue-500 mt-1 flex-shrink-0" />
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-3">12. Ley Aplicable y Jurisdicción</h2>
-                <p className="text-gray-600 leading-relaxed">
-                  Estos Términos y Condiciones se rigen por las leyes de la República Dominicana. 
-                  Cualquier disputa derivada del uso de la Plataforma será resuelta ante los tribunales 
-                  competentes de la ciudad de Santo Domingo, República Dominicana.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* 13. Contacto */}
-          <section>
-            <div className="flex items-start gap-3 mb-4">
-              <Mail className="w-6 h-6 text-blue-500 mt-1 flex-shrink-0" />
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-3">13. Contacto</h2>
-                <p className="text-gray-600 leading-relaxed mb-4">
-                  Si tienes preguntas sobre estos Términos y Condiciones, contáctanos:
-                </p>
-                <div className="space-y-3 bg-blue-50 rounded-xl p-6">
-                  <div className="flex items-center gap-3">
-                    <Mail className="w-5 h-5 text-blue-600" />
-                    <span className="text-gray-700">
-                      <strong>Email:</strong>{' '}
-                      <a href="mailto:legal@saludclick.com" className="text-blue-600 hover:underline">
-                        legal@saludclick.com
-                      </a>
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Phone className="w-5 h-5 text-blue-600" />
-                    <span className="text-gray-700">
-                      <strong>Teléfono:</strong> +1 829 386 1067
-                    </span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <FileText className="w-5 h-5 text-blue-600 mt-1" />
-                    <span className="text-gray-700">
-                      <strong>Dirección:</strong> Santo Domingo, República Dominicana
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-        </div>
-
-        {/* Botones de navegación */}
-        <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-          <Link 
-            href="/" 
-            className="px-6 py-3 bg-white border-2 border-blue-500 text-blue-600 rounded-xl font-semibold hover:bg-blue-50 transition-all inline-flex items-center justify-center gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Volver al Inicio
-          </Link>
-          <Link 
-            href="/register" 
-            className="px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all inline-flex items-center justify-center gap-2"
-          >
-            <UserCheck className="w-4 h-4" />
-            Crear Cuenta
-          </Link>
-        </div>
-      </div>
+      </main>
     </div>
   );
 }
+
+function TermsSection({ id, icon: Icon, number, title, children }: { id: string; icon: any; number: string; title: string; children: React.ReactNode }) {
+  return <section id={id} className="scroll-mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7"><div className="flex items-start gap-4"><div className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700 sm:flex"><Icon className="h-5 w-5" /></div><div className="min-w-0 flex-1"><div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-600"><span>{number}</span><span className="h-px w-6 bg-blue-200" /></div><h2 className="mt-1 text-xl font-black tracking-tight text-slate-950 sm:text-2xl">{title}</h2><div className="mt-4 space-y-3 text-sm leading-7 text-slate-600 sm:text-base">{children}</div></div></div></section>;
+}
+
+function Feature({ text }: { text: string }) { return <div className="flex items-start gap-2 rounded-xl bg-slate-50 p-3 text-sm font-semibold text-slate-700"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />{text}</div>; }
+function Restriction({ text }: { text: string }) { return <div className="flex items-start gap-2 rounded-xl border border-rose-100 bg-rose-50/70 p-3 text-sm text-slate-700"><Ban className="mt-0.5 h-4 w-4 shrink-0 text-rose-500" />{text}</div>; }
+function Bullet({ children }: { children: React.ReactNode }) { return <li className="flex items-start gap-3"><CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-blue-600" /><span>{children}</span></li>; }

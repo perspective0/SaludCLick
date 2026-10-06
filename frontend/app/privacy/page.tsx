@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Shield, Lock, Eye, FileText, Bell, Cookie, Mail, Phone, ArrowLeft } from 'lucide-react';
 
 export default function PrivacyPage() {
-  const lastUpdated = '20 de Mayo de 2026';
+  const lastUpdated = '6 de Octubre de 2026';
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white py-16">
@@ -159,16 +159,15 @@ export default function PrivacyPage() {
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-3">6. Uso de Cookies y Tecnologías Similares</h2>
                 <p className="text-gray-600 leading-relaxed mb-3">
-                  Utilizamos cookies y tecnologías similares para mejorar tu experiencia:
+                  SaludClick utiliza cookies y tecnologías similares de acuerdo con la Ley No. 172-13 de la República Dominicana. Las cookies no esenciales requieren una elección afirmativa del usuario. Si necesitas cambiar tu elección, puedes borrar los datos del sitio desde la configuración de tu navegador o contactarnos.
                 </p>
                 <ul className="list-disc list-inside space-y-2 text-gray-600">
-                  <li><strong>Cookies esenciales:</strong> Necesarias para el funcionamiento básico de la plataforma (sesión, seguridad).</li>
-                  <li><strong>Cookies de preferencias:</strong> Recuerdan tus preferencias de idioma, tema y configuración regional.</li>
-                  <li><strong>Cookies analíticas:</strong> Nos ayudan a entender cómo interactúas con la plataforma para mejorarla (datos anónimos).</li>
-                  <li><strong>Cookies de funcionalidad:</strong> Permiten recordar tus búsquedas recientes y médicos favoritos.</li>
+                  <li><strong>Cookies esenciales:</strong> Mantienen la sesión autenticada y ayudan a proteger la plataforma mediante controles de seguridad. No pueden desactivarse mientras utilizas esas funciones.</li>
+                  <li><strong>Preferencias locales:</strong> El idioma, el tema visual y otras preferencias iniciadas por el usuario pueden guardarse en el almacenamiento local del navegador.</li>
+                  <li><strong>Cookies analíticas:</strong> Actualmente no utilizamos Google Analytics, píxeles publicitarios ni cookies de terceros para rastrear tu actividad. Si incorporamos una herramienta de analítica, solicitaremos consentimiento antes de activarla.</li>
                 </ul>
                 <p className="text-gray-600 leading-relaxed mt-3">
-                  Puedes gestionar las cookies desde la configuración de tu navegador. Sin embargo, deshabilitar cookies esenciales puede afectar el funcionamiento de la plataforma.
+                  Puedes aceptar, rechazar o configurar las cookies opcionales desde el aviso de cookies. También puedes eliminarlas desde la configuración de tu navegador; deshabilitar las esenciales puede impedir el inicio de sesión o afectar funciones de seguridad.
                 </p>
               </div>
             </div>
