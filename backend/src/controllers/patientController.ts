@@ -74,7 +74,9 @@ export const getPatientDashboard = async (req: Request, res: Response) => {
     await ensurePatientRow(id);
 
     const profile = await queryOne(
-      `SELECT u.id, u.first_name, u.last_name, u.email, u.phone, p.date_of_birth, p.address,
+      `SELECT u.id, u.first_name, u.last_name, u.email, u.phone,
+              (u.google_subject IS NOT NULL) AS "isGoogleAccount",
+              p.date_of_birth, p.address,
               p.document_number, p.emergency_contact, p.emergency_phone,
               p.has_insurance, p.insurance_provider, p.insurance_number,
               p.whatsapp_reminders_enabled, p.whatsapp_consent_at
@@ -179,6 +181,7 @@ export const getPatientDashboard = async (req: Request, res: Response) => {
     return ok(res, {
         profile,
         profileCompleteness: completeness,
+        isGoogleAccount: Boolean(profile.isGoogleAccount),
         nextAppointment,
         appointments,
         prescriptions: prescriptions.map((prescription) => ({

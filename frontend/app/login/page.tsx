@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { authAPI, saveToken } from '@/utils/api';
+import { useAuthStore } from '@/store';
 import { 
   Mail, 
   Lock, 
@@ -30,6 +31,7 @@ export default function LoginPage() {
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const setUser = useAuthStore((state) => state.setUser);
   const redirect = searchParams.get('redirect');
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -55,8 +57,17 @@ function LoginContent() {
     let active = true;
     authAPI.me().then((response) => {
       if (!active || !response.data) return;
-      localStorage.setItem('user', JSON.stringify(response.data));
-      const role = response.data.role;
+      const user = {
+        id: response.data.id,
+        email: response.data.email,
+        firstName: response.data.first_name || response.data.firstName,
+        lastName: response.data.last_name || response.data.lastName,
+        role: response.data.role,
+        avatar: response.data.avatar,
+      };
+      setUser(user);
+      localStorage.setItem('user', JSON.stringify(user));
+      const role = user.role;
       const redirectUrl = redirect && redirect.startsWith('/') ? redirect : role === 'doctor' ? '/doctor/dashboard' : role === 'admin' ? '/admin/dashboard' : role === 'secretary' ? '/secretary/dashboard' : '/patient/dashboard';
       router.replace(redirectUrl);
     }).catch(() => {
@@ -94,6 +105,7 @@ function LoginContent() {
       const data = await authAPI.login(formData.email, formData.password);
       
       if (data.data?.user) {
+        setUser(data.data.user);
         if (data.data.token) {
           saveToken(data.data.token);
         } else {
@@ -138,14 +150,25 @@ function LoginContent() {
 
         <div className="relative z-10 flex flex-col justify-center text-white max-w-md">
           <Link href="/" className="mb-12">
-            <Image
-              src="/saludclick.png"
-              alt="SaludClick"
-              width={200}
-              height={80}
-              priority
-              className="h-16 w-auto brightness-0 invert"
-            />
+            <span className="relative block h-[70px] w-[220px]">
+              <Image
+                src="/saludclick.png"
+                alt="SaludClick"
+                fill
+                priority
+                sizes="220px"
+                className="object-contain object-left"
+              />
+              <Image
+                src="/saludclick.png"
+                alt=""
+                fill
+                aria-hidden="true"
+                sizes="220px"
+                className="object-contain object-left brightness-0 invert"
+                style={{ clipPath: 'inset(0 0 0 30%)' }}
+              />
+            </span>
           </Link>
 
           <h1 className="text-4xl font-bold mb-6">
