@@ -41,6 +41,21 @@ In Vercel, use the public production values:
 - `SEO_API_URL=https://YOUR-RENDER-SERVICE/api` (optional if `NEXT_PUBLIC_API_URL` is already absolute)
 - `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=YOUR-GOOGLE-VERIFICATION-CODE` (optional)
 
+For Google sign-in in the current production architecture, configure the Render
+backend with:
+
+```env
+FRONTEND_URL=https://saludclick.vercel.app
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+GOOGLE_REDIRECT_URI=https://saludclick-backend.onrender.com/api/auth/google/callback
+```
+
+Register this exact URI in Google Cloud Console as an authorized redirect URI:
+`https://saludclick-backend.onrender.com/api/auth/google/callback`.
+The frontend origin is `https://saludclick.vercel.app` and should be added as an
+authorized JavaScript origin if Google requests one.
+
 `NEXT_PUBLIC_APP_URL` is the single source for canonical links, Open Graph,
 structured data, `robots.txt`, and the sitemap. After deploying, register the
 public domain in Google Search Console and submit:
