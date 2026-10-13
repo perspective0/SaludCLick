@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { authAPI, saveToken } from '@/utils/api';
+import { useAuthStore } from '@/store';
 import { 
   Mail, 
   Lock, 
@@ -30,6 +31,7 @@ export default function LoginPage() {
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const setUser = useAuthStore((state) => state.setUser);
   const redirect = searchParams.get('redirect');
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -55,8 +57,17 @@ function LoginContent() {
     let active = true;
     authAPI.me().then((response) => {
       if (!active || !response.data) return;
-      localStorage.setItem('user', JSON.stringify(response.data));
-      const role = response.data.role;
+      const user = {
+        id: response.data.id,
+        email: response.data.email,
+        firstName: response.data.first_name || response.data.firstName,
+        lastName: response.data.last_name || response.data.lastName,
+        role: response.data.role,
+        avatar: response.data.avatar,
+      };
+      setUser(user);
+      localStorage.setItem('user', JSON.stringify(user));
+      const role = user.role;
       const redirectUrl = redirect && redirect.startsWith('/') ? redirect : role === 'doctor' ? '/doctor/dashboard' : role === 'admin' ? '/admin/dashboard' : role === 'secretary' ? '/secretary/dashboard' : '/patient/dashboard';
       router.replace(redirectUrl);
     }).catch(() => {
@@ -94,6 +105,7 @@ function LoginContent() {
       const data = await authAPI.login(formData.email, formData.password);
       
       if (data.data?.user) {
+        setUser(data.data.user);
         if (data.data.token) {
           saveToken(data.data.token);
         } else {
