@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store';
 import { appointmentAPI } from '@/utils/api';
 import { formatDate, getUserGreeting } from '@/utils/helpers';
 import { useI18n } from '@/i18n';
 
 export default function DashboardPage() {
+  const router = useRouter();
   const { locale } = useI18n();
   const en = locale === 'en';
   const { user, isAuthenticated, setUser } = useAuthStore();
@@ -31,8 +33,12 @@ export default function DashboardPage() {
       window.location.href = '/login';
       return;
     }
+    if (user?.role === 'patient') {
+      router.replace('/patient/dashboard');
+      return;
+    }
     loadAppointments();
-  }, [authHydrated, isAuthenticated]);
+  }, [authHydrated, isAuthenticated, router, user?.role]);
 
   const loadAppointments = async () => {
     try {
