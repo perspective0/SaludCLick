@@ -115,6 +115,47 @@ const phrasePairs: Record<string, string> = {
   'Citas medicas': 'Appointments', 'Registros medicos': 'Medical records', 'Documentos medicos': 'Medical documents',
   'Analiticas y estudios': 'Labs and studies', 'Preguntas y recomendaciones': 'Feedback and suggestions', 'Perfil profesional': 'Professional profile',
   'Solicitudes Médicos': 'Doctor requests', 'Pagos Médicos': 'Doctor payments',
+  'Mi salud': 'My health', 'Citas, recetas y datos importantes en un solo lugar': 'Appointments, prescriptions and important information in one place',
+  'Bienvenido a SaludClick': 'Welcome to SaludClick', 'Tu próxima atención está lista': 'Your next visit is ready',
+  'Tu portal de salud está al día': 'Your health portal is up to date',
+  'Revisa tus próximas citas, consulta recetas y mantén tus datos actualizados para recibir una mejor atención.': 'Review your upcoming appointments, check prescriptions and keep your information updated for better care.',
+  'Ver mis citas': 'View my appointments', 'Citas activas': 'Active appointments', 'Perfil completo': 'Profile complete', 'Atenciones': 'Visits',
+  'Acciones rápidas': 'Quick actions', 'Buscar médico': 'Find a doctor', 'Especialidad, centro o nombre': 'Specialty, center or name',
+  'Mis citas': 'My appointments', 'Confirmar o revisar agenda': 'Confirm or review schedule', 'Ver e imprimir indicaciones': 'View and print instructions',
+  'Certificados y referimientos': 'Certificates and referrals', 'Citas recientes': 'Recent appointments', 'Ver agenda': 'View schedule',
+  'Sin historial de citas': 'No appointment history', 'Todavía no hay citas asociadas a tu cuenta.': 'There are no appointments associated with your account yet.',
+  'Perfil de atención': 'Care profile', 'Datos necesarios para tus consultas': 'Information needed for your visits', 'Completitud': 'Completeness',
+  'Completar perfil': 'Complete profile', 'Recetas recientes': 'Recent prescriptions', 'Ver recetas': 'View prescriptions',
+  'Sin recetas': 'No prescriptions', 'Tus recetas emitidas aparecerán aquí.': 'Your issued prescriptions will appear here.', 'Avisos': 'Notices',
+  'Sin avisos': 'No notices', 'Te avisaremos sobre cambios de citas y recetas.': 'We will notify you about appointment and prescription changes.',
+  'Cuando reserves una atención, aparecerá aquí con sus datos principales.': 'When you book a visit, it will appear here with its key details.',
+  'No tienes permiso para acceder a este portal.': 'You do not have permission to access this portal.',
+  'No se pudo cargar tu portal de paciente.': 'Could not load your patient portal.', 'Consulta médica': 'Medical visit', 'Centro médico': 'Medical center',
+  'Activa': 'Active', 'Programada': 'Scheduled',
+  'Confirmada': 'Confirmed', 'Completada': 'Completed', 'Cancelada': 'Cancelled', 'Vencida': 'Expired',
+  'Cargando reserva...': 'Loading booking...', 'Volver a médicos': 'Back to doctors',
+  'Cita agendada exitosamente. Te llevaremos a tu panel.': 'Appointment booked successfully. Taking you to your dashboard.',
+  'Error al cargar los datos del médico': 'Could not load the doctor information.', 'Error al agendar la cita': 'Could not book the appointment.',
+  'Reserva de consulta': 'Book a visit', 'Reservar cita': 'Book an appointment',
+  'Elige modalidad, fecha y hora disponible para confirmar tu consulta.': 'Choose a format, date and available time to confirm your visit.',
+  'Tipo de cita': 'Appointment type', 'Atención en el centro médico.': 'Care at the medical center.',
+  'Consulta virtual desde SaludClick.': 'Virtual visit through SaludClick.', 'Centro de salud': 'Health center',
+  'Días de consulta': 'Consultation days', 'Disponible': 'Available',
+  'No hay horarios configurados': 'No schedules configured',
+  'No hay espacios disponibles para esta fecha.': 'No available times for this date.', 'Selecciona una fecha primero.': 'Select a date first.',
+  'Horario disponible': 'Available time', 'Horario ocupado': 'Time unavailable', 'Seleccionar fecha en calendario': 'Select date from calendar',
+  'Seleccionar fecha': 'Select date', 'Motivo de la consulta': 'Reason for visit',
+  'Describe brevemente tu motivo de consulta': 'Briefly describe the reason for your visit',
+  'Resumen': 'Summary', 'Modalidad': 'Format',
+  'Costo': 'Cost', 'Precio aplicado por': 'Price applied through',
+  'No hay coincidencia con los seguros aceptados por este médico; se muestra la tarifa normal.': 'No match with this doctor\'s accepted insurance plans; the regular fee is shown.',
+  'Puedes registrar tu seguro en tu perfil para verificar si aplica el precio asegurado.': 'You can add your insurance in your profile to check whether the insured price applies.',
+  'Motivo': 'Reason', 'Sin motivo indicado todavía.': 'No reason provided yet.', 'Agendando...': 'Booking...', 'Confirmar cita': 'Confirm appointment',
+  'Por favor selecciona una fecha válida en formato dd/mm/aaaa y una hora': 'Please select a valid date in dd/mm/yyyy format and a time',
+  'Este medico no consulta ese dia. Dias disponibles:': 'This doctor does not see patients on that day. Available days:',
+  'Este medico no consulta ese dia en el centro seleccionado. Dias disponibles:': 'This doctor does not see patients on that day at the selected center. Available days:',
+  'Domingo': 'Sunday', 'Lunes': 'Monday', 'Miercoles': 'Wednesday', 'Jueves': 'Thursday', 'Viernes': 'Friday', 'Sabado': 'Saturday',
+  'Sin horarios configurados': 'No schedules configured', '30 minutos': '30 minutes', 'Medicina General': 'General Medicine',
   'Citas médicas próximas': 'Upcoming appointments', 'Citas médicas completadas': 'Completed appointments', 'Citas médicas realizadas': 'Completed appointments',
   'Citas médicas totales': 'Total appointments', 'Total de citas médicas': 'Total appointments', 'Tus citas médicas': 'Your appointments',
   'Próxima cita': 'Next appointment', 'Proxima atencion': 'Next visit', 'Sin citas próximas': 'No upcoming appointments',
@@ -134,6 +175,11 @@ const phrasePairs: Record<string, string> = {
   'Crear Nuevo Usuario': 'Create new user', 'Editar usuario': 'Edit user', 'Eliminar usuario': 'Delete user', 'Eliminar laboratorio': 'Delete laboratory',
   'Cancelar cita': 'Cancel appointment', 'Mantener cita': 'Keep appointment', 'Rechazar Solicitud': 'Reject request', 'Abrir imagen': 'Open image',
   'Nombre:': 'Name:', 'Dirección': 'Address', 'Ciudad:': 'City:', 'Provincia/Estado': 'State/Province', 'Código Postal': 'Postal code',
+  'Fecha nacimiento': 'Date of birth', 'No. de póliza': 'Policy number', 'Número de póliza': 'Policy number',
+  'Recordatorios de citas por WhatsApp': 'WhatsApp appointment reminders',
+  'SaludClick podrá avisarte antes de tus citas usando el teléfono indicado arriba. Puedes desactivarlo cuando quieras.': 'SaludClick can remind you before your appointments using the phone number above. You can disable this whenever you want.',
+  'Contacto emergencia': 'Emergency contact', 'Teléfono emergencia': 'Emergency phone',
+  'Información lista': 'Information ready',
   'Fecha de Registro': 'Registration date', 'Datos personales': 'Personal information', 'Contacto de emergencia': 'Emergency contact',
   'Seguro médico': 'Health insurance', '¿Tienes seguro médico?': 'Do you have health insurance?', 'Años de experiencia': 'Years of experience',
   'Biografia profesional': 'Professional biography', 'Foto publica': 'Public photo', 'Asi te veran los pacientes': 'This is how patients will see you',
@@ -175,6 +221,26 @@ const phrasePairs: Record<string, string> = {
   'La impresión usa el HTML seguro del backend y requiere tu sesión activa.': 'Printing uses the secure backend HTML and requires an active session.',
   'Receta no encontrada.': 'Prescription not found.', 'No se pudo cargar la receta.': 'Could not load the prescription.',
   'No tienes permiso para acceder a esta receta.': 'You do not have permission to access this prescription.',
+  'Mis recetas': 'My prescriptions', 'Consulta, valida e imprime tus recetas emitidas': 'View, verify and print your issued prescriptions',
+  'Activas': 'Active', 'Vencidas': 'Expired',
+  'receta(s) registradas': 'prescription(s) recorded', 'Buscar medicamento, doctor o código': 'Search medication, doctor or code',
+  'Cuando tu médico emita una receta, podrás verla e imprimirla aquí.': 'When your doctor issues a prescription, you will be able to view and print it here.',
+  'No tienes permiso para acceder a estas recetas.': 'You do not have permission to access these prescriptions.', 'No se pudieron cargar tus recetas.': 'Could not load your prescriptions.',
+  'No se pudo generar la receta imprimible.': 'Could not generate the printable prescription.', 'No se pudo imprimir la receta.': 'Could not print the prescription.',
+  'Verificacion de receta': 'Prescription verification', 'Documento SaludClick': 'SaludClick document', 'Valida': 'Valid', 'No valida': 'Invalid',
+  'No se encontro la receta': 'Prescription not found', 'Documento autentico emitido por SaludClick.': 'Authentic document issued by SaludClick.',
+  'Confirma que el codigo impreso coincida exactamente con el mostrado aqui. Esta vista muestra solo datos necesarios para autenticidad.': 'Confirm that the printed code matches the one shown here exactly. This view shows only the information needed for authenticity.',
+  'Documento integro': 'Document intact', 'El documento no ha sido alterado desde su emision.': 'The document has not been altered since it was issued.',
+  'No se pudo confirmar la integridad criptografica del documento.': 'The cryptographic integrity of the document could not be confirmed.',
+  'Medico': 'Doctor', 'Exequatur': 'Professional license', 'CMD': 'CMD', 'Emitida': 'Issued', 'Codigo de receta': 'Prescription code',
+  'No especificada': 'Not specified', 'El documento no esta activo o esta vencido.': 'The document is not active or has expired.',
+  'No se pudo verificar la receta.': 'Could not verify the prescription.', 'No se pudo confirmar la integridad del documento.': 'The document integrity could not be confirmed.',
+  'Paciente seleccionado': 'Selected patient', 'Codigo al guardar': 'Code after saving', 'Diagnostico asociado': 'Associated diagnosis',
+  'Selecciona un registro': 'Select a record', 'Via no especificada': 'Route not specified', 'Sin codigo': 'No code',
+  'Sin posologia especifica': 'No specific dosing', 'Cargando ficha...': 'Loading details...',
+  'Datos internos editables, no sustituyen criterio medico.': 'Editable internal data; they do not replace medical judgment.',
+  'Sello medico': 'Medical seal', 'QR de validacion de receta': 'Prescription verification QR', 'QR validacion': 'Verification QR',
+  'Codigo de validacion': 'Verification code',
   'Vademecum': 'Drug reference', 'Consulta medicamentos, presentaciones, sugerencias y advertencias': 'Browse medications, presentations, suggestions and warnings',
   'Nombre comercial, principio activo, concentracion o laboratorio': 'Brand name, active ingredient, strength or laboratory',
   'Buscando...': 'Searching...', 'Escribe al menos dos caracteres para buscar.': 'Type at least two characters to search.',
@@ -183,7 +249,7 @@ const phrasePairs: Record<string, string> = {
   'Disponible RD': 'Available in the Dominican Republic',
   'Laboratorio': 'Laboratory', 'Categoria': 'Category', 'Registro sanitario': 'Health registration',
   'Controlado': 'Controlled',
-  'Sin concentracion': 'No strength', 'Ficha del vademecum': 'Drug reference details',
+  'Ficha del vademecum': 'Drug reference details',
   'No hay posologias o advertencias adicionales registradas para este medicamento.': 'No additional dosing or warnings are registered for this medication.',
   'Ordenes medicas para laboratorio, imagenes y procedimientos': 'Medical orders for laboratories, imaging and procedures',
   'Frecuentes': 'Common', 'Sin ordenes para este paciente.': 'No orders for this patient.',
@@ -246,7 +312,7 @@ const phrasePairs: Record<string, string> = {
   'Esta imagen se mostrara en el listado de medicos, perfil publico y reservas.': 'This image will appear in the doctor directory, public profile and bookings.',
   'Logo para recetas': 'Prescription logo', 'Subir logo': 'Upload logo', 'Quitar logo': 'Remove logo', 'Se guarda en tu perfil y saldra en recetas impresas y PDF.': 'It is saved to your profile and will appear on printed prescriptions and PDFs.',
   'Sello para recetas y ordenes': 'Seal for prescriptions and orders', 'Subir sello': 'Upload seal', 'Quitar sello': 'Remove seal', 'Si no se sube una imagen, el documento mostrara el espacio de sello vacio.': 'If no image is uploaded, the document will show an empty seal area.',
-  'Centros/clinicas donde trabajas': 'Health centers/clinics where you work', 'No asignado': 'Not assigned', 'Ciudad no indicada': 'City not provided', 'Centro principal': 'Primary center',
+  'Centros/clinicas donde trabajas': 'Health centers/clinics where you work', 'Ciudad no indicada': 'City not provided', 'Centro principal': 'Primary center',
   'Mi centro no aparece': 'My center is not listed', 'Correo del centro': 'Center email',
   'Describe tu experiencia, enfoque clinico y servicios...': 'Describe your experience, clinical approach and services...',
   'Configuración profesional actualizada correctamente.': 'Professional settings updated successfully.', 'Foto de perfil actualizada.': 'Profile photo updated.',
@@ -269,6 +335,10 @@ const phrasePairs: Record<string, string> = {
 };
 
 const reversePhrasePairs = Object.fromEntries(Object.entries(phrasePairs).map(([es, en]) => [en, es]));
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 function translateRenderedText(locale: Locale) {
   if (typeof document === 'undefined') return;
@@ -296,7 +366,10 @@ function translateRenderedText(locale: Locale) {
     // o texto adicional generado por la misma vista.
     let nextValue = value;
     for (const [source, target] of entries) {
-      if (nextValue.includes(source)) nextValue = nextValue.split(source).join(target);
+      // Evita reemplazar fragmentos dentro de otras palabras. Por ejemplo,
+      // "Contact" no debe convertirse repetidamente dentro de "Contacto".
+      const completePhrase = new RegExp(`(?<![\\p{L}\\p{N}_])${escapeRegExp(source)}(?![\\p{L}\\p{N}_])`, 'gu');
+      nextValue = nextValue.replace(completePhrase, target);
     }
     if (nextValue !== value) textNode.nodeValue = nextValue;
   });
