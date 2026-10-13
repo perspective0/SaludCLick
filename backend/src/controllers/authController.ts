@@ -180,7 +180,11 @@ export const finishGoogleLogin = async (req: Request, res: Response) => {
     const sessionMinutes = Number(security.sessionTimeout) || 30;
     const token = generateToken({ id: user.id, email: user.email, role: user.role }, `${sessionMinutes}m`);
     setAuthCookie(res, token, sessionMinutes);
-    return redirectToLogin(res, { google: 'success', redirect });
+    // The frontend and API are hosted on different sites in production
+    // (vercel.app and onrender.com). Return the short-lived session token so
+    // the browser can authenticate API requests even when third-party cookies
+    // are blocked. The login page removes it from the URL immediately.
+    return redirectToLogin(res, { google: 'success', redirect, token });
   } catch (error) {
     console.error('Google login error:', error);
     return redirectToLogin(res, { google: 'error', message: 'No se pudo completar el inicio de sesión con Google.' });

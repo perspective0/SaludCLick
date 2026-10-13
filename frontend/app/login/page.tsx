@@ -49,6 +49,9 @@ function LoginContent() {
     }
     if (googleStatus !== 'success') return;
 
+    const googleToken = searchParams.get('token');
+    if (googleToken) saveToken(googleToken);
+
     let active = true;
     authAPI.me().then((response) => {
       if (!active || !response.data) return;
