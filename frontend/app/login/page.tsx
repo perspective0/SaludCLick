@@ -150,14 +150,25 @@ function LoginContent() {
 
         <div className="relative z-10 flex flex-col justify-center text-white max-w-md">
           <Link href="/" className="mb-12">
-            <Image
-              src="/saludclick.png"
-              alt="SaludClick"
-              width={220}
-              height={100}
-              priority
-              className="block h-16 w-auto brightness-0 invert"
-            />
+            <span className="relative block h-[70px] w-[220px]">
+              <Image
+                src="/saludclick.png"
+                alt="SaludClick"
+                fill
+                priority
+                sizes="220px"
+                className="object-contain object-left"
+              />
+              <Image
+                src="/saludclick.png"
+                alt=""
+                fill
+                aria-hidden="true"
+                sizes="220px"
+                className="object-contain object-left brightness-0 invert"
+                style={{ clipPath: 'inset(0 0 0 30%)' }}
+              />
+            </span>
           </Link>
 
           <h1 className="text-4xl font-bold mb-6">
