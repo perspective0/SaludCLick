@@ -78,6 +78,36 @@ export default function PatientDashboardPage() {
           <DashboardSkeleton />
         ) : (
           <div className="space-y-5 md:space-y-6">
+            {data?.isGoogleAccount && (data?.profileCompleteness?.percentage || 0) < 100 && (
+              <section className="overflow-hidden rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 via-white to-blue-50 shadow-sm">
+                <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
+                      <AlertCircle className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-base font-bold text-gray-950">
+                        {en ? 'Complete your patient profile' : 'Completa tu perfil de paciente'}
+                      </p>
+                      <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-600">
+                        {en
+                          ? 'You signed in with Google. Add the missing information so your medical visits are better prepared.'
+                          : 'Ingresaste con Google. Agrega la información que falta para que tus consultas estén mejor preparadas.'}
+                      </p>
+                      <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-amber-800">
+                        <span>{en ? 'Profile completeness' : 'Completitud del perfil'}</span>
+                        <span>{data.profileCompleteness.percentage}%</span>
+                      </div>
+                    </div>
+                  </div>
+                  <Link href="/patient/profile" className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-amber-500 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-amber-600">
+                    {en ? 'Complete profile' : 'Completar perfil'}
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </div>
+              </section>
+            )}
+
             <section className="dashboard-welcome overflow-hidden rounded-[1.75rem] text-white">
               <div className="relative grid gap-5 p-5 sm:p-7 lg:grid-cols-[1.15fr_.85fr] lg:p-8">
                 <div className="min-w-0">
