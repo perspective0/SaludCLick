@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -40,6 +40,32 @@ function LoginContent() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const googleStatus = searchParams.get('google');
+    if (googleStatus === 'error') {
+      setError(searchParams.get('message') || 'No se pudo iniciar sesión con Google.');
+      return;
+    }
+    if (googleStatus !== 'success') return;
+
+    let active = true;
+    authAPI.me().then((response) => {
+      if (!active || !response.data) return;
+      localStorage.setItem('user', JSON.stringify(response.data));
+      const role = response.data.role;
+      const redirectUrl = redirect && redirect.startsWith('/') ? redirect : role === 'doctor' ? '/doctor/dashboard' : role === 'admin' ? '/admin/dashboard' : role === 'secretary' ? '/secretary/dashboard' : '/patient/dashboard';
+      router.replace(redirectUrl);
+    }).catch(() => {
+      if (active) setError('La cuenta de Google se autenticó, pero no se pudo cargar el perfil.');
+    });
+    return () => { active = false; };
+  }, [redirect, router, searchParams]);
+
+  const handleGoogleLogin = () => {
+    const currentRedirect = redirect && redirect.startsWith('/') ? redirect : '';
+    window.location.assign(authAPI.googleLoginUrl(currentRedirect));
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
@@ -275,6 +301,25 @@ function LoginContent() {
                 )}
               </button>
             </form>
+
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200" /></div>
+              <div className="relative flex justify-center"><span className="bg-white px-3 text-sm text-gray-500">o continúa con</span></div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              className="w-full flex items-center justify-center gap-3 rounded-xl border border-gray-300 bg-white py-3 font-semibold text-gray-700 transition hover:bg-gray-50 hover:border-gray-400"
+            >
+              <svg aria-hidden="true" className="h-5 w-5" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M21.35 12.27c0-.72-.06-1.42-.18-2.09H12v3.96h5.24a4.48 4.48 0 0 1-1.95 2.94v2.45h3.15c1.84-1.7 2.91-4.2 2.91-7.26Z" />
+                <path fill="#34A853" d="M12 21.7c2.63 0 4.84-.87 6.45-2.37l-3.15-2.45c-.87.58-1.98.92-3.3.92-2.54 0-4.7-1.72-5.47-4.03H3.28v2.53A9.74 9.74 0 0 0 12 21.7Z" />
+                <path fill="#FBBC05" d="M6.53 13.77A5.85 5.85 0 0 1 6.22 12c0-.62.11-1.22.31-1.77V7.7H3.28A9.74 9.74 0 0 0 2.25 12c0 1.57.38 3.05 1.03 4.3l3.25-2.53Z" />
+                <path fill="#EA4335" d="M12 6.2c1.43 0 2.72.49 3.73 1.46l2.8-2.8C16.84 3.27 14.63 2.3 12 2.3a9.74 9.74 0 0 0-8.72 5.4l3.25 2.53C7.3 7.92 9.46 6.2 12 6.2Z" />
+              </svg>
+              Continuar con Google
+            </button>
 
             <div className="mt-6 text-center">
               <p className="text-gray-600">

@@ -14,6 +14,7 @@ CREATE TABLE users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email VARCHAR(255) UNIQUE NOT NULL,
   password VARCHAR(255) NOT NULL,
+  google_subject VARCHAR(255),
   first_name VARCHAR(100) NOT NULL,
   last_name VARCHAR(100) NOT NULL,
   role user_role NOT NULL DEFAULT 'patient',
@@ -252,6 +253,7 @@ CREATE TABLE reviews (
 
 -- Create indexes for performance
 CREATE INDEX idx_users_email ON users(email);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_subject ON users(google_subject) WHERE google_subject IS NOT NULL;
 CREATE INDEX idx_users_role ON users(role);
 CREATE INDEX idx_patients_user_id ON patients(id);
 CREATE INDEX idx_doctors_health_center ON doctors(health_center_id);
@@ -322,6 +324,7 @@ CREATE TRIGGER update_users_timestamp BEFORE UPDATE ON users
   FOR EACH ROW EXECUTE FUNCTION update_timestamp();
 
 ALTER TABLE users ALTER COLUMN avatar TYPE TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS google_subject VARCHAR(255);
 ALTER TABLE doctors ADD COLUMN IF NOT EXISTS consultation_duration INT DEFAULT 30;
 ALTER TABLE doctors ADD COLUMN IF NOT EXISTS teleconsultation_enabled BOOLEAN DEFAULT false;
 ALTER TABLE doctors ADD COLUMN IF NOT EXISTS vacation_mode BOOLEAN DEFAULT false;

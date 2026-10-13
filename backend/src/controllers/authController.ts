@@ -16,6 +16,63 @@ const AUTH_COOKIE = 'saludclick_session';
 const DEFAULT_SESSION_MINUTES = 7 * 24 * 60;
 const isProduction = process.env.NODE_ENV === 'production';
 const cookieSameSite = isProduction ? 'none' : 'lax';
+const GOOGLE_STATE_COOKIE = 'saludclick_google_state';
+
+type GoogleProfile = {
+  sub: string;
+  email: string;
+  email_verified?: boolean;
+  given_name?: string;
+  family_name?: string;
+  name?: string;
+};
+
+function getFrontendUrl() {
+  return process.env.FRONTEND_URL || process.env.PUBLIC_APP_URL || 'http://localhost:3000';
+}
+
+function getGoogleRedirectUri() {
+  return process.env.GOOGLE_REDIRECT_URI || `${getFrontendUrl()}/api/auth/google/callback`;
+}
+
+function safeRedirect(value: unknown) {
+  const redirect = String(value || '');
+  return redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/dashboard';
+}
+
+function googleIsConfigured() {
+  return Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
+}
+
+async function ensureGoogleColumn() {
+  await query('ALTER TABLE users ADD COLUMN IF NOT EXISTS google_subject VARCHAR(255)');
+  await query('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_subject ON users(google_subject) WHERE google_subject IS NOT NULL');
+}
+
+function setGoogleStateCookie(res: Response, value: string) {
+  res.cookie(GOOGLE_STATE_COOKIE, value, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: cookieSameSite,
+    path: '/',
+    maxAge: 10 * 60 * 1000,
+  });
+}
+
+function readCookie(req: Request, name: string) {
+  const header = req.headers.cookie || '';
+  const match = header.split(';').map((part) => part.trim()).find((part) => part.startsWith(`${name}=`));
+  return match ? decodeURIComponent(match.slice(name.length + 1)) : null;
+}
+
+function clearGoogleStateCookie(res: Response) {
+  res.clearCookie(GOOGLE_STATE_COOKIE, { httpOnly: true, secure: isProduction, sameSite: cookieSameSite, path: '/' });
+}
+
+function redirectToLogin(res: Response, params: Record<string, string>) {
+  const query = new URLSearchParams(params).toString();
+  res.redirect(`${getFrontendUrl()}/login${query ? `?${query}` : ''}`);
+}
 
 function setAuthCookie(res: Response, token: string, maxAgeMinutes = DEFAULT_SESSION_MINUTES) {
   res.cookie(AUTH_COOKIE, token, {
@@ -37,6 +94,98 @@ function clearAuthCookie(res: Response) {
   });
   clearCsrfCookie(res);
 }
+
+export const startGoogleLogin = (req: Request, res: Response) => {
+  if (!googleIsConfigured()) {
+    return res.status(503).json({ success: false, code: 'GOOGLE_AUTH_NOT_CONFIGURED', message: 'El inicio de sesión con Google no está configurado todavía.' });
+  }
+
+  const state = crypto.randomBytes(32).toString('hex');
+  const redirect = safeRedirect(req.query.redirect);
+  setGoogleStateCookie(res, `${state}|${Buffer.from(redirect).toString('base64url')}`);
+
+  const params = new URLSearchParams({
+    client_id: process.env.GOOGLE_CLIENT_ID as string,
+    redirect_uri: getGoogleRedirectUri(),
+    response_type: 'code',
+    scope: 'openid email profile',
+    access_type: 'online',
+    prompt: 'select_account',
+    state,
+  });
+
+  return res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`);
+};
+
+export const finishGoogleLogin = async (req: Request, res: Response) => {
+  const frontendRedirect = safeRedirect(req.query.redirect);
+  if (!googleIsConfigured()) return redirectToLogin(res, { google: 'error', message: 'Google no está configurado.' });
+
+  const stateCookie = readCookie(req, GOOGLE_STATE_COOKIE);
+  const [savedState, encodedRedirect] = String(stateCookie || '').split('|');
+  const redirect = encodedRedirect ? safeRedirect(Buffer.from(encodedRedirect, 'base64url').toString('utf8')) : frontendRedirect;
+  clearGoogleStateCookie(res);
+  if (!req.query.state || !savedState || req.query.state !== savedState) {
+    return redirectToLogin(res, { google: 'error', message: 'No se pudo validar la solicitud de Google.' });
+  }
+  if (req.query.error) return redirectToLogin(res, { google: 'cancelled', redirect });
+
+  try {
+    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        code: String(req.query.code || ''),
+        client_id: process.env.GOOGLE_CLIENT_ID as string,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET as string,
+        redirect_uri: getGoogleRedirectUri(),
+        grant_type: 'authorization_code',
+      }),
+    });
+    const tokenPayload = await tokenResponse.json() as { access_token?: string };
+    if (!tokenResponse.ok || !tokenPayload.access_token) throw new Error('Google token exchange failed');
+
+    const profileResponse = await fetch('https://openidconnect.googleapis.com/v1/userinfo', {
+      headers: { Authorization: `Bearer ${tokenPayload.access_token}` },
+    });
+    const profile = await profileResponse.json() as GoogleProfile;
+    if (!profileResponse.ok || !profile.sub || !profile.email || profile.email_verified === false) {
+      throw new Error('Google profile is not verified');
+    }
+
+    await ensureGoogleColumn();
+    const email = profile.email.trim().toLowerCase();
+    let user = await queryOne('SELECT id, email, first_name, last_name, role FROM users WHERE google_subject = $1', [profile.sub]);
+    if (!user) user = await queryOne('SELECT id, email, first_name, last_name, role FROM users WHERE LOWER(email) = LOWER($1)', [email]);
+
+    if (!user) {
+      const userId = uuidv4();
+      const firstName = (profile.given_name || profile.name || 'Paciente').trim().slice(0, 100);
+      const lastName = (profile.family_name || '').trim().slice(0, 100) || 'SaludClick';
+      const temporaryPassword = crypto.randomBytes(32).toString('base64url');
+      const password = await hashPassword(temporaryPassword);
+      await transaction(async (client) => {
+        await client.query(
+          'INSERT INTO users (id, email, password, first_name, last_name, role, google_subject) VALUES ($1,$2,$3,$4,$5,$6,$7)',
+          [userId, email, password, firstName, lastName, 'patient', profile.sub]
+        );
+        await client.query('INSERT INTO patients (id, account_claimed_at) VALUES ($1, NOW())', [userId]);
+      });
+      user = { id: userId, email, first_name: firstName, last_name: lastName, role: 'patient' };
+    } else {
+      await query('UPDATE users SET google_subject = $1, updated_at = NOW() WHERE id = $2', [profile.sub, user.id]);
+    }
+
+    const security = await getSettings('security');
+    const sessionMinutes = Number(security.sessionTimeout) || 30;
+    const token = generateToken({ id: user.id, email: user.email, role: user.role }, `${sessionMinutes}m`);
+    setAuthCookie(res, token, sessionMinutes);
+    return redirectToLogin(res, { google: 'success', redirect });
+  } catch (error) {
+    console.error('Google login error:', error);
+    return redirectToLogin(res, { google: 'error', message: 'No se pudo completar el inicio de sesión con Google.' });
+  }
+};
 
 async function validatePasswordPolicy(password: string) {
   const security = await getSettings('security');

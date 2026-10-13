@@ -148,6 +148,11 @@ export const authAPI = {
 
   me: () =>
     apiRequest('/auth/me'),
+
+  googleLoginUrl: (redirect?: string) => {
+    const query = redirect ? `?redirect=${encodeURIComponent(redirect)}` : '';
+    return `${API_URL}/auth/google${query}`;
+  },
 };
 
 /**
