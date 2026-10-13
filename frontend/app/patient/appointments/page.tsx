@@ -178,7 +178,7 @@ export default function PatientAppointmentsPage() {
                         <p className="mt-3 flex items-center gap-2 font-bold text-gray-800"><Stethoscope className="h-4 w-4 text-blue-600" /> {formatDoctorName(appointment.doctor_first_name, appointment.doctor_last_name)}</p>
                         <p className="mt-1 flex items-center gap-2 text-sm text-gray-500">
                           {isTeleconsultation(appointment) ? <Video className="h-4 w-4 text-violet-500" /> : <MapPin className="h-4 w-4 text-gray-400" />}
-                          {appointment.specialties?.join?.(', ') || (en ? 'Medical visit' : 'Consulta médica')} · {isTeleconsultation(appointment) ? (en ? 'Telehealth' : 'Teleconsulta') : appointment.health_center_name || (en ? 'Medical center' : 'Centro médico')}
+                          {translateSpecialties(appointment.specialties, en) || (en ? 'Medical visit' : 'Consulta médica')} · {isTeleconsultation(appointment) ? (en ? 'Telehealth' : 'Teleconsulta') : appointment.health_center_name || (en ? 'Medical center' : 'Centro médico')}
                         </p>
                         <p className="mt-2 text-sm text-gray-600">{appointment.reason_for_visit || (en ? 'Reason not specified' : 'Motivo no especificado')}</p>
                       </div>
@@ -343,6 +343,21 @@ function translateStatus(status: string, en = false) {
     'no-show': en ? 'No-show' : 'No asistió',
   };
   return labels[status] || status || (en ? 'N/A' : 'N/D');
+}
+
+function translateSpecialties(specialties: any, en: boolean) {
+  if (!Array.isArray(specialties) || !specialties.length) return '';
+  if (!en) return specialties.join(', ');
+  const labels: Record<string, string> = {
+    'Cardiología': 'Cardiology',
+    'Medicina General': 'General Medicine',
+    'Pediatría': 'Pediatrics',
+    'Dermatología': 'Dermatology',
+    'Psicología': 'Psychology',
+    'Neurología': 'Neurology',
+    'Ortopedia': 'Orthopedics',
+  };
+  return specialties.map((specialty: string) => labels[specialty] || specialty).join(', ');
 }
 
 function CancelModal({

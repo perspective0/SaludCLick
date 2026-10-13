@@ -1,17 +1,22 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import PatientShell from '@/components/PatientShell';
 import { patientAPI } from '@/utils/api';
 import { dominicanHealthInsurers } from '@/utils/dominicanInsurance';
-import { AlertTriangle, CheckCircle2, Phone, Save, ShieldCheck, UserRound } from 'lucide-react';
+import { dominicanLocations } from '@/utils/dominicanLocations';
+import { dominicanBarrios } from '@/utils/dominicanBarrios';
+import { AlertTriangle, CheckCircle2, MapPin, Phone, Save, Search, ShieldCheck, UserRound } from 'lucide-react';
 
 export default function PatientProfilePage() {
   const [profile, setProfile] = useState<any>(null);
   const [form, setForm] = useState({
     phone: '',
     address: '',
+    sector: '',
+    municipality: '',
+    province: '',
     dateOfBirth: '',
     documentNumber: '',
     emergencyContact: '',
@@ -25,6 +30,7 @@ export default function PatientProfilePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [locationLoading, setLocationLoading] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -38,6 +44,9 @@ export default function PatientProfilePage() {
       setForm({
         phone: response.data.phone || '',
         address: response.data.address || '',
+        sector: response.data.sector || '',
+        municipality: response.data.municipality || '',
+        province: response.data.province || '',
         dateOfBirth: response.data.date_of_birth ? String(response.data.date_of_birth).slice(0, 10) : '',
         documentNumber: response.data.document_number || '',
         emergencyContact: response.data.emergency_contact || '',
@@ -129,7 +138,53 @@ export default function PatientProfilePage() {
                 <Field label="Cédula" value={form.documentNumber} onChange={(value) => setForm({ ...form, documentNumber: value })} placeholder="000-0000000-0" />
                 <Field label="Fecha nacimiento" value={form.dateOfBirth} onChange={(value) => setForm({ ...form, dateOfBirth: value })} type="date" />
                 <div className="md:col-span-2">
-                  <Field label="Dirección" value={form.address} onChange={(value) => setForm({ ...form, address: value })} />
+                  <LocationPicker
+                    sector={form.sector}
+                    municipality={form.municipality}
+                    province={form.province}
+                    onChange={(location) => setForm({ ...form, ...location })}
+                    onUseLocation={async () => {
+                      if (!navigator.geolocation) {
+                        setError('Tu navegador no permite obtener la ubicación.');
+                        return;
+                      }
+                      if (!window.isSecureContext && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+                        setError('El navegador solo permite la ubicación usando HTTPS o desde localhost.');
+                        return;
+                      }
+                      setLocationLoading(true);
+                      setError('');
+                      setSuccess('Solicitando permiso para acceder a tu ubicación...');
+                      navigator.geolocation.getCurrentPosition(async (position) => {
+                        try {
+                          const response = await patientAPI.reverseGeocode(position.coords.latitude, position.coords.longitude);
+                          const location = response.data || {};
+                          if (!location.municipality && !location.province) {
+                            throw new Error('La ubicación fue detectada, pero no pudimos asociarla a un municipio. Selecciónalo manualmente.');
+                          }
+                          setForm((current) => ({ ...current, ...location }));
+                          setSuccess(location.sector
+                            ? 'Ubicación identificada. Revisa los datos y guarda tu perfil.'
+                            : 'Municipio y provincia identificados. Selecciona o escribe tu sector y guarda tu perfil.');
+                        } catch (err: any) {
+                          setError(err?.message || 'No se pudo identificar tu ubicación.');
+                          setSuccess('');
+                        } finally {
+                          setLocationLoading(false);
+                        }
+                      }, (positionError) => {
+                        const message = positionError.code === 1
+                          ? 'Permiso de ubicación denegado. Actívalo en el candado de la barra del navegador y vuelve a intentarlo.'
+                          : positionError.code === 2
+                            ? 'No se pudo detectar tu ubicación. Verifica que el GPS o la ubicación del dispositivo estén activos.'
+                            : 'La solicitud de ubicación tardó demasiado. Inténtalo nuevamente.';
+                        setError(message);
+                        setSuccess('');
+                        setLocationLoading(false);
+                      }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 });
+                    }}
+                    locationLoading={locationLoading}
+                  />
                 </div>
                 <div className="md:col-span-2 rounded-2xl border border-gray-200 bg-gray-50 p-4">
                   <label className="flex items-center justify-between gap-3">
@@ -244,6 +299,118 @@ export default function PatientProfilePage() {
       </PatientShell>
     </ProtectedRoute>
   );
+}
+
+function LocationPicker({
+  sector,
+  municipality,
+  province,
+  onChange,
+  onUseLocation,
+  locationLoading,
+}: {
+  sector: string;
+  municipality: string;
+  province: string;
+  onChange: (location: { sector: string; municipality: string; province: string }) => void;
+  onUseLocation: () => void;
+  locationLoading: boolean;
+}) {
+  const [search, setSearch] = useState('');
+  const locations = useMemo(() => [
+    ...dominicanLocations,
+    ...dominicanBarrios.flatMap((group) => group.sectors.map((sector) => ({
+      sector,
+      municipality: findCatalogValue(group.municipality, 'municipality') || group.municipality,
+      province: findCatalogValue(group.province, 'province') || group.province,
+    }))),
+  ], []);
+
+  const results = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return [];
+    return locations
+      .filter((location) => [location.sector, location.municipality, location.province].some((value) => value.toLowerCase().includes(term)))
+      .filter((location, index, list) => list.findIndex((item) => item.sector === location.sector && item.municipality === location.municipality && item.province === location.province) === index)
+      .slice(0, 50);
+  }, [locations, search]);
+
+  const selected = municipality && province;
+
+  return (
+    <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4">
+      <div className="flex items-start gap-3">
+        <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-blue-600" />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-bold text-gray-900">Ubicación de residencia</p>
+          <p className="mt-1 text-sm text-gray-600">Selecciona tu sector, municipio y provincia.</p>
+          <button type="button" onClick={onUseLocation} disabled={locationLoading} className="mt-3 inline-flex h-9 items-center gap-2 rounded-lg border border-blue-200 bg-white px-3 text-xs font-bold text-blue-700 hover:bg-blue-50 disabled:opacity-60">
+            <MapPin className="h-4 w-4" />
+            {locationLoading ? 'Identificando ubicación...' : 'Usar mi ubicación'}
+          </button>
+          <div className="relative mt-3">
+            <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            <input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Busca un sector o municipio, por ejemplo Fantino"
+              className="h-11 w-full rounded-xl border border-gray-200 bg-white pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {results.length > 0 && (
+              <div className="absolute z-20 mt-2 max-h-64 w-full overflow-auto rounded-xl border border-gray-200 bg-white p-1 shadow-lg">
+                {results.map((location) => (
+                  <button
+                    type="button"
+                    key={`${location.sector}-${location.municipality}-${location.province}`}
+                    onClick={() => {
+                      onChange(location);
+                      setSearch('');
+                    }}
+                    className="block w-full rounded-lg px-3 py-2 text-left hover:bg-blue-50"
+                  >
+                    <span className="block text-sm font-bold text-gray-900">{location.sector || location.municipality}</span>
+                    <span className="block text-xs text-gray-500">{location.municipality} · {location.province}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          {selected ? (
+            <div className="mt-3 grid gap-2 text-sm sm:grid-cols-3">
+              <label className="rounded-lg bg-white px-3 py-2">
+                <span className="block text-[11px] font-semibold uppercase text-gray-400">Sector</span>
+                <input
+                  value={sector}
+                  onChange={(event) => onChange({ sector: event.target.value, municipality, province })}
+                  placeholder="Escribe tu sector"
+                  className="mt-1 w-full border-0 p-0 text-sm font-bold text-gray-800 outline-none placeholder:font-normal placeholder:text-gray-400"
+                />
+              </label>
+              <LocationValue label="Municipio" value={municipality} />
+              <LocationValue label="Provincia" value={province} />
+            </div>
+          ) : (
+            <p className="mt-3 text-xs font-semibold text-amber-700">Selecciona una ubicación para completar estos datos.</p>
+          )}
+          <p className="mt-3 text-[11px] text-gray-500">Búsqueda local y ubicación aproximada mediante OpenStreetMap.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function findCatalogValue(value: string, field: 'municipality' | 'province') {
+  const normalized = normalizeLocationText(value);
+  if (field === 'province' && normalized === 'baoruco') return 'Baoruco (Bahoruco)';
+  return dominicanLocations.find((location) => normalizeLocationText(location[field]) === normalized)?.[field] || '';
+}
+
+function normalizeLocationText(value: string) {
+  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+}
+
+function LocationValue({ label, value }: { label: string; value: string }) {
+  return <div className="rounded-lg bg-white px-3 py-2"><span className="block text-[11px] font-semibold uppercase text-gray-400">{label}</span><span className="font-bold text-gray-800">{value}</span></div>;
 }
 
 function Field({ label, value, onChange, type = 'text', placeholder = '' }: { label: string; value: string; onChange: (value: string) => void; type?: string; placeholder?: string }) {

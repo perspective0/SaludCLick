@@ -459,6 +459,10 @@ export const patientAPI = {
     apiRequest('/patient/profile', {
     }),
 
+  reverseGeocode: (latitude: number, longitude: number) =>
+    apiRequest(`/patient/location/reverse?lat=${encodeURIComponent(latitude)}&lon=${encodeURIComponent(longitude)}`, {
+    }),
+
   updateProfile: (data: any) =>
     apiRequest('/patient/profile', {
       method: 'PUT',

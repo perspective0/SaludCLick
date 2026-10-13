@@ -283,15 +283,15 @@ export async function notifyUser(userId: string, payload: NotifyPayload) {
   const inserted = await queryOne(
     `INSERT INTO notifications
       (user_id, role, type, title, body, message, url, entity_type, entity_id, priority, channel, scheduled_for, sent_at, status)
-     SELECT $1,$2,$3,$4,$5,$5,$6,$7,$8,$9,$10,$11,CURRENT_TIMESTAMP,'unread'
+     SELECT $1::uuid,$2::varchar,$3::varchar,$4::varchar,$5::text,$5::text,$6::text,$7::varchar,$8::uuid,$9::varchar,$10::varchar,$11::timestamp,CURRENT_TIMESTAMP,'unread'
      WHERE NOT EXISTS (
        SELECT 1 FROM notifications
-       WHERE user_id = $1
-         AND COALESCE(entity_type, '') = COALESCE($7, '')
-         AND entity_id IS NOT DISTINCT FROM $8
+       WHERE user_id = $1::uuid
+         AND COALESCE(entity_type, '') = COALESCE($7::varchar, '')
+         AND entity_id IS NOT DISTINCT FROM $8::uuid
          AND (
            COALESCE($7::text, '') IN ('appointment_24h', 'appointment_2h')
-           OR (title = $4 AND created_at > NOW() - INTERVAL '10 minutes')
+           OR (title = $4::varchar AND created_at > NOW() - INTERVAL '10 minutes')
          )
      )
      RETURNING *`,

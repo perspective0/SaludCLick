@@ -1,5 +1,5 @@
 self.addEventListener('install', (event) => {
-  const cacheName = 'saludclick-pwa-v1';
+  const cacheName = 'saludclick-pwa-v2';
   const appShell = [
     '/offline',
     '/manifest.webmanifest',
@@ -10,15 +10,28 @@ self.addEventListener('install', (event) => {
   ];
 
   event.waitUntil(
-    caches.open(cacheName).then((cache) =>
-      Promise.allSettled(appShell.map((url) => cache.add(url)))
-    )
+    caches.open(cacheName).then(async (cache) => {
+      await Promise.allSettled(appShell.map((url) => cache.add(url)));
+
+      // Cache the hashed Next.js assets referenced by the offline document.
+      // Without these files the fallback loads as unstyled HTML offline.
+      try {
+        const response = await fetch('/offline', { cache: 'no-store' });
+        const html = await response.text();
+        const assets = [...html.matchAll(/(?:href|src)="([^"]+)"/g)]
+          .map((match) => match[1])
+          .filter((url) => url.startsWith('/_next/static/'));
+        await Promise.allSettled(assets.map((url) => cache.add(url)));
+      } catch (_) {
+        // Keep the cached HTML available even if asset discovery fails.
+      }
+    })
   );
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-  const currentCache = 'saludclick-pwa-v1';
+  const currentCache = 'saludclick-pwa-v2';
 
   event.waitUntil(
     Promise.all([
@@ -75,7 +88,7 @@ self.addEventListener('fetch', (event) => {
 
         const responseToCache = networkResponse.clone();
         caches
-          .open('saludclick-pwa-v1')
+          .open('saludclick-pwa-v2')
           .then((cache) => cache.put(request, responseToCache));
 
         return networkResponse;

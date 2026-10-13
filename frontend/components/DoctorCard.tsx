@@ -16,6 +16,7 @@ interface DoctorCardProps {
   yearsExperience: number | string | null;
   recommendedByLocation?: boolean;
   distanceKm?: number | null;
+  en?: boolean;
 }
 
 export default function DoctorCard({
@@ -30,6 +31,7 @@ export default function DoctorCard({
   yearsExperience,
   recommendedByLocation = false,
   distanceKm = null,
+  en = false,
 }: DoctorCardProps) {
   const normalizedRating = Number(rating);
   const displayRating = Number.isFinite(normalizedRating) ? normalizedRating.toFixed(1) : 'N/A';
@@ -39,7 +41,7 @@ export default function DoctorCard({
   const displayExperience = Number.isFinite(normalizedExperience) ? normalizedExperience : 0;
   const displayHealthCenter = healthCenters.length
     ? healthCenters
-        .map((center) => `${center.name || 'Centro asignado'}${center.city ? ` - ${center.city}` : ''}`)
+        .map((center) => `${center.name || (en ? 'Assigned center' : 'Centro asignado')}${center.city ? ` - ${center.city}` : ''}`)
         .join(', ')
     : healthCenter;
 
@@ -69,7 +71,7 @@ export default function DoctorCard({
         </span>
         {recommendedByLocation && (
           <span className="absolute bottom-3 left-3 rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white shadow-sm">
-            {distanceKm !== null ? `A ${distanceKm} km aprox.` : 'Cerca de ti'}
+            {distanceKm !== null ? (en ? `About ${distanceKm} km away` : `A ${distanceKm} km aprox.`) : (en ? 'Near you' : 'Cerca de ti')}
           </span>
         )}
       </div>
@@ -77,12 +79,12 @@ export default function DoctorCard({
       <h3 className="text-lg font-bold text-gray-950">{name}</h3>
       <p className="mt-1 flex items-center gap-1.5 text-xs text-gray-500">
         <MapPin className="h-3.5 w-3.5" />
-        {displayHealthCenter || 'Centro no asignado'}
+        {displayHealthCenter || (en ? 'No center assigned' : 'Centro no asignado')}
       </p>
 
       <div className="my-4 flex justify-between rounded-xl bg-gray-50 px-3 py-3 text-sm">
         <span className="text-yellow-500">⭐ {displayRating}</span>
-        <span className="text-gray-600">{displayExperience} años</span>
+        <span className="text-gray-600">{displayExperience} {en ? 'years' : 'años'}</span>
       </div>
 
       <div className="flex items-center justify-between gap-3">
@@ -94,11 +96,11 @@ export default function DoctorCard({
           className="inline-flex h-10 items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
         >
           <CalendarCheck className="h-4 w-4" />
-          Agendar
+          {en ? 'Book appointment' : 'Agendar'}
         </Link>
       </div>
       <Link href={registerPath} className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50">
-        Crear cuenta para reservar
+        {en ? 'Create an account to book' : 'Crear cuenta para reservar'}
       </Link>
     </article>
   );

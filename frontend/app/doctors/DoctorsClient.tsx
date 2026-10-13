@@ -8,9 +8,12 @@ import { doctorAPI, patientAPI } from '@/utils/api';
 import { formatDoctorName } from '@/utils/names';
 import DoctorCard from '@/components/DoctorCard';
 import PatientShell from '@/components/PatientShell';
+import { useI18n } from '@/i18n';
 import { ArrowLeft, Building2, MapPin, Search, SlidersHorizontal, Sparkles, Stethoscope, Video } from 'lucide-react';
 
 export default function DoctorsClient({ initialDoctors = [] }: { initialDoctors?: any[] }) {
+  const { locale } = useI18n();
+  const en = locale === 'en';
   const router = useRouter();
   const [doctors, setDoctors] = useState<any[]>(initialDoctors);
   const [loading, setLoading] = useState(initialDoctors.length === 0);
@@ -159,7 +162,7 @@ export default function DoctorsClient({ initialDoctors = [] }: { initialDoctors?
             className="inline-flex h-10 items-center gap-2 rounded-xl border border-white/70 bg-white/80 px-4 text-sm font-semibold text-gray-700 shadow-sm backdrop-blur hover:bg-white"
           >
             <ArrowLeft className="h-4 w-4" />
-            Volver
+            {en ? 'Back' : 'Volver'}
           </button>
         </header>
         )}
@@ -169,18 +172,18 @@ export default function DoctorsClient({ initialDoctors = [] }: { initialDoctors?
             <div>
               <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm text-cyan-100">
                 <Sparkles className="h-4 w-4" />
-                Profesionales verificados
+                {en ? 'Verified professionals' : 'Profesionales verificados'}
               </div>
               <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-white drop-shadow-[0_3px_18px_rgba(125,211,252,0.4)] md:text-5xl">
-                Encuentra el médico ideal para tu próxima consulta
+                {en ? 'Find the right doctor for your next visit' : 'Encuentra el médico ideal para tu próxima consulta'}
               </h1>
               <p className="mt-4 max-w-2xl text-base font-medium text-cyan-50">
-                Filtra por especialidad, centro médico o teleconsulta y agenda con el profesional que encaje contigo.
+                {en ? 'Filter by specialty, medical center or telehealth and book with the professional who fits your needs.' : 'Filtra por especialidad, centro médico o teleconsulta y agenda con el profesional que encaje contigo.'}
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <HeroStat label="Médicos" value={doctors.length || 0} icon={Stethoscope} />
-              <HeroStat label="Teleconsulta" value={doctors.filter((doctor) => doctor.teleconsultation_enabled).length} icon={Video} />
+              <HeroStat label={en ? 'Doctors' : 'Médicos'} value={doctors.length || 0} icon={Stethoscope} />
+              <HeroStat label={en ? 'Telehealth' : 'Teleconsulta'} value={doctors.filter((doctor) => doctor.teleconsultation_enabled).length} icon={Video} />
             </div>
           </div>
         </section>
@@ -192,7 +195,7 @@ export default function DoctorsClient({ initialDoctors = [] }: { initialDoctors?
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Buscar por médico, especialidad o centro..."
+                placeholder={en ? 'Search by doctor, specialty or center...' : 'Buscar por médico, especialidad o centro...'}
                 className="h-11 w-full rounded-xl border border-gray-200 bg-white pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -204,9 +207,9 @@ export default function DoctorsClient({ initialDoctors = [] }: { initialDoctors?
               }}
               className="h-11 rounded-xl border border-gray-200 bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">Todas las especialidades</option>
+              <option value="">{en ? 'All specialties' : 'Todas las especialidades'}</option>
               {specialties.map((spec) => (
-                <option key={spec} value={spec}>{spec}</option>
+                <option key={spec} value={spec}>{translateSpecialty(spec, en)}</option>
               ))}
             </select>
             <select
@@ -217,7 +220,7 @@ export default function DoctorsClient({ initialDoctors = [] }: { initialDoctors?
               }}
               className="h-11 rounded-xl border border-gray-200 bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">Todos los centros</option>
+              <option value="">{en ? 'All centers' : 'Todos los centros'}</option>
               {healthCenters.map((center) => (
                 <option key={center.id} value={center.id}>{center.name}</option>
               ))}
@@ -229,7 +232,7 @@ export default function DoctorsClient({ initialDoctors = [] }: { initialDoctors?
               }`}
             >
               <SlidersHorizontal className="h-4 w-4" />
-              Teleconsulta
+              {en ? 'Telehealth' : 'Teleconsulta'}
             </button>
           </div>
           <div className="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-[1fr_auto]">
@@ -238,7 +241,7 @@ export default function DoctorsClient({ initialDoctors = [] }: { initialDoctors?
               <input
                 value={location}
                 onChange={(event) => setLocation(event.target.value)}
-                placeholder="Escribe tu pueblo o ciudad, no la dirección completa"
+                placeholder={en ? 'Enter your town or city, not the full address' : 'Escribe tu pueblo o ciudad, no la dirección completa'}
                 className="h-11 w-full rounded-xl border border-gray-200 bg-white pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -249,15 +252,15 @@ export default function DoctorsClient({ initialDoctors = [] }: { initialDoctors?
               }`}
             >
               <MapPin className="h-4 w-4" />
-              Recomendar por ubicación
+              {en ? 'Recommend by location' : 'Recomendar por ubicación'}
             </button>
           </div>
           {recommendByLocation && location && (
             <div className="mt-3 flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800">
               <Building2 className="h-4 w-4" />
               {recognizedLocation && recommendedCount
-                ? `${recommendedCount} médicos ordenados por cercanía aproximada a ${location}`
-                : `Usa solo el pueblo o ciudad, por ejemplo: Santiago, Moca, Baní o Santo Domingo.`}
+                ? (en ? `${recommendedCount} doctors sorted by approximate distance from ${location}` : `${recommendedCount} médicos ordenados por cercanía aproximada a ${location}`)
+                : (en ? 'Use only the town or city, for example: Santiago, Moca, Baní or Santo Domingo.' : 'Usa solo el pueblo o ciudad, por ejemplo: Santiago, Moca, Baní o Santo Domingo.')}
             </div>
           )}
         </section>
@@ -273,7 +276,7 @@ export default function DoctorsClient({ initialDoctors = [] }: { initialDoctors?
                 key={doctor.id}
                 id={doctor.id}
                 name={formatDoctorName(doctor.first_name, doctor.last_name)}
-                specialty={doctor.specialties?.[0] || 'Especialidad'}
+                specialty={translateSpecialty(doctor.specialties?.[0] || 'Especialidad', en)}
                 healthCenter={doctor.health_center_name}
                 healthCenters={doctor.health_centers || doctor.healthCenters || []}
                 image={doctor.avatar}
@@ -282,16 +285,17 @@ export default function DoctorsClient({ initialDoctors = [] }: { initialDoctors?
                 yearsExperience={doctor.years_experience || 5}
                 recommendedByLocation={doctor.recommendedByLocation}
                 distanceKm={doctor.distanceKm}
+                en={en}
               />
             ))}
           </div>
         ) : (
           <div className="rounded-2xl border border-white/70 bg-white/85 p-12 text-center shadow-lg backdrop-blur">
             <Stethoscope className="mx-auto mb-4 h-12 w-12 text-gray-300" />
-            <p className="font-semibold text-gray-800">No se encontraron médicos</p>
-            <p className="mt-1 text-sm text-gray-500">Cambia los filtros o vuelve a ver todo el listado.</p>
+            <p className="font-semibold text-gray-800">{en ? 'No doctors found' : 'No se encontraron médicos'}</p>
+            <p className="mt-1 text-sm text-gray-500">{en ? 'Change the filters or view the full list again.' : 'Cambia los filtros o vuelve a ver todo el listado.'}</p>
             <Link href="/doctors" className="mt-5 inline-flex h-10 items-center rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white">
-              Ver todos los médicos
+              {en ? 'View all doctors' : 'Ver todos los médicos'}
             </Link>
           </div>
         )}
@@ -301,7 +305,7 @@ export default function DoctorsClient({ initialDoctors = [] }: { initialDoctors?
 
   if (user?.role === 'patient') {
     return (
-      <PatientShell title="Médicos" subtitle="Encuentra profesionales y agenda tu próxima consulta">
+      <PatientShell title={en ? 'Doctors' : 'Médicos'} subtitle={en ? 'Find professionals and book your next visit' : 'Encuentra profesionales y agenda tu próxima consulta'}>
         <div className="-mx-4 -my-6 md:-mx-8">{content}</div>
       </PatientShell>
     );
@@ -318,6 +322,20 @@ function HeroStat({ label, value, icon: Icon }: { label: string; value: number; 
       <p className="text-xs text-gray-300">{label}</p>
     </div>
   );
+}
+
+function translateSpecialty(specialty: string, en: boolean) {
+  if (!en) return specialty;
+  const labels: Record<string, string> = {
+    'Cardiología': 'Cardiology',
+    'Medicina General': 'General Medicine',
+    'Pediatría': 'Pediatrics',
+    'Dermatología': 'Dermatology',
+    'Psicología': 'Psychology',
+    'Neurología': 'Neurology',
+    'Especialidad': 'Specialty',
+  };
+  return labels[specialty] || specialty;
 }
 
 function DoctorSkeleton() {
