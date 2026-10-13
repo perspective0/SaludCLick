@@ -150,16 +150,14 @@ function LoginContent() {
 
         <div className="relative z-10 flex flex-col justify-center text-white max-w-md">
           <Link href="/" className="mb-12">
-            <span className="inline-flex rounded-2xl bg-white px-4 py-3 shadow-lg shadow-blue-950/10">
-              <Image
-                src="/saludclick.png"
-                alt="SaludClick"
-                width={220}
-                height={100}
-                priority
-                className="h-16 w-auto"
-              />
-            </span>
+            <Image
+              src="/saludclick.png"
+              alt="SaludClick"
+              width={220}
+              height={100}
+              priority
+              className="block h-16 w-auto brightness-0 invert"
+            />
           </Link>
 
           <h1 className="text-4xl font-bold mb-6">
