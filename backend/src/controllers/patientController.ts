@@ -16,7 +16,7 @@ function normalizeDate(value: any) {
 }
 
 function buildProfileCompleteness(profile: any) {
-  const fields = ['phone', 'date_of_birth', 'address', 'document_number', 'emergency_contact', 'emergency_phone'];
+  const fields = ['phone', 'date_of_birth', 'sector', 'municipality', 'province', 'document_number', 'emergency_contact', 'emergency_phone'];
   const insuranceFields = profile?.has_insurance ? ['insurance_provider', 'insurance_number'] : [];
   const requiredFields = [...fields, ...insuranceFields];
   const completed = requiredFields.filter((field) => Boolean(profile?.[field])).length;
@@ -42,6 +42,9 @@ async function ensurePatientProfileColumns() {
   await query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS insurance_number VARCHAR(255)');
   await query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS whatsapp_reminders_enabled BOOLEAN NOT NULL DEFAULT false');
   await query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS whatsapp_consent_at TIMESTAMPTZ');
+  await query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS sector VARCHAR(150)');
+  await query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS municipality VARCHAR(150)');
+  await query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS province VARCHAR(150)');
 }
 
 async function ensurePatientRow(id: string) {
@@ -76,7 +79,7 @@ export const getPatientDashboard = async (req: Request, res: Response) => {
     const profile = await queryOne(
       `SELECT u.id, u.first_name, u.last_name, u.email, u.phone,
               (u.google_subject IS NOT NULL) AS "isGoogleAccount",
-              p.date_of_birth, p.address,
+              p.date_of_birth, p.address, p.sector, p.municipality, p.province,
               p.document_number, p.emergency_contact, p.emergency_phone,
               p.has_insurance, p.insurance_provider, p.insurance_number,
               p.whatsapp_reminders_enabled, p.whatsapp_consent_at
@@ -229,6 +232,35 @@ export const getPatientAppointments = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Patient appointments error:', error);
     return fail(res, 500, 'Error loading patient appointments', error);
+  }
+};
+
+export const reverseGeocodePatientLocation = async (req: Request, res: Response) => {
+  const latitude = Number(req.query.lat);
+  const longitude = Number(req.query.lon);
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+    return fail(res, 400, 'Coordenadas inválidas');
+  }
+
+  try {
+    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1&accept-language=es`, {
+      headers: {
+        'User-Agent': 'SaludClick/1.0 (contacto@saludclick.com.do)',
+        Accept: 'application/json',
+      },
+    });
+    if (!response.ok) return fail(res, 502, 'No se pudo consultar la ubicación');
+
+    const result = await response.json() as { address?: Record<string, string> };
+    const address = result.address || {};
+    const municipality = address.municipality || address.city || address.town || address.village || address.county || '';
+    const province = address.province || address.state_district || address.state || '';
+    const sector = address.neighbourhood || address.suburb || address.quarter || address.city_district || '';
+
+    return ok(res, { sector, municipality, province, latitude, longitude });
+  } catch (error) {
+    console.error('Reverse geocoding error:', error);
+    return fail(res, 502, 'No se pudo identificar tu ubicación');
   }
 };
 
@@ -402,6 +434,7 @@ export const getPatientProfile = async (req: Request, res: Response) => {
     const profile = await queryOne(
       `SELECT u.id, u.first_name, u.last_name, u.email, u.phone, u.avatar,
               p.date_of_birth, p.gender, p.blood_type, p.address, p.city,
+              p.sector, p.municipality, p.province,
               p.document_number, p.emergency_contact, p.emergency_phone,
               p.has_insurance, p.insurance_provider, p.insurance_number,
               p.whatsapp_reminders_enabled, p.whatsapp_consent_at
@@ -439,6 +472,9 @@ export const updatePatientProfile = async (req: Request, res: Response) => {
     const {
       phone,
       address,
+      sector,
+      municipality,
+      province,
       dateOfBirth,
       documentNumber,
       emergencyContact,
@@ -456,7 +492,7 @@ export const updatePatientProfile = async (req: Request, res: Response) => {
     }
 
     const previous = await queryOne(
-      `SELECT u.phone, p.address, p.date_of_birth, p.document_number, p.emergency_contact, p.emergency_phone,
+      `SELECT u.phone, p.address, p.sector, p.municipality, p.province, p.date_of_birth, p.document_number, p.emergency_contact, p.emergency_phone,
               p.has_insurance, p.insurance_provider, p.insurance_number,
               p.whatsapp_reminders_enabled, p.whatsapp_consent_at
        FROM users u JOIN patients p ON p.id = u.id WHERE u.id = $1`,
@@ -469,23 +505,29 @@ export const updatePatientProfile = async (req: Request, res: Response) => {
       const result = await client.query(
         `UPDATE patients
          SET address = $1,
-             date_of_birth = $2,
-             document_number = $3,
-             emergency_contact = $4,
-             emergency_phone = $5,
-             has_insurance = $6,
-             insurance_provider = $7,
-             insurance_number = $8,
-             whatsapp_reminders_enabled = $9,
+             sector = $2,
+             municipality = $3,
+             province = $4,
+             date_of_birth = $5,
+             document_number = $6,
+             emergency_contact = $7,
+             emergency_phone = $8,
+             has_insurance = $9,
+             insurance_provider = $10,
+             insurance_number = $11,
+             whatsapp_reminders_enabled = $12,
              whatsapp_consent_at = CASE
-               WHEN $9 = true AND whatsapp_reminders_enabled = false THEN CURRENT_TIMESTAMP
-               WHEN $9 = false THEN NULL
+               WHEN $12 = true AND whatsapp_reminders_enabled = false THEN CURRENT_TIMESTAMP
+               WHEN $12 = false THEN NULL
                ELSE whatsapp_consent_at
              END
-         WHERE id = $10
+         WHERE id = $13
          RETURNING *`,
         [
           address || null,
+          sector || null,
+          municipality || null,
+          province || null,
           dateOfBirth || null,
           documentNumber || null,
           emergencyContact || null,

@@ -9,6 +9,7 @@ import {
   getPatientPrescriptions,
   getPatientProfile,
   updatePatientProfile,
+  reverseGeocodePatientLocation,
 } from '../controllers/patientController';
 
 const router = Router();
@@ -16,6 +17,7 @@ const router = Router();
 router.use(authMiddleware, roleMiddleware(['patient']));
 
 router.get('/dashboard', getPatientDashboard);
+router.get('/location/reverse', reverseGeocodePatientLocation);
 router.get('/appointments', getPatientAppointments);
 router.put('/appointments/:id/confirm', confirmPatientAppointment);
 router.get('/prescriptions', getPatientPrescriptions);

@@ -5,10 +5,14 @@ import Link from 'next/link';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { notificationAPI } from '@/utils/api';
 import { ArrowLeft, Bell, CheckCheck, Search, Trash2 } from 'lucide-react';
+import { useI18n } from '@/i18n';
+import { translateNotificationText } from '@/utils/notificationTranslations';
 
 type Filter = 'all' | 'unread' | 'appointment' | 'prescription' | 'clinical';
 
 export default function NotificationsPage() {
+  const { locale } = useI18n();
+  const en = locale === 'en';
   const [items, setItems] = useState<any[]>([]);
   const [filter, setFilter] = useState<Filter>('all');
   const [search, setSearch] = useState('');
@@ -75,16 +79,16 @@ export default function NotificationsPage() {
             <div className="flex items-start gap-3">
               <Link href={homeHref} className="mt-0.5 inline-flex h-10 items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 text-sm font-semibold text-gray-700 hover:bg-gray-50">
                 <ArrowLeft className="h-4 w-4" />
-                Volver
+                {en ? 'Back' : 'Volver'}
               </Link>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Notificaciones</h1>
-                <p className="mt-1 text-sm text-gray-500">Recordatorios, avisos de citas, recetas y alertas clínicas.</p>
+                <h1 className="text-3xl font-bold text-gray-900">{en ? 'Notifications' : 'Notificaciones'}</h1>
+                <p className="mt-1 text-sm text-gray-500">{en ? 'Reminders, appointment notices, prescriptions and clinical alerts.' : 'Recordatorios, avisos de citas, recetas y alertas clínicas.'}</p>
               </div>
             </div>
             <button onClick={markAll} className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700">
               <CheckCheck className="h-4 w-4" />
-              Marcar todo leído
+              {en ? 'Mark all as read' : 'Marcar todo leído'}
             </button>
           </div>
 
@@ -110,7 +114,7 @@ export default function NotificationsPage() {
                       filter === value ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                     }`}
                   >
-                    {label(value)}
+                    {label(value, en)}
                   </button>
                 ))}
               </div>
@@ -122,8 +126,8 @@ export default function NotificationsPage() {
               ) : filtered.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-12 text-center">
                   <Bell className="mx-auto mb-3 h-9 w-9 text-gray-300" />
-                  <p className="font-bold text-gray-800">No hay notificaciones para esta vista</p>
-                  <p className="mt-1 text-sm text-gray-500">Los recordatorios y avisos aparecerán aquí cuando se generen.</p>
+                  <p className="font-bold text-gray-800">{en ? 'No notifications for this view' : 'No hay notificaciones para esta vista'}</p>
+                  <p className="mt-1 text-sm text-gray-500">{en ? 'Reminders and notices will appear here when generated.' : 'Los recordatorios y avisos aparecerán aquí cuando se generen.'}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -132,14 +136,14 @@ export default function NotificationsPage() {
                       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                         <Link href={item.url || '#'} onClick={() => markOne(item.id)} className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-2">
-                            <h2 className="font-bold text-gray-900">{item.title}</h2>
-                            <Badge text={label(item.type)} />
-                            {item.priority === 'high' && <Badge text="Alta" tone="danger" />}
+                            <h2 className="font-bold text-gray-900">{translateNotificationText(item.title, en)}</h2>
+                            <Badge text={label(item.type, en)} />
+                            {item.priority === 'high' && <Badge text={en ? 'High' : 'Alta'} tone="danger" />}
                           </div>
-                          <p className="mt-1 text-sm text-gray-600">{item.message || item.body}</p>
-                          <p className="mt-2 text-xs text-gray-400">{formatDate(item.created_at)}</p>
+                          <p className="mt-1 text-sm text-gray-600">{translateNotificationText(item.message || item.body, en)}</p>
+                          <p className="mt-2 text-xs text-gray-400">{formatDate(item.created_at, en)}</p>
                         </Link>
-                        <button onClick={() => archive(item.id)} className="rounded-xl border border-gray-200 p-2 text-gray-500 hover:bg-gray-50" title="Archivar">
+                        <button onClick={() => archive(item.id)} className="rounded-xl border border-gray-200 p-2 text-gray-500 hover:bg-gray-50" title={en ? 'Archive' : 'Archivar'}>
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
@@ -159,18 +163,18 @@ function Badge({ text, tone = 'neutral' }: { text: string; tone?: 'neutral' | 'd
   return <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${tone === 'danger' ? 'bg-rose-100 text-rose-700' : 'bg-white text-gray-600'}`}>{text}</span>;
 }
 
-function label(value: string) {
+function label(value: string, en = false) {
   const labels: Record<string, string> = {
-    all: 'Todas',
-    unread: 'No leídas',
-    appointment: 'Citas',
-    prescription: 'Recetas',
-    clinical: 'Clínicas',
+    all: en ? 'All' : 'Todas',
+    unread: en ? 'Unread' : 'No leídas',
+    appointment: en ? 'Appointments' : 'Citas',
+    prescription: en ? 'Prescriptions' : 'Recetas',
+    clinical: en ? 'Clinical' : 'Clínicas',
     general: 'General',
   };
   return labels[value] || value;
 }
 
-function formatDate(value: string) {
-  return value ? new Date(value).toLocaleString('es-DO', { dateStyle: 'medium', timeStyle: 'short' }) : '';
+function formatDate(value: string, en = false) {
+  return value ? new Date(value).toLocaleString(en ? 'en-US' : 'es-DO', { dateStyle: 'medium', timeStyle: 'short' }) : '';
 }
