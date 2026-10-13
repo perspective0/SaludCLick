@@ -155,7 +155,7 @@ export default function PatientProfilePage() {
                       setLocationLoading(true);
                       setError('');
                       setSuccess('Solicitando permiso para acceder a tu ubicación...');
-                      navigator.geolocation.getCurrentPosition(async (position) => {
+                      const requestLocation = (useHighAccuracy = false) => navigator.geolocation.getCurrentPosition(async (position) => {
                         try {
                           const response = await patientAPI.reverseGeocode(position.coords.latitude, position.coords.longitude);
                           const location = response.data || {};
@@ -173,15 +173,25 @@ export default function PatientProfilePage() {
                           setLocationLoading(false);
                         }
                       }, (positionError) => {
+                        if (positionError.code === 3 && !useHighAccuracy) {
+                          setSuccess('La ubicación está tardando. Intentando una lectura más precisa...');
+                          requestLocation(true);
+                          return;
+                        }
                         const message = positionError.code === 1
                           ? 'Permiso de ubicación denegado. Actívalo en el candado de la barra del navegador y vuelve a intentarlo.'
                           : positionError.code === 2
                             ? 'No se pudo detectar tu ubicación. Verifica que el GPS o la ubicación del dispositivo estén activos.'
-                            : 'La solicitud de ubicación tardó demasiado. Inténtalo nuevamente.';
+                            : 'El dispositivo tardó en responder. Activa la ubicación/GPS y vuelve a intentarlo, o selecciona tu sector manualmente.';
                         setError(message);
                         setSuccess('');
                         setLocationLoading(false);
-                      }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 });
+                      }, {
+                        enableHighAccuracy: useHighAccuracy,
+                        timeout: useHighAccuracy ? 30000 : 20000,
+                        maximumAge: useHighAccuracy ? 0 : 600000,
+                      });
+                      requestLocation(false);
                     }}
                     locationLoading={locationLoading}
                   />
