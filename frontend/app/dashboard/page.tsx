@@ -9,17 +9,30 @@ import { useI18n } from '@/i18n';
 export default function DashboardPage() {
   const { locale } = useI18n();
   const en = locale === 'en';
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, setUser } = useAuthStore();
+  const [authHydrated, setAuthHydrated] = useState(false);
   const [appointments, setAppointments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) setUser(JSON.parse(storedUser));
+    } catch {
+      localStorage.removeItem('user');
+    } finally {
+      setAuthHydrated(true);
+    }
+  }, [setUser]);
+
+  useEffect(() => {
+    if (!authHydrated) return;
     if (!isAuthenticated) {
       window.location.href = '/login';
       return;
     }
     loadAppointments();
-  }, [isAuthenticated]);
+  }, [authHydrated, isAuthenticated]);
 
   const loadAppointments = async () => {
     try {
@@ -33,7 +46,7 @@ export default function DashboardPage() {
     }
   };
 
-  if (!isAuthenticated) {
+  if (!authHydrated || !isAuthenticated) {
     return null;
   }
 
