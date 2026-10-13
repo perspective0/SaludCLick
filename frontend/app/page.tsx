@@ -29,7 +29,7 @@ import {
 type Audience = 'paciente' | 'medico';
 
 export default function Home() {
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
   const [isScrolled, setIsScrolled] = useState(false);
   const [audience, setAudience] = useState<Audience>('paciente');
   const [pointer, setPointer] = useState({ x: 50, y: 50 });
@@ -317,7 +317,7 @@ export default function Home() {
             <div className="hidden items-center gap-4 text-sm font-semibold text-slate-600 lg:flex">
               <Link href="/about" className="hover:text-sky-700">Sobre nosotros</Link>
               <Link href="/faq" className="hover:text-sky-700">FAQ</Link>
-              <Link href="/contact" className="hover:text-sky-700">Contacto</Link>
+              <Link href="/contact" className="hover:text-sky-700">{t('contact')}</Link>
               <Link href="/developer" className="hover:text-sky-700">Desarrollador</Link>
             </div>
             <Link href="/login" className="rounded-lg bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-700 ring-1 ring-sky-100 transition hover:bg-sky-100 focus:outline-none focus:ring-2 focus:ring-sky-500">
@@ -332,7 +332,7 @@ export default function Home() {
         <div className="container-main flex gap-2 overflow-x-auto pb-3 text-sm font-semibold text-slate-600 lg:hidden">
           <Link href="/about" className="shrink-0 rounded-lg px-3 py-2 hover:bg-slate-100 hover:text-sky-700">Sobre nosotros</Link>
           <Link href="/faq" className="shrink-0 rounded-lg px-3 py-2 hover:bg-slate-100 hover:text-sky-700">FAQ</Link>
-          <Link href="/contact" className="shrink-0 rounded-lg px-3 py-2 hover:bg-slate-100 hover:text-sky-700">Contacto</Link>
+          <Link href="/contact" className="shrink-0 rounded-lg px-3 py-2 hover:bg-slate-100 hover:text-sky-700">{t('contact')}</Link>
           <Link href="/developer" className="shrink-0 rounded-lg px-3 py-2 hover:bg-slate-100 hover:text-sky-700">Desarrollador</Link>
         </div>
       </nav>
@@ -710,7 +710,7 @@ export default function Home() {
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
               <Link href="/privacy" className="transition hover:text-slate-200">Privacidad</Link>
               <Link href="/terms" className="transition hover:text-slate-200">Términos de uso</Link>
-              <Link href="/contact" className="inline-flex items-center gap-1 transition hover:text-slate-200"><HeartPulse className="h-3.5 w-3.5" /> Contacto</Link>
+              <Link href="/contact" className="inline-flex items-center gap-1 transition hover:text-slate-200"><HeartPulse className="h-3.5 w-3.5" /> {t('contact')}</Link>
             </div>
           </div>
         </div>
