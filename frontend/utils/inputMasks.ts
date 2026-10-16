@@ -3,8 +3,13 @@ export function digitsOnly(value: string) {
 }
 
 export function maskPhone(value: string) {
+  const text = String(value || '');
   const digits = digitsOnly(value);
-  const raw = (digits.length === 11 && digits.startsWith('1') ? digits.slice(1) : digits).slice(0, 10);
+  const hasVisibleCountryPrefix = /^\s*\+?1(?:\s|-|\(|$)/.test(text);
+  const localDigits = hasVisibleCountryPrefix || (digits.length === 11 && digits.startsWith('1'))
+    ? digits.slice(1)
+    : digits;
+  const raw = localDigits.slice(0, 10);
   if (!raw) return '';
   if (raw.length <= 3) return `+1 ${raw}`;
   if (raw.length <= 6) return `+1 ${raw.slice(0, 3)}-${raw.slice(3)}`;
