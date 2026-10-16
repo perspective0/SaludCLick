@@ -359,7 +359,7 @@ export default function DoctorDocumentsPage() {
                   {documents.map((document) => (
                     <button key={document.id} onClick={() => setSelectedDocument(document)} className={`w-full rounded-xl p-3 text-left transition ${selectedDocument?.id === document.id ? 'bg-blue-50 ring-2 ring-blue-200' : 'bg-gray-50 hover:bg-white'}`}>
                       <p className="text-sm font-semibold text-gray-900">{getTypeTitle(document.order_type)}</p>
-                      <p className="text-xs text-gray-500">{new Date(document.created_at).toLocaleDateString('es-DO')} · {document.status}</p>
+                      <p className="text-xs text-gray-500">{new Date(document.created_at).toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric' })} · {document.status}</p>
                       <p className="mt-1 text-[11px] font-semibold text-blue-700">{document.validation_code}</p>
                     </button>
                   ))}
@@ -402,7 +402,7 @@ export default function DoctorDocumentsPage() {
                       });
                     }} className="w-full h-11 rounded-xl border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                       <option value="">Sin registro asociado</option>
-                      {records.map((record) => <option key={record.id} value={record.id}>{record.diagnosis} - {new Date(record.created_at).toLocaleDateString('es-DO')}</option>)}
+                      {records.map((record) => <option key={record.id} value={record.id}>{record.diagnosis} - {new Date(record.created_at).toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric' })}</option>)}
                     </select>
                   </label>
 

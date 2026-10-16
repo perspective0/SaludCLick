@@ -445,11 +445,11 @@ export default function DoctorPaymentsPage() {
                             <div className="space-y-1">
                               <div className="flex items-center gap-2 text-sm">
                                 <span className="text-gray-500">Vence:</span>
-                                <span className="text-gray-900">{new Date(row.due_date).toLocaleDateString('es-DO')}</span>
+                                <span className="text-gray-900">{new Date(row.due_date).toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                               </div>
                               <div className="flex items-center gap-2 text-sm">
                                 <span className="text-gray-500">Margen:</span>
-                                <span className="text-gray-900">{new Date(row.grace_until).toLocaleDateString('es-DO')}</span>
+                                <span className="text-gray-900">{new Date(row.grace_until).toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                               </div>
                             </div>
                           </td>

@@ -329,7 +329,7 @@ function EmptyState({ en }: { en: boolean }) {
 }
 
 function formatDate(value: string, en = false) {
-  return value ? new Date(value).toLocaleDateString(en ? 'en-US' : 'es-DO', { day: '2-digit', month: 'short', year: 'numeric' }) : (en ? 'Date pending' : 'Fecha pendiente');
+  return value ? new Date(value).toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric' }) : (en ? 'Date pending' : 'Fecha pendiente');
 }
 
 function translateStatus(status: string, en = false) {

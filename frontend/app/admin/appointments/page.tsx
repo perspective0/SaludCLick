@@ -474,10 +474,9 @@ export default function AdminAppointmentsPage() {
                                 <Calendar className="w-4 h-4 text-gray-400" />
                                 <span className="font-medium text-gray-900">
                                   {new Date(appointment.appointment_date).toLocaleDateString('es-DO', {
-                                    weekday: 'short',
                                     year: 'numeric',
-                                    month: 'short',
-                                    day: 'numeric'
+                                    month: '2-digit',
+                                    day: '2-digit'
                                   })}
                                 </span>
                               </div>
@@ -638,10 +637,9 @@ export default function AdminAppointmentsPage() {
                     <p className="text-xs text-gray-500 mb-1">Fecha</p>
                     <p className="font-medium">
                       {new Date(selectedAppointment.appointment_date).toLocaleDateString('es-DO', {
-                        weekday: 'long',
                         year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
+                        month: '2-digit',
+                        day: '2-digit'
                       })}
                     </p>
                   </div>

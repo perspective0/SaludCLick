@@ -337,11 +337,10 @@ export default function AdminDashboardPage() {
                     {greeting}
                   </h1>
                   <p className="text-sm text-gray-500">
-                    {new Date().toLocaleDateString(en ? 'en-US' : 'es-DO', {
-                      weekday: 'long',
+                    {new Date().toLocaleDateString('es-DO', {
                       year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
+                      month: '2-digit',
+                      day: '2-digit'
                     })}
                   </p>
                 </div>

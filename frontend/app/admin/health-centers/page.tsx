@@ -493,7 +493,7 @@ export default function AdminHealthCentersPage() {
                           )}
                           <div className="flex items-center gap-2 text-sm text-gray-600">
                             <Calendar className="w-4 h-4 text-gray-400" />
-                            Creado: {new Date(center.created_at).toLocaleDateString('es-DO')}
+                            Creado: {new Date(center.created_at).toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                           </div>
                         </div>
 
@@ -634,10 +634,9 @@ export default function AdminHealthCentersPage() {
                     <p className="text-xs text-gray-500 mb-1">Fecha de Registro</p>
                     <p className="font-medium">
                       {new Date(selectedCenter.created_at).toLocaleDateString('es-DO', {
-                        weekday: 'long',
                         year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
+                        month: '2-digit',
+                        day: '2-digit'
                       })}
                     </p>
                   </div>
