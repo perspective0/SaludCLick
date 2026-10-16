@@ -78,9 +78,9 @@ export default function ManualPatientModal({
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Field label={en ? 'First name *' : 'Nombre *'} value={form.firstName} onChange={(value) => onChange({ ...form, firstName: value })} required />
             <Field label={en ? 'Last name *' : 'Apellido *'} value={form.lastName} onChange={(value) => onChange({ ...form, lastName: value })} required />
-            <Field label={en ? 'Phone' : 'Teléfono'} value={form.phone} onChange={(value) => onChange({ ...form, phone: maskPhone(value) })} />
+            <Field label={en ? 'Phone' : 'Teléfono'} value={form.phone} onChange={(value) => onChange({ ...form, phone: value })} mask={maskPhone} />
             <Field label={en ? 'Optional email' : 'Correo opcional'} type="email" value={form.email} onChange={(value) => onChange({ ...form, email: value })} />
-            <Field label={en ? 'Document / ID' : 'Documento / Cédula'} value={form.documentNumber} onChange={(value) => onChange({ ...form, documentNumber: maskDominicanId(value) })} />
+            <Field label={en ? 'Document / ID' : 'Documento / Cédula'} value={form.documentNumber} onChange={(value) => onChange({ ...form, documentNumber: value })} mask={maskDominicanId} maxLength={13} />
             <Field label={en ? 'Date of birth' : 'Fecha de nacimiento'} type="date" value={form.dateOfBirth} onChange={(value) => onChange({ ...form, dateOfBirth: value })} />
             <label>
               <span className="mb-1 block text-sm font-semibold text-gray-700">{en ? 'Gender' : 'Sexo'}</span>
@@ -146,14 +146,16 @@ export default function ManualPatientModal({
   );
 }
 
-function Field({ label, value, onChange, type = 'text', required = false }: { label: string; value: string; onChange: (value: string) => void; type?: string; required?: boolean }) {
+function Field({ label, value, onChange, type = 'text', required = false, mask, maxLength }: { label: string; value: string; onChange: (value: string) => void; type?: string; required?: boolean; mask?: (value: string) => string; maxLength?: number }) {
   return (
     <label>
       <span className="mb-1 block text-sm font-semibold text-gray-700">{label}</span>
       <input
         type={type}
         value={value}
-        onChange={(event) => onChange(event.target.value)}
+        maxLength={maxLength}
+        onChange={(event) => onChange(mask ? mask(event.target.value) : event.target.value)}
+        onBlur={(event) => { if (mask) onChange(mask(event.target.value)); }}
         required={required}
         className="h-11 w-full rounded-xl border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
       />

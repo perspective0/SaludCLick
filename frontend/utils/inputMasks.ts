@@ -3,11 +3,10 @@ export function digitsOnly(value: string) {
 }
 
 export function maskPhone(value: string) {
-  const raw = digitsOnly(value).slice(0, 11);
+  const raw = digitsOnly(value).slice(0, 10);
   if (raw.length <= 3) return raw;
   if (raw.length <= 6) return `${raw.slice(0, 3)}-${raw.slice(3)}`;
-  if (raw.length <= 10) return `${raw.slice(0, 3)}-${raw.slice(3, 6)}-${raw.slice(6)}`;
-  return `+${raw.slice(0, 1)} ${raw.slice(1, 4)}-${raw.slice(4, 7)}-${raw.slice(7)}`;
+  return `${raw.slice(0, 3)}-${raw.slice(3, 6)}-${raw.slice(6)}`;
 }
 
 export function maskDominicanId(value: string) {
