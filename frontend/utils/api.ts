@@ -186,6 +186,15 @@ export const doctorAPI = {
     });
   },
 
+  searchPatients: (id: string, q: string) =>
+    apiRequest(`/doctors/${id}/patients/search?q=${encodeURIComponent(q)}`),
+
+  associatePatient: (id: string, patientId: string) =>
+    apiRequest(`/doctors/${id}/patients/associate`, {
+      method: 'POST',
+      body: JSON.stringify({ patientId }),
+    }),
+
   createManualPatient: (id: string, data: any) =>
     apiRequest(`/doctors/${id}/patients`, {
       method: 'POST',

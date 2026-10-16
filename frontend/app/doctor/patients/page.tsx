@@ -75,6 +75,9 @@ export default function DoctorPatientsPage() {
   const [showManualForm, setShowManualForm] = useState(false);
   const [savingManualPatient, setSavingManualPatient] = useState(false);
   const [manualPatientForm, setManualPatientForm] = useState(emptyManualPatientForm);
+  const [patientSearchTerm, setPatientSearchTerm] = useState('');
+  const [patientSearchResults, setPatientSearchResults] = useState<any[]>([]);
+  const [searchingPatients, setSearchingPatients] = useState(false);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -129,7 +132,10 @@ export default function DoctorPatientsPage() {
     try {
       const response = await doctorAPI.createManualPatient(doctorId, manualPatientForm);
       const patient = response?.data;
-      setSuccess(en ? 'Patient registered successfully. You can now evaluate them and save their record.' : 'Paciente registrado correctamente. Ya puedes evaluarlo y guardar su expediente.');
+      const credentials = patient?.temporaryPassword
+        ? `${en ? ' Temporary access' : ' Acceso temporal'}: ${patient.email} / ${patient.temporaryPassword}`
+        : '';
+      setSuccess((en ? 'Patient registered successfully. You can now evaluate them and save their record.' : 'Paciente registrado correctamente. Ya puedes evaluarlo y guardar su expediente.') + credentials);
       setManualPatientForm(emptyManualPatientForm);
       setShowManualForm(false);
       await loadPatientWorkspace(doctorId);
@@ -140,6 +146,31 @@ export default function DoctorPatientsPage() {
       setError(err?.message || (en ? 'Could not register the patient.' : 'No se pudo registrar el paciente.'));
     } finally {
       setSavingManualPatient(false);
+    }
+  };
+
+  const searchExistingPatients = async () => {
+    if (!doctorId || patientSearchTerm.trim().length < 2) return;
+    setSearchingPatients(true);
+    try {
+      const response = await doctorAPI.searchPatients(doctorId, patientSearchTerm.trim());
+      setPatientSearchResults(response?.data || []);
+    } catch (err: any) {
+      setError(err?.message || (en ? 'Could not search patients.' : 'No se pudo buscar pacientes.'));
+    } finally {
+      setSearchingPatients(false);
+    }
+  };
+
+  const associateExistingPatient = async (patient: any) => {
+    if (!doctorId || patient.associated) return;
+    try {
+      await doctorAPI.associatePatient(doctorId, patient.id);
+      setSuccess(en ? 'Patient associated with your practice.' : 'Paciente asociado correctamente a tu consultorio.');
+      setPatientSearchResults((items) => items.map((item) => item.id === patient.id ? { ...item, associated: true } : item));
+      await loadPatientWorkspace(doctorId);
+    } catch (err: any) {
+      setError(err?.message || (en ? 'Could not associate patient.' : 'No se pudo asociar el paciente.'));
     }
   };
 
@@ -221,6 +252,12 @@ export default function DoctorPatientsPage() {
               onChange={setManualPatientForm}
               onClose={() => setShowManualForm(false)}
               onSubmit={saveManualPatient}
+              searchTerm={patientSearchTerm}
+              searchResults={patientSearchResults}
+              searching={searchingPatients}
+              onSearchTermChange={setPatientSearchTerm}
+              onSearch={searchExistingPatients}
+              onAssociate={associateExistingPatient}
             />
           )}
 

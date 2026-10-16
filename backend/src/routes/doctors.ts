@@ -2,7 +2,7 @@ import { Router } from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-import { createManualPatient, getDoctors, getDoctorById, updateDoctorProfile, getHealthCenters, getLaboratories, getDoctorPatients, uploadDoctorAvatar, uploadPrescriptionLogo, uploadPrescriptionSeal } from '../controllers/doctorController';
+import { createManualPatient, associateDoctorPatient, searchDoctorPatients, getDoctors, getDoctorById, updateDoctorProfile, getHealthCenters, getLaboratories, getDoctorPatients, uploadDoctorAvatar, uploadPrescriptionLogo, uploadPrescriptionSeal } from '../controllers/doctorController';
 import { authMiddleware, optionalAuthMiddleware, roleMiddleware } from '../middleware/auth';
 import { getSettings } from '../services/settingsService';
 
@@ -103,6 +103,8 @@ router.get('/laboratories/list', authMiddleware, roleMiddleware(['doctor', 'admi
  * Get doctor patients list
  */
 router.get('/:id/patients', authMiddleware, roleMiddleware(['doctor', 'admin', 'secretary']), getDoctorPatients);
+router.get('/:id/patients/search', authMiddleware, roleMiddleware(['doctor', 'admin', 'secretary']), searchDoctorPatients);
+router.post('/:id/patients/associate', authMiddleware, roleMiddleware(['doctor', 'secretary', 'admin']), associateDoctorPatient);
 router.post('/:id/patients', authMiddleware, roleMiddleware(['doctor', 'secretary', 'admin']), createManualPatient);
 
 /**
