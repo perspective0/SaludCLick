@@ -21,7 +21,7 @@ import {
   FileText,
   Building2
 } from 'lucide-react';
-import { maskDominicanId, maskInsuranceNumber, maskLicenseNumber, maskPhone } from '@/utils/inputMasks';
+import { maskDominicanId, maskInsuranceNumber, maskExequatur, maskPhone } from '@/utils/inputMasks';
 
 const especialidades = [
   'Medicina General',
@@ -121,7 +121,7 @@ function RegisterContent() {
       : name === 'documentNumber'
         ? maskDominicanId(value)
         : name === 'exequatur'
-          ? maskLicenseNumber(value)
+          ? maskExequatur(value)
         : name === 'insuranceNumber'
           ? maskInsuranceNumber(value)
           : value;

@@ -27,5 +27,9 @@ export function maskInsuranceNumber(value: string) {
 }
 
 export function maskLicenseNumber(value: string) {
-  return String(value || '').replace(/[^a-zA-Z0-9\-\/]/g, '').toUpperCase().slice(0, 40);
+  const raw = digitsOnly(value).slice(0, 5);
+  if (raw.length <= 3) return raw;
+  return `${raw.slice(0, 3)}-${raw.slice(3)}`;
 }
+
+export const maskExequatur = maskLicenseNumber;
