@@ -92,7 +92,7 @@ export default function ContactPage() {
             <div className="grid gap-4 md:grid-cols-2">
               <Field label={en ? 'Full name' : 'Nombre completo'} name="name" placeholder={en ? 'Your name' : 'Tu nombre'} required />
               <Field label={en ? 'Email address' : 'Correo electronico'} name="email" placeholder="correo@ejemplo.com" type="email" required />
-              <Field label={en ? 'Phone' : 'Telefono'} name="phone" placeholder="+1 809 000 0000" mask={maskPhone} />
+              <Field label={en ? 'Phone' : 'Telefono'} name="phone" placeholder="809-000-0000" mask={maskPhone} />
               <label>
                 <span className="mb-1 block text-sm font-semibold text-slate-700">{en ? 'Request type' : 'Tipo de consulta'}</span>
                 <select

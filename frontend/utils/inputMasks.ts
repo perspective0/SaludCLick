@@ -3,7 +3,8 @@ export function digitsOnly(value: string) {
 }
 
 export function maskPhone(value: string) {
-  const raw = digitsOnly(value).slice(0, 10);
+  const digits = digitsOnly(value);
+  const raw = (digits.length === 11 && digits.startsWith('1') ? digits.slice(1) : digits).slice(0, 10);
   if (raw.length <= 3) return raw;
   if (raw.length <= 6) return `${raw.slice(0, 3)}-${raw.slice(3)}`;
   return `${raw.slice(0, 3)}-${raw.slice(3, 6)}-${raw.slice(6)}`;
