@@ -603,7 +603,7 @@ export default function AdminUsersPage() {
                               )}
                             </td>
                             <td className="px-6 py-4 text-sm text-gray-500">
-                              {new Date(user.created_at).toLocaleDateString(en ? 'en-US' : 'es-DO')}
+                              {new Date(user.created_at).toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                             </td>
                             <td className="px-6 py-4">
                               <div className="flex items-center justify-end gap-2">

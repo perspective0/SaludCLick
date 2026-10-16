@@ -417,7 +417,7 @@ export default function DoctorPrescriptionsPage() {
                       className={`w-full rounded-xl p-3 text-left transition ${selectedPrescription?.id === prescription.id ? 'bg-blue-50 ring-2 ring-blue-200' : 'bg-gray-50 hover:bg-white'}`}
                     >
                       <p className="text-sm font-semibold text-gray-900">{formatMedications(prescription.medications)}</p>
-                      <p className="text-xs text-gray-500">{new Date(prescription.created_at).toLocaleDateString('es-DO')} · {prescription.status}</p>
+                      <p className="text-xs text-gray-500">{new Date(prescription.created_at).toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric' })} · {prescription.status}</p>
                       <p className="mt-1 text-[11px] font-semibold text-blue-700">{prescription.validation_code || 'Sin codigo'}</p>
                     </button>
                   ))}
@@ -445,7 +445,7 @@ export default function DoctorPrescriptionsPage() {
                   <span className="block text-sm font-semibold text-gray-700 mb-1">Registro medico asociado</span>
                   <select value={form.medicalRecordId} onChange={(event) => setForm({ ...form, medicalRecordId: event.target.value })} required className="w-full h-11 rounded-xl border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">Selecciona un registro</option>
-                    {records.map((record) => <option key={record.id} value={record.id}>{record.diagnosis} - {new Date(record.created_at).toLocaleDateString('es-DO')}</option>)}
+                    {records.map((record) => <option key={record.id} value={record.id}>{record.diagnosis} - {new Date(record.created_at).toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric' })}</option>)}
                   </select>
                 </label>
 

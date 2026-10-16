@@ -374,7 +374,7 @@ function getAge(birthDate?: string) {
 
 function formatRecordDate(value?: string) {
   if (!value) return 'Sin fecha';
-  return new Date(value).toLocaleDateString('es-DO');
+  return new Date(value).toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 function formatMedications(value: any) {

@@ -746,7 +746,7 @@ export default function SecretaryDashboardPage() {
                           <div className="min-w-0">
                             <p className="font-semibold truncate">{secretary.first_name} {secretary.last_name}</p>
                             <p className="text-sm text-gray-500 truncate">{secretary.email}</p>
-                            <p className="text-xs text-gray-400">Asignada: {new Date(secretary.assigned_at).toLocaleDateString()}</p>
+                            <p className="text-xs text-gray-400">Asignada: {new Date(secretary.assigned_at).toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
                           </div>
                           <div className="flex gap-2">
                             <button className="h-9 rounded-lg border border-gray-200 bg-white px-3 text-sm font-semibold" onClick={() => { setEditingId(secretary.id); setEditForm({ firstName: secretary.first_name, lastName: secretary.last_name, phone: maskPhone(secretary.phone || ''), doctorId: secretary.doctor_id || '' }); }}>Editar</button>

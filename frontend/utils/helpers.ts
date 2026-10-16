@@ -2,7 +2,11 @@
  * Format date to DD/MM/YYYY
  */
 export function formatDate(date: Date | string): string {
-  const d = new Date(date);
+  const value = String(date || '');
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(value)
+    ? new Date(`${value}T00:00:00`)
+    : new Date(date);
+  if (Number.isNaN(d.getTime())) return '';
   const day = String(d.getDate()).padStart(2, '0');
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const year = d.getFullYear();

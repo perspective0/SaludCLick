@@ -109,7 +109,7 @@ function Empty({ text }: { text: string }) {
 
 function formatRecordDate(value?: string, en = false) {
   if (!value) return en ? 'No date' : 'Sin fecha';
-  return new Date(value).toLocaleDateString(en ? 'en-US' : 'es-DO');
+  return new Date(value).toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 function formatMedications(value: any, en = false) {

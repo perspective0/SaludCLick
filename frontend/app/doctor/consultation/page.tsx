@@ -234,7 +234,7 @@ function DoctorConsultationContent() {
                       <span>{getAge(patient.birth_date)}</span>
                       <span>{en ? 'Gender' : 'Sexo'}: {patient.sex || (en ? 'Not available' : 'No disponible')}</span>
                       <span>{en ? 'Reason' : 'Motivo'}: {appointment?.reason_for_visit || soap.reasonForVisit || (en ? 'Not recorded' : 'No registrado')}</span>
-                      <span>{en ? 'Last visit' : 'Última consulta'}: {lastRecord?.created_at ? new Date(lastRecord.created_at).toLocaleDateString(en ? 'en-US' : 'es-DO') : (en ? 'No record' : 'Sin registro')}</span>
+                      <span>{en ? 'Last visit' : 'Última consulta'}: {lastRecord?.created_at ? new Date(lastRecord.created_at).toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric' }) : (en ? 'No record' : 'Sin registro')}</span>
                     </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">

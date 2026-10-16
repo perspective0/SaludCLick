@@ -482,7 +482,7 @@ function PatientHeader({ patient, lastRecord, nextAppointment, allergies }: { pa
           <div className="mt-2 flex flex-wrap gap-2 text-xs text-gray-300">
             <span>{getAge(patient.birth_date)}</span>
             <span>Sexo: {patient.sex || 'No disponible'}</span>
-            <span>Ultima consulta: {lastRecord?.created_at ? new Date(lastRecord.created_at).toLocaleDateString('es-DO') : 'Sin registro'}</span>
+            <span>Ultima consulta: {lastRecord?.created_at ? new Date(lastRecord.created_at).toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Sin registro'}</span>
             <span>Proxima cita: {nextAppointment ? formatDate(nextAppointment.appointment_date) : 'No agendada'}</span>
           </div>
         </div>
@@ -695,7 +695,7 @@ function dedupePatients(patients: any[]) {
 
 function formatSimpleDate(value?: string) {
   if (!value) return 'Sin fecha';
-  return new Date(value).toLocaleDateString('es-DO');
+  return new Date(value).toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 function formatMedications(value: any) {

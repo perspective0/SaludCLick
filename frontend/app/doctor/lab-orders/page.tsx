@@ -335,7 +335,7 @@ export default function DoctorLabOrdersPage() {
                   {orders.map((order) => (
                     <button key={order.id} onClick={() => setSelectedOrder(order)} className={`w-full rounded-xl p-3 text-left transition ${selectedOrder?.id === order.id ? 'bg-blue-50 ring-2 ring-blue-200' : 'bg-gray-50 hover:bg-white'}`}>
                       <p className="text-sm font-semibold text-gray-900">{formatStudies(order.studies)}</p>
-                      <p className="text-xs text-gray-500">{new Date(order.created_at).toLocaleDateString('es-DO')} · {order.status}</p>
+                      <p className="text-xs text-gray-500">{new Date(order.created_at).toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric' })} · {order.status}</p>
                       <p className="mt-1 text-[11px] font-semibold text-blue-700">{order.validation_code}</p>
                     </button>
                   ))}
@@ -367,7 +367,7 @@ export default function DoctorLabOrdersPage() {
                       });
                     }} className="w-full h-11 rounded-xl border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                       <option value="">Sin registro asociado</option>
-                      {records.map((record) => <option key={record.id} value={record.id}>{record.diagnosis} - {new Date(record.created_at).toLocaleDateString('es-DO')}</option>)}
+                      {records.map((record) => <option key={record.id} value={record.id}>{record.diagnosis} - {new Date(record.created_at).toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric' })}</option>)}
                     </select>
                   </label>
                   <label>
