@@ -162,7 +162,7 @@ export default function AdminUsersPage() {
       email: user.email,
       firstName: user.first_name,
       lastName: user.last_name,
-      phone: user.phone || '',
+      phone: maskPhone(user.phone || ''),
       role: user.role,
       isActive: user.is_active,
     });

@@ -175,7 +175,7 @@ export default function AdminHealthCentersPage() {
       city: center.city || '',
       state: center.state || '',
       postal_code: center.postal_code || '',
-      phone: center.phone || '',
+      phone: maskPhone(center.phone || ''),
       email: center.email || '',
       image: center.image || '',
       description: center.description || '',

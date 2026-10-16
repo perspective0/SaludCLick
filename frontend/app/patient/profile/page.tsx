@@ -43,15 +43,15 @@ export default function PatientProfilePage() {
       const response = await patientAPI.profile();
       setProfile(response.data);
       setForm({
-        phone: response.data.phone || '',
+        phone: maskPhone(response.data.phone || ''),
         address: response.data.address || '',
         sector: response.data.sector || '',
         municipality: response.data.municipality || '',
         province: response.data.province || '',
         dateOfBirth: response.data.date_of_birth ? String(response.data.date_of_birth).slice(0, 10) : '',
-        documentNumber: response.data.document_number || '',
+        documentNumber: maskDominicanId(response.data.document_number || ''),
         emergencyContact: response.data.emergency_contact || '',
-        emergencyPhone: response.data.emergency_phone || '',
+        emergencyPhone: maskPhone(response.data.emergency_phone || ''),
         hasInsurance: Boolean(response.data.has_insurance || response.data.insurance_provider),
         insuranceProvider: response.data.insurance_provider || '',
         insuranceNumber: response.data.insurance_number || '',

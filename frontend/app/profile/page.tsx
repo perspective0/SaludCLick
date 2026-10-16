@@ -29,7 +29,7 @@ export default function ProfilePage() {
         setFormData({
           firstName: parsed.firstName || '',
           lastName: parsed.lastName || '',
-          phone: parsed.phone || '',
+          phone: maskPhone(parsed.phone || ''),
           email: parsed.email || '',
         });
       } catch (err) {

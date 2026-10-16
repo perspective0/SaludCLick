@@ -115,7 +115,7 @@ export default function AdminLaboratoriesPage() {
       city: lab.city || '',
       state: lab.state || '',
       postal_code: lab.postal_code || '',
-      phone: lab.phone || '',
+      phone: maskPhone(lab.phone || ''),
       email: lab.email || '',
       website: lab.website || '',
       image: lab.image || '',

@@ -171,7 +171,7 @@ export default function DoctorProfilePage() {
         newHealthCenterCity: '',
         newHealthCenterPhone: '',
         newHealthCenterEmail: '',
-        documentNumber: data?.document_number || '',
+        documentNumber: maskDominicanId(data?.document_number || ''),
         idFrontImage: '',
         idBackImage: '',
         exequaturImage: '',

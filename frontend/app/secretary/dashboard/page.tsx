@@ -396,7 +396,7 @@ export default function SecretaryDashboardPage() {
         email: secretary.email,
         firstName: secretary.first_name,
         lastName: secretary.last_name,
-        phone: secretary.phone || '',
+        phone: maskPhone(secretary.phone || ''),
         linkExisting: true,
       }, true);
     } catch (err: any) {
@@ -749,7 +749,7 @@ export default function SecretaryDashboardPage() {
                             <p className="text-xs text-gray-400">Asignada: {new Date(secretary.assigned_at).toLocaleDateString()}</p>
                           </div>
                           <div className="flex gap-2">
-                            <button className="h-9 rounded-lg border border-gray-200 bg-white px-3 text-sm font-semibold" onClick={() => { setEditingId(secretary.id); setEditForm({ firstName: secretary.first_name, lastName: secretary.last_name, phone: secretary.phone || '', doctorId: secretary.doctor_id || '' }); }}>Editar</button>
+                            <button className="h-9 rounded-lg border border-gray-200 bg-white px-3 text-sm font-semibold" onClick={() => { setEditingId(secretary.id); setEditForm({ firstName: secretary.first_name, lastName: secretary.last_name, phone: maskPhone(secretary.phone || ''), doctorId: secretary.doctor_id || '' }); }}>Editar</button>
                             <button className="inline-flex h-9 items-center gap-1 rounded-lg border border-rose-200 bg-white px-3 text-sm font-semibold text-rose-600" onClick={async () => {
                               if (!confirm('Quitar la asignacion de esta secretaria? La cuenta seguira existiendo.')) return;
                               try {

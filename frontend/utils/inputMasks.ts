@@ -5,9 +5,10 @@ export function digitsOnly(value: string) {
 export function maskPhone(value: string) {
   const digits = digitsOnly(value);
   const raw = (digits.length === 11 && digits.startsWith('1') ? digits.slice(1) : digits).slice(0, 10);
-  if (raw.length <= 3) return raw;
-  if (raw.length <= 6) return `${raw.slice(0, 3)}-${raw.slice(3)}`;
-  return `${raw.slice(0, 3)}-${raw.slice(3, 6)}-${raw.slice(6)}`;
+  if (!raw) return '';
+  if (raw.length <= 3) return `+1 ${raw}`;
+  if (raw.length <= 6) return `+1 ${raw.slice(0, 3)}-${raw.slice(3)}`;
+  return `+1 ${raw.slice(0, 3)}-${raw.slice(3, 6)}-${raw.slice(6)}`;
 }
 
 export function maskDominicanId(value: string) {

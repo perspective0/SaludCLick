@@ -45,7 +45,7 @@ export default function AdminSettingsPage() {
     siteName: 'SaludClick',
     siteDescription: 'Tu plataforma de salud digital',
     adminEmail: 'admin@saludclick.com',
-    supportPhone: '+1 829 386 1067',
+    supportPhone: '+1 829-386-1067',
     timezone: 'America/Santo_Domingo',
     language: 'es',
     dateFormat: 'DD/MM/YYYY',
