@@ -16,6 +16,9 @@ export const emptyManualPatientForm = {
   city: '',
   reasonForVisit: '',
   medicalHistory: '',
+  hasInsurance: false,
+  insuranceProvider: '',
+  insuranceNumber: '',
 };
 
 export type ManualPatientForm = typeof emptyManualPatientForm;
@@ -92,6 +95,14 @@ export default function ManualPatientModal({
               </select>
             </label>
             <Field label={en ? 'City' : 'Ciudad'} value={form.city} onChange={(value) => onChange({ ...form, city: value })} />
+            <label className="md:col-span-2 flex items-center gap-3 rounded-xl border border-gray-200 p-3">
+              <input type="checkbox" checked={form.hasInsurance} onChange={(event) => onChange({ ...form, hasInsurance: event.target.checked, insuranceProvider: event.target.checked ? form.insuranceProvider : '', insuranceNumber: event.target.checked ? form.insuranceNumber : '' })} className="h-4 w-4 rounded border-gray-300 text-blue-600" />
+              <span className="text-sm font-semibold text-gray-700">{en ? 'Patient has health insurance' : 'El paciente tiene seguro médico'}</span>
+            </label>
+            {form.hasInsurance && <>
+              <Field label={en ? 'Insurance provider' : 'Aseguradora'} value={form.insuranceProvider} onChange={(value) => onChange({ ...form, insuranceProvider: value })} />
+              <Field label={en ? 'Insurance / NSS number' : 'Número de seguro / NSS'} value={form.insuranceNumber} onChange={(value) => onChange({ ...form, insuranceNumber: value })} required />
+            </>}
             <label className="md:col-span-2">
               <span className="mb-1 block text-sm font-semibold text-gray-700">{en ? 'Address' : 'Dirección'}</span>
               <input

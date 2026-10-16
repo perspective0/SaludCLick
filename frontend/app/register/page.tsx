@@ -83,6 +83,9 @@ function RegisterContent() {
     confirmPassword: '',
     phone: '',
     documentNumber: '',
+    hasInsurance: false,
+    insuranceProvider: '',
+    insuranceNumber: '',
     especialidad: '',
     exequatur: '',
     clinic: '',
@@ -204,6 +207,9 @@ function RegisterContent() {
             password: formData.password,
             phone: formData.phone,
             documentNumber: userType === 'patient' ? formData.documentNumber : undefined,
+            hasInsurance: userType === 'patient' ? formData.hasInsurance : undefined,
+            insuranceProvider: userType === 'patient' ? formData.insuranceProvider : undefined,
+            insuranceNumber: userType === 'patient' ? formData.insuranceNumber : undefined,
             role: userType,
             ...(userType === 'doctor' && {
               especialidad: formData.especialidad,
@@ -461,6 +467,7 @@ function RegisterContent() {
               </div>
 
               {userType === 'patient' && (
+                <>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Cédula</label>
                   <div className="relative">
@@ -475,6 +482,21 @@ function RegisterContent() {
                     />
                   </div>
                 </div>
+                <div className="flex items-center gap-3">
+                  <input type="checkbox" name="hasInsurance" checked={formData.hasInsurance} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-blue-600" />
+                  <label className="text-sm font-medium text-gray-700">¿Tienes seguro médico?</label>
+                </div>
+                {formData.hasInsurance && <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Aseguradora</label>
+                    <input type="text" name="insuranceProvider" value={formData.insuranceProvider} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Número de seguro / NSS</label>
+                    <input type="text" name="insuranceNumber" value={formData.insuranceNumber} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                </>}
+                </>
               )}
 
               {/* Campo de especialidad - Solo para médicos */}
