@@ -230,6 +230,9 @@ async function ensureDoctorHealthCentersTable() {
 
 async function ensurePatientClaimColumns() {
   await query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS document_number VARCHAR(30)').catch(() => null);
+  await query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS has_insurance BOOLEAN DEFAULT false').catch(() => null);
+  await query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS insurance_provider VARCHAR(255)').catch(() => null);
+  await query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS insurance_number VARCHAR(255)').catch(() => null);
   await query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS manual_patient_created_by_doctor_id UUID REFERENCES doctors(id) ON DELETE SET NULL').catch(() => null);
   await query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS manual_patient_created_at TIMESTAMP').catch(() => null);
   await query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS account_claimed_at TIMESTAMP').catch(() => null);
@@ -243,23 +246,30 @@ function normalizeName(value: any) {
   return String(value || '').trim().toLowerCase();
 }
 
-async function findClaimableManualPatient(client: any, email: string, documentNumber?: string, firstName?: string, lastName?: string) {
+async function findClaimableManualPatient(client: any, email: string, documentNumber?: string, firstName?: string, lastName?: string, insuranceNumber?: string, insuranceProvider?: string) {
   const cleanDocument = normalizeDocument(documentNumber);
   const cleanFirstName = normalizeName(firstName);
   const cleanLastName = normalizeName(lastName);
+  const cleanInsuranceNumber = String(insuranceNumber || '').replace(/[^a-z0-9]/gi, '').toLowerCase();
+  const cleanInsuranceProvider = normalizeName(insuranceProvider);
 
-  if (cleanDocument && cleanFirstName && cleanLastName) {
+  if ((cleanDocument || cleanInsuranceNumber) && cleanFirstName && cleanLastName) {
     const byDocument = await client.query(
       `SELECT p.id, u.email
        FROM patients p
        JOIN users u ON u.id = p.id
        WHERE p.account_claimed_at IS NULL
          AND p.manual_patient_created_at IS NOT NULL
-         AND regexp_replace(COALESCE(p.document_number, ''), '\\D', '', 'g') = $1
+         AND (
+           ($1 <> '' AND regexp_replace(COALESCE(p.document_number, ''), '\\D', '', 'g') = $1)
+           OR
+           ($4 <> '' AND regexp_replace(LOWER(COALESCE(p.insurance_number, '')), '[^a-z0-9]', '', 'g') = $4
+             AND ($5 = '' OR LOWER(TRIM(COALESCE(p.insurance_provider, ''))) = $5))
+         )
          AND LOWER(TRIM(u.first_name)) = $2
          AND LOWER(TRIM(u.last_name)) = $3
        LIMIT 1`,
-      [cleanDocument, cleanFirstName, cleanLastName]
+      [cleanDocument, cleanFirstName, cleanLastName, cleanInsuranceNumber, cleanInsuranceProvider]
     );
     if (byDocument.rowCount > 0) return byDocument.rows[0];
   }
@@ -316,7 +326,7 @@ export const register = async (req: Request, res: Response) => {
       if (role === 'patient') {
         const hashedPassword = await hashPassword(password);
         const claimed = await transaction(async (client) => {
-          const manualPatient = await findClaimableManualPatient(client, email, documentNumber, firstName, lastName);
+          const manualPatient = await findClaimableManualPatient(client, email, documentNumber, firstName, lastName, req.body.insuranceNumber, req.body.insuranceProvider);
           if (!manualPatient || manualPatient.id !== existingUser.id) return null;
 
           await client.query(
@@ -328,9 +338,12 @@ export const register = async (req: Request, res: Response) => {
           await client.query(
             `UPDATE patients
              SET account_claimed_at = NOW(),
-                 document_number = COALESCE(NULLIF($1, ''), document_number)
-             WHERE id = $2`,
-            [String(documentNumber || '').trim(), manualPatient.id]
+                 document_number = COALESCE(NULLIF($1, ''), document_number),
+                 has_insurance = COALESCE($2, has_insurance),
+                 insurance_provider = COALESCE(NULLIF($3, ''), insurance_provider),
+                 insurance_number = COALESCE(NULLIF($4, ''), insurance_number)
+             WHERE id = $5`,
+            [String(documentNumber || '').trim(), req.body.hasInsurance ? true : null, String(req.body.insuranceProvider || '').trim(), String(req.body.insuranceNumber || '').trim(), manualPatient.id]
           );
           return manualPatient;
         });
@@ -534,7 +547,7 @@ export const register = async (req: Request, res: Response) => {
     // If patient, first try to claim a manual profile created in clinic.
     if (role === 'patient') {
       const claimed = await transaction(async (client) => {
-        const manualPatient = await findClaimableManualPatient(client, email, documentNumber, firstName, lastName);
+        const manualPatient = await findClaimableManualPatient(client, email, documentNumber, firstName, lastName, req.body.insuranceNumber, req.body.insuranceProvider);
         if (!manualPatient) return null;
 
         const emailInUse = await client.query('SELECT id FROM users WHERE LOWER(email) = LOWER($1) AND id <> $2', [email, manualPatient.id]);
@@ -549,9 +562,12 @@ export const register = async (req: Request, res: Response) => {
         await client.query(
           `UPDATE patients
            SET account_claimed_at = NOW(),
-               document_number = COALESCE(NULLIF($1, ''), document_number)
-           WHERE id = $2`,
-          [String(documentNumber || '').trim(), manualPatient.id]
+               document_number = COALESCE(NULLIF($1, ''), document_number),
+               has_insurance = COALESCE($2, has_insurance),
+               insurance_provider = COALESCE(NULLIF($3, ''), insurance_provider),
+               insurance_number = COALESCE(NULLIF($4, ''), insurance_number)
+           WHERE id = $5`,
+          [String(documentNumber || '').trim(), req.body.hasInsurance ? true : null, String(req.body.insuranceProvider || '').trim(), String(req.body.insuranceNumber || '').trim(), manualPatient.id]
         );
         return manualPatient;
       });
@@ -586,9 +602,15 @@ export const register = async (req: Request, res: Response) => {
     // If patient, create patient record
     if (role === 'patient') {
       await query(
-        `INSERT INTO patients (id, document_number, account_claimed_at)
-         VALUES ($1, NULLIF($2, ''), NOW())`,
-        [userId, String(documentNumber || '').trim()]
+        `INSERT INTO patients (id, document_number, has_insurance, insurance_provider, insurance_number, account_claimed_at)
+         VALUES ($1, NULLIF($2, ''), $3, NULLIF($4, ''), NULLIF($5, ''), NOW())`,
+        [
+          userId,
+          String(documentNumber || '').trim(),
+          Boolean(req.body.hasInsurance),
+          String(req.body.insuranceProvider || '').trim(),
+          String(req.body.insuranceNumber || '').trim(),
+        ]
       );
     }
 

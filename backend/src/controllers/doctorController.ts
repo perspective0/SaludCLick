@@ -753,6 +753,9 @@ export const createManualPatient = async (req: Request, res: Response) => {
     if (!cleanFirstName || !cleanLastName) {
       return res.status(400).json({ success: false, message: 'Nombre y apellido son obligatorios.' });
     }
+    if (Boolean(hasInsurance) && (!String(insuranceProvider || '').trim() || !String(insuranceNumber || '').trim())) {
+      return res.status(400).json({ success: false, message: 'Indica la aseguradora y el número del seguro.' });
+    }
     if (dateOfBirth && Number.isNaN(Date.parse(dateOfBirth))) {
       return res.status(400).json({ success: false, message: 'Fecha de nacimiento invalida.' });
     }

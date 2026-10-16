@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useRouter } from 'next/navigation';
 import { apiRequest } from '@/utils/api';
+import { maskPhone } from '@/utils/inputMasks';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -28,7 +29,7 @@ export default function ProfilePage() {
         setFormData({
           firstName: parsed.firstName || '',
           lastName: parsed.lastName || '',
-          phone: parsed.phone || '',
+          phone: maskPhone(parsed.phone || ''),
           email: parsed.email || '',
         });
       } catch (err) {
@@ -41,7 +42,7 @@ export default function ProfilePage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [e.target.name]: e.target.name === 'phone' ? maskPhone(e.target.value) : e.target.value,
     });
   };
 

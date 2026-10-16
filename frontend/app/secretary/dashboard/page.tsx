@@ -11,6 +11,7 @@ import NotificationBell from '@/components/NotificationBell';
 import { appointmentAPI, doctorAPI, secretaryAPI } from '@/utils/api';
 import { getUserGreeting } from '@/utils/helpers';
 import { formatDoctorName } from '@/utils/names';
+import { maskPhone } from '@/utils/inputMasks';
 import {
   CalendarCheck,
   CalendarClock,
@@ -395,7 +396,7 @@ export default function SecretaryDashboardPage() {
         email: secretary.email,
         firstName: secretary.first_name,
         lastName: secretary.last_name,
-        phone: secretary.phone || '',
+        phone: maskPhone(secretary.phone || ''),
         linkExisting: true,
       }, true);
     } catch (err: any) {
@@ -695,7 +696,7 @@ export default function SecretaryDashboardPage() {
                   <input className="h-11 rounded-xl border border-gray-200 px-3 text-sm" placeholder="Nombre" value={form.firstName} onChange={(event) => setForm({ ...form, firstName: event.target.value })} required />
                   <input className="h-11 rounded-xl border border-gray-200 px-3 text-sm" placeholder="Apellido" value={form.lastName} onChange={(event) => setForm({ ...form, lastName: event.target.value })} required />
                 </div>
-                <input className="h-11 w-full rounded-xl border border-gray-200 px-3 text-sm" placeholder="Telefono" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} />
+                <input className="h-11 w-full rounded-xl border border-gray-200 px-3 text-sm" placeholder="Telefono" value={form.phone} onChange={(event) => setForm({ ...form, phone: maskPhone(event.target.value) })} />
                 <input className="h-11 w-full rounded-xl border border-gray-200 px-3 text-sm" placeholder="Contrasena temporal opcional" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} />
                 <button disabled={saving} className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-blue-600 px-4 font-semibold text-white hover:bg-blue-700 disabled:opacity-60">
                   {saving ? 'Guardando...' : 'Crear o asociar secretaria'}
@@ -734,7 +735,7 @@ export default function SecretaryDashboardPage() {
                             <input className="h-10 rounded-lg border border-gray-200 px-3 text-sm" value={editForm.firstName} onChange={(event) => setEditForm({ ...editForm, firstName: event.target.value })} required />
                             <input className="h-10 rounded-lg border border-gray-200 px-3 text-sm" value={editForm.lastName} onChange={(event) => setEditForm({ ...editForm, lastName: event.target.value })} required />
                           </div>
-                          <input className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm" value={editForm.phone} onChange={(event) => setEditForm({ ...editForm, phone: event.target.value })} placeholder="Telefono" />
+                          <input className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm" value={editForm.phone} onChange={(event) => setEditForm({ ...editForm, phone: maskPhone(event.target.value) })} placeholder="Telefono" />
                           <div className="flex gap-2">
                             <button className="h-9 rounded-lg bg-blue-600 px-3 text-sm font-semibold text-white" type="submit">Guardar</button>
                             <button className="h-9 rounded-lg border border-gray-200 bg-white px-3 text-sm font-semibold" type="button" onClick={() => setEditingId(null)}>Cancelar</button>
@@ -748,7 +749,7 @@ export default function SecretaryDashboardPage() {
                             <p className="text-xs text-gray-400">Asignada: {new Date(secretary.assigned_at).toLocaleDateString()}</p>
                           </div>
                           <div className="flex gap-2">
-                            <button className="h-9 rounded-lg border border-gray-200 bg-white px-3 text-sm font-semibold" onClick={() => { setEditingId(secretary.id); setEditForm({ firstName: secretary.first_name, lastName: secretary.last_name, phone: secretary.phone || '', doctorId: secretary.doctor_id || '' }); }}>Editar</button>
+                            <button className="h-9 rounded-lg border border-gray-200 bg-white px-3 text-sm font-semibold" onClick={() => { setEditingId(secretary.id); setEditForm({ firstName: secretary.first_name, lastName: secretary.last_name, phone: maskPhone(secretary.phone || ''), doctorId: secretary.doctor_id || '' }); }}>Editar</button>
                             <button className="inline-flex h-9 items-center gap-1 rounded-lg border border-rose-200 bg-white px-3 text-sm font-semibold text-rose-600" onClick={async () => {
                               if (!confirm('Quitar la asignacion de esta secretaria? La cuenta seguira existiendo.')) return;
                               try {

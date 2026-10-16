@@ -5,6 +5,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { adminAPI } from '@/utils/api';
+import { maskPhone } from '@/utils/inputMasks';
 import { useI18n } from '@/i18n';
 import { 
   Users, 
@@ -161,7 +162,7 @@ export default function AdminUsersPage() {
       email: user.email,
       firstName: user.first_name,
       lastName: user.last_name,
-      phone: user.phone || '',
+      phone: maskPhone(user.phone || ''),
       role: user.role,
       isActive: user.is_active,
     });
@@ -874,7 +875,7 @@ export default function AdminUsersPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">{en ? 'Phone' : 'Teléfono'}</label>
                     <input
                       value={editForm.phone}
-                      onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                      onChange={(e) => setEditForm({ ...editForm, phone: maskPhone(e.target.value) })}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>

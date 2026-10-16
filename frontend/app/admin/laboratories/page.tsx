@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import AdminSidebar from '@/components/AdminSidebar';
+import { maskPhone } from '@/utils/inputMasks';
 import { adminAPI } from '@/utils/api';
 import {
   AlertCircle,
@@ -114,7 +115,7 @@ export default function AdminLaboratoriesPage() {
       city: lab.city || '',
       state: lab.state || '',
       postal_code: lab.postal_code || '',
-      phone: lab.phone || '',
+      phone: maskPhone(lab.phone || ''),
       email: lab.email || '',
       website: lab.website || '',
       image: lab.image || '',
@@ -327,7 +328,7 @@ export default function AdminLaboratoriesPage() {
                   </label>
                   <label className="text-sm font-medium text-gray-700">
                     Teléfono
-                    <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="mt-1 w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <input value={form.phone} onChange={(e) => setForm({ ...form, phone: maskPhone(e.target.value) })} className="mt-1 w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
                   </label>
                   <label className="text-sm font-medium text-gray-700">
                     Email
