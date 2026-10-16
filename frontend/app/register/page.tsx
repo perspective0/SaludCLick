@@ -468,7 +468,7 @@ function RegisterContent() {
                   <input
                     type="tel"
                     name="phone"
-                    placeholder="+1 809 123 4567"
+                    placeholder="+1 829-555-1234"
                     value={formData.phone}
                     onChange={handleChange}
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
