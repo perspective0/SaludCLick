@@ -6,6 +6,7 @@ import NotificationBell from '@/components/NotificationBell';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { adminAPI } from '@/utils/api';
+import { maskPhone, maskPostalCode } from '@/utils/inputMasks';
 import { 
   Building2, 
   Search, 
@@ -735,7 +736,7 @@ export default function AdminHealthCentersPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Código Postal</label>
                     <input
                       value={editForm.postal_code}
-                      onChange={(e) => setEditForm({ ...editForm, postal_code: e.target.value })}
+                          onChange={(e) => setEditForm({ ...editForm, postal_code: maskPostalCode(e.target.value) })}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -743,7 +744,7 @@ export default function AdminHealthCentersPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
                     <input
                       value={editForm.phone}
-                      onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                          onChange={(e) => setEditForm({ ...editForm, phone: maskPhone(e.target.value) })}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>

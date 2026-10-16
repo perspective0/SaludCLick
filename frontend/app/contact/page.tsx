@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { FormEvent, useState } from 'react';
 import { House, Mail, MapPin, MessageSquare, Phone } from 'lucide-react';
 import { useI18n } from '@/i18n';
+import { maskPhone } from '@/utils/inputMasks';
 
 export default function ContactPage() {
   const [sent, setSent] = useState(false);
@@ -91,7 +92,7 @@ export default function ContactPage() {
             <div className="grid gap-4 md:grid-cols-2">
               <Field label={en ? 'Full name' : 'Nombre completo'} name="name" placeholder={en ? 'Your name' : 'Tu nombre'} required />
               <Field label={en ? 'Email address' : 'Correo electronico'} name="email" placeholder="correo@ejemplo.com" type="email" required />
-              <Field label={en ? 'Phone' : 'Telefono'} name="phone" placeholder="+1 809 000 0000" />
+              <Field label={en ? 'Phone' : 'Telefono'} name="phone" placeholder="+1 809 000 0000" mask={maskPhone} />
               <label>
                 <span className="mb-1 block text-sm font-semibold text-slate-700">{en ? 'Request type' : 'Tipo de consulta'}</span>
                 <select
@@ -139,12 +140,14 @@ function Field({
   placeholder,
   type = 'text',
   required = false,
+  mask,
 }: {
   label: string;
   name: string;
   placeholder: string;
   type?: string;
   required?: boolean;
+  mask?: (value: string) => string;
 }) {
   return (
     <label>
@@ -154,6 +157,7 @@ function Field({
         name={name}
         placeholder={placeholder}
         required={required}
+        onChange={mask ? (event) => { event.currentTarget.value = mask(event.currentTarget.value); } : undefined}
         className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-sky-500"
       />
     </label>

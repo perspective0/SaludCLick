@@ -21,6 +21,7 @@ import {
   FileText,
   Building2
 } from 'lucide-react';
+import { maskDominicanId, maskInsuranceNumber, maskLicenseNumber, maskPhone } from '@/utils/inputMasks';
 
 const especialidades = [
   'Medicina General',
@@ -115,9 +116,18 @@ function RegisterContent() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target as HTMLInputElement;
+    const maskedValue = name === 'phone'
+      ? maskPhone(value)
+      : name === 'documentNumber'
+        ? maskDominicanId(value)
+        : name === 'exequatur'
+          ? maskLicenseNumber(value)
+        : name === 'insuranceNumber'
+          ? maskInsuranceNumber(value)
+          : value;
     setFormData({
       ...formData,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : maskedValue,
     });
 
     // Calcular fortaleza de contraseña

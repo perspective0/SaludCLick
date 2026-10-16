@@ -8,6 +8,7 @@ import { dominicanHealthInsurers } from '@/utils/dominicanInsurance';
 import { dominicanLocations } from '@/utils/dominicanLocations';
 import { dominicanBarrios } from '@/utils/dominicanBarrios';
 import { AlertTriangle, CheckCircle2, MapPin, Phone, Save, Search, ShieldCheck, UserRound } from 'lucide-react';
+import { maskDominicanId, maskInsuranceNumber, maskPhone } from '@/utils/inputMasks';
 
 export default function PatientProfilePage() {
   const [profile, setProfile] = useState<any>(null);
@@ -134,8 +135,8 @@ export default function PatientProfilePage() {
               <div className="grid gap-4 md:grid-cols-2">
                 <ReadOnly label="Nombre" value={`${profile?.first_name || ''} ${profile?.last_name || ''}`.trim()} />
                 <ReadOnly label="Correo" value={profile?.email || 'N/D'} />
-                <Field label="Teléfono" value={form.phone} onChange={(value) => setForm({ ...form, phone: value })} type="tel" />
-                <Field label="Cédula" value={form.documentNumber} onChange={(value) => setForm({ ...form, documentNumber: value })} placeholder="000-0000000-0" />
+                <Field label="Teléfono" value={form.phone} onChange={(value) => setForm({ ...form, phone: maskPhone(value) })} type="tel" />
+                <Field label="Cédula" value={form.documentNumber} onChange={(value) => setForm({ ...form, documentNumber: maskDominicanId(value) })} placeholder="000-0000000-0" />
                 <Field label="Fecha nacimiento" value={form.dateOfBirth} onChange={(value) => setForm({ ...form, dateOfBirth: value })} type="date" />
                 <div className="md:col-span-2">
                   <LocationPicker
@@ -233,7 +234,7 @@ export default function PatientProfilePage() {
                       <Field
                         label={form.insuranceProvider.toLowerCase().includes('senasa') ? 'NSS' : 'No. de póliza'}
                         value={form.insuranceNumber}
-                        onChange={(value) => setForm({ ...form, insuranceNumber: value })}
+                        onChange={(value) => setForm({ ...form, insuranceNumber: maskInsuranceNumber(value) })}
                         placeholder={form.insuranceProvider.toLowerCase().includes('senasa') ? 'Número de Seguridad Social' : 'Número de póliza'}
                       />
                     </div>
@@ -259,7 +260,7 @@ export default function PatientProfilePage() {
                   </label>
                 </div>
                 <Field label="Contacto emergencia" value={form.emergencyContact} onChange={(value) => setForm({ ...form, emergencyContact: value })} />
-                <Field label="Teléfono emergencia" value={form.emergencyPhone} onChange={(value) => setForm({ ...form, emergencyPhone: value })} type="tel" />
+                <Field label="Teléfono emergencia" value={form.emergencyPhone} onChange={(value) => setForm({ ...form, emergencyPhone: maskPhone(value) })} type="tel" />
               </div>
 
               <button disabled={saving} className="mt-6 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-60">

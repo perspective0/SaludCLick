@@ -3,6 +3,7 @@
 import { FormEvent } from 'react';
 import { X } from 'lucide-react';
 import { useI18n } from '@/i18n';
+import { maskDominicanId, maskInsuranceNumber, maskPhone } from '@/utils/inputMasks';
 
 export const emptyManualPatientForm = {
   firstName: '',
@@ -77,9 +78,9 @@ export default function ManualPatientModal({
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Field label={en ? 'First name *' : 'Nombre *'} value={form.firstName} onChange={(value) => onChange({ ...form, firstName: value })} required />
             <Field label={en ? 'Last name *' : 'Apellido *'} value={form.lastName} onChange={(value) => onChange({ ...form, lastName: value })} required />
-            <Field label={en ? 'Phone' : 'Teléfono'} value={form.phone} onChange={(value) => onChange({ ...form, phone: value })} />
+            <Field label={en ? 'Phone' : 'Teléfono'} value={form.phone} onChange={(value) => onChange({ ...form, phone: maskPhone(value) })} />
             <Field label={en ? 'Optional email' : 'Correo opcional'} type="email" value={form.email} onChange={(value) => onChange({ ...form, email: value })} />
-            <Field label={en ? 'Document / ID' : 'Documento / Cédula'} value={form.documentNumber} onChange={(value) => onChange({ ...form, documentNumber: value })} />
+            <Field label={en ? 'Document / ID' : 'Documento / Cédula'} value={form.documentNumber} onChange={(value) => onChange({ ...form, documentNumber: maskDominicanId(value) })} />
             <Field label={en ? 'Date of birth' : 'Fecha de nacimiento'} type="date" value={form.dateOfBirth} onChange={(value) => onChange({ ...form, dateOfBirth: value })} />
             <label>
               <span className="mb-1 block text-sm font-semibold text-gray-700">{en ? 'Gender' : 'Sexo'}</span>
@@ -101,7 +102,7 @@ export default function ManualPatientModal({
             </label>
             {form.hasInsurance && <>
               <Field label={en ? 'Insurance provider' : 'Aseguradora'} value={form.insuranceProvider} onChange={(value) => onChange({ ...form, insuranceProvider: value })} />
-              <Field label={en ? 'Insurance / NSS number' : 'Número de seguro / NSS'} value={form.insuranceNumber} onChange={(value) => onChange({ ...form, insuranceNumber: value })} required />
+              <Field label={en ? 'Insurance / NSS number' : 'Número de seguro / NSS'} value={form.insuranceNumber} onChange={(value) => onChange({ ...form, insuranceNumber: maskInsuranceNumber(value) })} required />
             </>}
             <label className="md:col-span-2">
               <span className="mb-1 block text-sm font-semibold text-gray-700">{en ? 'Address' : 'Dirección'}</span>

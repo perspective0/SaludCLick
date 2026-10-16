@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { adminAPI } from '@/utils/api';
+import { maskPhone, maskPostalCode } from '@/utils/inputMasks';
 import { 
   ArrowLeft,
   Building2,
@@ -41,7 +42,8 @@ export default function AdminCreateHealthCenterPage() {
   const [imagePreview, setImagePreview] = useState('');
 
   const handleChange = (field: string, value: string) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    const nextValue = field === 'phone' ? maskPhone(value) : field === 'postal_code' ? maskPostalCode(value) : value;
+    setForm((prev) => ({ ...prev, [field]: nextValue }));
     setError('');
     
     if (field === 'image' && value) {

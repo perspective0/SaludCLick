@@ -7,6 +7,7 @@ import { doctorAPI } from '@/utils/api';
 import { dominicanHealthInsurers } from '@/utils/dominicanInsurance';
 import { BadgeDollarSign, Building2, Camera, Clock, Eye, FileText, Save, Star, Trash2, Upload, Video } from 'lucide-react';
 import { useI18n } from '@/i18n';
+import { maskDominicanId, maskPhone } from '@/utils/inputMasks';
 
 const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
 const defaultAvailability = dayNames.map((_, index) => ({
@@ -646,7 +647,7 @@ export default function DoctorProfilePage() {
                           <input value={form.newHealthCenterName} onChange={(event) => setForm({ ...form, newHealthCenterName: event.target.value })} className="h-10 rounded-xl border border-blue-100 px-3 text-sm" placeholder={en ? 'Center name' : 'Nombre del centro'} />
                           <input value={form.newHealthCenterCity} onChange={(event) => setForm({ ...form, newHealthCenterCity: event.target.value })} className="h-10 rounded-xl border border-blue-100 px-3 text-sm" placeholder={en ? 'City' : 'Ciudad'} />
                           <input value={form.newHealthCenterAddress} onChange={(event) => setForm({ ...form, newHealthCenterAddress: event.target.value })} className="h-10 rounded-xl border border-blue-100 px-3 text-sm" placeholder={en ? 'Address' : 'Dirección'} />
-                          <input value={form.newHealthCenterPhone} onChange={(event) => setForm({ ...form, newHealthCenterPhone: event.target.value })} className="h-10 rounded-xl border border-blue-100 px-3 text-sm" placeholder={en ? 'Phone' : 'Teléfono'} />
+                          <input value={form.newHealthCenterPhone} onChange={(event) => setForm({ ...form, newHealthCenterPhone: maskPhone(event.target.value) })} className="h-10 rounded-xl border border-blue-100 px-3 text-sm" placeholder={en ? 'Phone' : 'Teléfono'} />
                           <input value={form.newHealthCenterEmail} onChange={(event) => setForm({ ...form, newHealthCenterEmail: event.target.value })} className="h-10 rounded-xl border border-blue-100 px-3 text-sm md:col-span-2" placeholder={en ? 'Center email' : 'Correo del centro'} />
                         </div>
                       )}
@@ -745,7 +746,7 @@ export default function DoctorProfilePage() {
                     <label className="block text-sm font-semibold text-blue-950 mb-1">{en ? 'National ID or identity document' : 'Cédula o documento de identidad'}</label>
                     <input
                       value={form.documentNumber}
-                      onChange={(event) => setForm({ ...form, documentNumber: event.target.value })}
+                      onChange={(event) => setForm({ ...form, documentNumber: maskDominicanId(event.target.value) })}
                       className="h-11 w-full rounded-xl border border-blue-100 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="Ej: 001-0000000-0"
                     />

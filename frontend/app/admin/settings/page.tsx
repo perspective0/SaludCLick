@@ -5,6 +5,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { adminAPI } from '@/utils/api';
+import { maskPhone } from '@/utils/inputMasks';
 import { 
   Shield,
   Users,
@@ -416,7 +417,7 @@ export default function AdminSettingsPage() {
                               <input
                                 type="text"
                                 value={generalSettings.supportPhone}
-                                onChange={(e) => setGeneralSettings({...generalSettings, supportPhone: e.target.value})}
+                                onChange={(e) => setGeneralSettings({...generalSettings, supportPhone: maskPhone(e.target.value)})}
                                 className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                               />
                             </div>
