@@ -78,6 +78,16 @@ async function ensureManualPatientColumns() {
   await query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS manual_patient_created_by_doctor_id UUID REFERENCES doctors(id) ON DELETE SET NULL').catch(() => null);
   await query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS manual_patient_created_at TIMESTAMP').catch(() => null);
   await query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS account_claimed_at TIMESTAMP').catch(() => null);
+  await query(`
+    CREATE TABLE IF NOT EXISTS doctor_patient_links (
+      doctor_id UUID NOT NULL REFERENCES doctors(id) ON DELETE CASCADE,
+      patient_id UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+      linked_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      source VARCHAR(30) NOT NULL DEFAULT 'manual',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (doctor_id, patient_id)
+    )
+  `).catch(() => null);
 }
 
 function timeToMinutes(value?: string) {
@@ -334,6 +344,7 @@ export const getDoctorById = async (req: Request, res: Response) => {
  */
 export const getDoctorPatients = async (req: Request, res: Response) => {
   try {
+    await ensureManualPatientColumns();
     const { id } = req.params;
     const { page = 1, limit = 20 } = req.query;
     const offset = (Number(page) - 1) * Number(limit);
@@ -361,6 +372,9 @@ export const getDoctorPatients = async (req: Request, res: Response) => {
          SELECT DISTINCT mr.patient_id
          FROM medical_records mr
          WHERE mr.doctor_id = $1
+       ),
+       linked_patients AS (
+         SELECT patient_id FROM doctor_patient_links WHERE doctor_id = $1
        )
        SELECT u.id, u.first_name, u.last_name, u.email, u.phone,
               p.document_number,
@@ -373,6 +387,8 @@ export const getDoctorPatients = async (req: Request, res: Response) => {
          SELECT patient_id FROM doctor_patients
          UNION
          SELECT patient_id FROM record_patients
+         UNION
+         SELECT patient_id FROM linked_patients
        ) patient_ids
        JOIN patients p ON patient_ids.patient_id = p.id
        JOIN users u ON p.id = u.id
@@ -396,6 +412,63 @@ export const getDoctorPatients = async (req: Request, res: Response) => {
       success: false,
       message: 'Error fetching doctor patients',
     });
+  }
+};
+
+export const searchDoctorPatients = async (req: Request, res: Response) => {
+  try {
+    await ensureManualPatientColumns();
+    const { id: doctorId } = req.params;
+    if (req.user?.role !== 'admin' && req.user?.id !== doctorId) {
+      if (req.user?.role !== 'secretary') return res.status(403).json({ success: false, message: 'No tienes permiso.' });
+      const assigned = await queryOne('SELECT 1 FROM secretaries WHERE id = $1 AND doctor_id = $2', [req.user.id, doctorId]);
+      if (!assigned) return res.status(403).json({ success: false, message: 'No tienes permiso.' });
+    }
+    const term = String(req.query.q || '').trim();
+    if (term.length < 2) return res.json({ success: true, data: [] });
+    const like = `%${term}%`;
+    const patients = await queryMany(
+      `SELECT u.id, u.first_name, u.last_name, u.email, u.phone, p.document_number,
+              p.date_of_birth, (dpl.patient_id IS NOT NULL) AS associated
+       FROM users u
+       JOIN patients p ON p.id = u.id
+       LEFT JOIN doctor_patient_links dpl ON dpl.patient_id = p.id AND dpl.doctor_id = $1
+       WHERE u.role = 'patient'
+         AND (u.first_name ILIKE $2 OR u.last_name ILIKE $2 OR u.email ILIKE $2
+              OR u.phone ILIKE $2 OR p.document_number ILIKE $2)
+       ORDER BY u.last_name, u.first_name LIMIT 20`,
+      [doctorId, like]
+    );
+    return res.json({ success: true, data: patients });
+  } catch (error) {
+    console.error('Search doctor patients error:', error);
+    return res.status(500).json({ success: false, message: 'Error buscando pacientes.' });
+  }
+};
+
+export const associateDoctorPatient = async (req: Request, res: Response) => {
+  try {
+    await ensureManualPatientColumns();
+    const { id: doctorId } = req.params;
+    if (req.user?.role !== 'admin' && req.user?.id !== doctorId) {
+      if (req.user?.role !== 'secretary') return res.status(403).json({ success: false, message: 'No tienes permiso.' });
+      const assigned = await queryOne('SELECT 1 FROM secretaries WHERE id = $1 AND doctor_id = $2', [req.user.id, doctorId]);
+      if (!assigned) return res.status(403).json({ success: false, message: 'No tienes permiso.' });
+    }
+    const patientId = String(req.body?.patientId || '');
+    if (!patientId) return res.status(400).json({ success: false, message: 'Paciente requerido.' });
+    const patient = await queryOne('SELECT u.id, u.first_name, u.last_name, u.email, u.phone, p.document_number FROM users u JOIN patients p ON p.id = u.id WHERE u.id = $1 AND u.role = \'patient\'', [patientId]);
+    if (!patient) return res.status(404).json({ success: false, message: 'Paciente no encontrado.' });
+    await query(
+      `INSERT INTO doctor_patient_links (doctor_id, patient_id, linked_by, source)
+       VALUES ($1, $2, $3, 'platform') ON CONFLICT (doctor_id, patient_id) DO NOTHING`,
+      [doctorId, patientId, req.user?.id || null]
+    );
+    await auditClinicalAction(req, { action: 'patient_associate', entity: 'doctor_patient_links', entityId: patientId, patientId, doctorId }).catch(() => null);
+    return res.json({ success: true, message: 'Paciente asociado correctamente.', data: { ...patient, associated: true } });
+  } catch (error) {
+    console.error('Associate doctor patient error:', error);
+    return res.status(500).json({ success: false, message: 'Error asociando paciente.' });
   }
 };
 
@@ -711,6 +784,12 @@ export const createManualPatient = async (req: Request, res: Response) => {
       );
 
       await client.query(
+        `INSERT INTO doctor_patient_links (doctor_id, patient_id, linked_by, source)
+         VALUES ($1, $2, $3, 'manual') ON CONFLICT (doctor_id, patient_id) DO NOTHING`,
+        [doctorId, patientId, requesterId]
+      );
+
+      await client.query(
         `INSERT INTO patients
          (id, date_of_birth, gender, blood_type, address, city, medical_history, document_number, has_insurance, insurance_provider, insurance_number,
           manual_patient_created_by_doctor_id, manual_patient_created_at)
@@ -783,6 +862,8 @@ export const createManualPatient = async (req: Request, res: Response) => {
         document_number: cleanDocument || null,
         birth_date: dateOfBirth || null,
         date_of_birth: dateOfBirth || null,
+        temporaryPassword,
+        temporaryAccess: true,
       };
     });
 

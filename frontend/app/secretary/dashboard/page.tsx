@@ -107,6 +107,9 @@ export default function SecretaryDashboardPage() {
   const [showManualPatientForm, setShowManualPatientForm] = useState(false);
   const [savingManualPatient, setSavingManualPatient] = useState(false);
   const [manualPatientForm, setManualPatientForm] = useState(emptyManualPatientForm);
+  const [patientSearchTerm, setPatientSearchTerm] = useState('');
+  const [patientSearchResults, setPatientSearchResults] = useState<any[]>([]);
+  const [searchingPatients, setSearchingPatients] = useState(false);
   const [rescheduleTarget, setRescheduleTarget] = useState<any>(null);
   const [cancelTarget, setCancelTarget] = useState<any>(null);
   const [rescheduleForm, setRescheduleForm] = useState({ appointmentDate: '', appointmentTime: '' });
@@ -269,8 +272,9 @@ export default function SecretaryDashboardPage() {
     setError('');
     setSuccess('');
     try {
-      await doctorAPI.createManualPatient(selectedDoctorId, manualPatientForm);
-      setSuccess('Paciente registrado correctamente. El medico ya puede evaluarlo en su modulo clinico.');
+      const response = await doctorAPI.createManualPatient(selectedDoctorId, manualPatientForm);
+      const patient = response?.data;
+      setSuccess(`Paciente registrado correctamente. El medico ya puede evaluarlo en su modulo clinico.${patient?.temporaryPassword ? ` Acceso temporal: ${patient.email} / ${patient.temporaryPassword}` : ''}`);
       setManualPatientForm(emptyManualPatientForm);
       setShowManualPatientForm(false);
       await loadData(user);
@@ -278,6 +282,30 @@ export default function SecretaryDashboardPage() {
       setError(err.message || 'No se pudo registrar el paciente.');
     } finally {
       setSavingManualPatient(false);
+    }
+  };
+
+  const searchExistingPatients = async () => {
+    if (!selectedDoctorId || patientSearchTerm.trim().length < 2) return;
+    setSearchingPatients(true);
+    try {
+      const response = await doctorAPI.searchPatients(selectedDoctorId, patientSearchTerm.trim());
+      setPatientSearchResults(response?.data || []);
+    } catch (err: any) {
+      setError(err?.message || 'No se pudo buscar pacientes.');
+    } finally {
+      setSearchingPatients(false);
+    }
+  };
+
+  const associateExistingPatient = async (patient: any) => {
+    if (!selectedDoctorId || patient.associated) return;
+    try {
+      await doctorAPI.associatePatient(selectedDoctorId, patient.id);
+      setSuccess('Paciente asociado correctamente al consultorio.');
+      setPatientSearchResults((items) => items.map((item) => item.id === patient.id ? { ...item, associated: true } : item));
+    } catch (err: any) {
+      setError(err?.message || 'No se pudo asociar el paciente.');
     }
   };
 
@@ -388,6 +416,12 @@ export default function SecretaryDashboardPage() {
           onChange={setManualPatientForm}
           onClose={() => setShowManualPatientForm(false)}
           onSubmit={handleManualPatientCreate}
+          searchTerm={patientSearchTerm}
+          searchResults={patientSearchResults}
+          searching={searchingPatients}
+          onSearchTermChange={setPatientSearchTerm}
+          onSearch={searchExistingPatients}
+          onAssociate={associateExistingPatient}
         />
       )}
 

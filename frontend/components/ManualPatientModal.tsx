@@ -26,12 +26,24 @@ export default function ManualPatientModal({
   onChange,
   onClose,
   onSubmit,
+  searchTerm,
+  searchResults,
+  searching,
+  onSearchTermChange,
+  onSearch,
+  onAssociate,
 }: {
   form: ManualPatientForm;
   saving: boolean;
   onChange: (value: ManualPatientForm) => void;
   onClose: () => void;
   onSubmit: (event: FormEvent) => void;
+  searchTerm: string;
+  searchResults: any[];
+  searching: boolean;
+  onSearchTermChange: (value: string) => void;
+  onSearch: () => void;
+  onAssociate: (patient: any) => void;
 }) {
   const { locale } = useI18n();
   const en = locale === 'en';
@@ -50,6 +62,15 @@ export default function ManualPatientModal({
         </div>
 
         <div className="max-h-[70vh] overflow-y-auto p-5">
+          <div className="mb-5 rounded-xl border border-blue-100 bg-blue-50 p-4">
+            <p className="text-sm font-bold text-blue-900">{en ? 'Search an existing SaludClick patient' : 'Buscar un paciente existente en SaludClick'}</p>
+            <p className="mt-1 text-xs text-blue-700">{en ? 'Use name, email, phone or document before creating a new profile.' : 'Busca por nombre, correo, teléfono o documento antes de crear un perfil nuevo.'}</p>
+            <div className="mt-3 flex gap-2">
+              <input value={searchTerm} onChange={(event) => onSearchTermChange(event.target.value)} placeholder={en ? 'Search patient...' : 'Buscar paciente...'} className="h-10 min-w-0 flex-1 rounded-lg border border-blue-200 px-3 text-sm" />
+              <button type="button" onClick={onSearch} disabled={searching || searchTerm.trim().length < 2} className="rounded-lg bg-blue-600 px-3 text-sm font-bold text-white disabled:opacity-50">{searching ? '...' : (en ? 'Search' : 'Buscar')}</button>
+            </div>
+            {searchResults.length > 0 && <div className="mt-3 space-y-2">{searchResults.map((patient) => <div key={patient.id} className="flex items-center justify-between gap-3 rounded-lg bg-white p-3 text-sm"><div><p className="font-semibold">{patient.first_name} {patient.last_name}</p><p className="text-xs text-gray-500">{patient.document_number || patient.email || patient.phone || (en ? 'No identifier' : 'Sin identificador')}</p></div><button type="button" onClick={() => onAssociate(patient)} className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white">{patient.associated ? (en ? 'Associated' : 'Asociado') : (en ? 'Associate' : 'Asociar')}</button></div>)}</div>}
+          </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Field label={en ? 'First name *' : 'Nombre *'} value={form.firstName} onChange={(value) => onChange({ ...form, firstName: value })} required />
             <Field label={en ? 'Last name *' : 'Apellido *'} value={form.lastName} onChange={(value) => onChange({ ...form, lastName: value })} required />
