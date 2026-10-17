@@ -5,6 +5,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { CalendarDays, CheckCircle2, ChevronLeft, Clock3, Megaphone, Play, RefreshCw, UserRound } from 'lucide-react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import PatientShell from '@/components/PatientShell';
+import DoctorShell from '@/components/DoctorShell';
+import SecretaryShell from '@/components/SecretaryShell';
 import { appointmentAPI, secretaryAPI } from '@/utils/api';
 
 type QueueItem = {
@@ -162,6 +164,14 @@ function QueuePage() {
         {page}
       </PatientShell>
     );
+  }
+
+  if (user?.role === 'doctor') {
+    return <DoctorShell title="Turnos" subtitle="Gestiona la cola de atención del día">{page}</DoctorShell>;
+  }
+
+  if (user?.role === 'secretary') {
+    return <SecretaryShell title="Seguimiento de turnos" subtitle="Gestiona la cola de atención del día">{page}</SecretaryShell>;
   }
 
   return page;
