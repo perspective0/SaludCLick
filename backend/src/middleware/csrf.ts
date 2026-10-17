@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 
 const CSRF_COOKIE = 'saludclick_csrf';
 const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
-const EXEMPT_PATHS = new Set(['/api/auth/login', '/api/auth/register']);
+const EXEMPT_PATHS = new Set(['/api/auth/login', '/api/auth/register', '/api/auth/password-recovery-request']);
 const isProduction = process.env.NODE_ENV === 'production';
 const cookieSameSite = isProduction ? 'none' : 'lax';
 
