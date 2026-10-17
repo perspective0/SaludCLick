@@ -1,13 +1,13 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { CalendarDays, CheckCircle2, ChevronLeft, Clock3, Megaphone, Play, RefreshCw, UserRound } from 'lucide-react';
+import { CalendarDays, CheckCircle2, Clock3, Megaphone, Play, RefreshCw } from 'lucide-react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import PatientShell from '@/components/PatientShell';
 import DoctorShell from '@/components/DoctorShell';
 import SecretaryShell from '@/components/SecretaryShell';
 import { appointmentAPI, secretaryAPI } from '@/utils/api';
+import { formatDoctorName } from '@/utils/names';
 
 type QueueItem = {
   id: string;
@@ -32,6 +32,10 @@ function isoToday() {
   const date = new Date();
   const offset = date.getTimezoneOffset();
   return new Date(date.getTime() - offset * 60 * 1000).toISOString().slice(0, 10);
+}
+
+function doctorDisplayName(firstName?: string, lastName?: string) {
+  return formatDoctorName(firstName, lastName);
 }
 
 function QueuePage() {
@@ -137,12 +141,11 @@ function QueuePage() {
       <div className="mx-auto max-w-6xl">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <Link href={isPatient ? '/patient/dashboard' : user?.role === 'doctor' ? '/doctor/dashboard' : '/secretary/dashboard'} className="mb-3 inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:underline"><ChevronLeft className="h-4 w-4" /> Volver</Link>
             <h1 className="text-3xl font-bold">Seguimiento de turnos</h1>
             <p className="mt-1 text-gray-500">Cola de atención del día</p>
           </div>
           <div className="flex items-center gap-2">
-            <label className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm"><CalendarDays className="h-4 w-4 text-gray-500" /><input type="date" value={date} onChange={(event) => setDate(event.target.value)} /></label>
+            <label className="flex h-11 items-center gap-2 rounded-xl border border-blue-200 bg-white px-3 text-sm shadow-sm transition-colors focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100"><CalendarDays className="h-5 w-5 shrink-0 text-blue-600" /><span className="sr-only">Fecha</span><input aria-label="Fecha de la cola" type="date" value={date} onChange={(event) => setDate(event.target.value)} className="min-w-[145px] cursor-pointer bg-transparent font-semibold text-gray-800 outline-none [color-scheme:light]" /></label>
             <button type="button" onClick={() => load()} className="rounded-xl border border-gray-200 bg-white p-3 text-gray-700 hover:bg-gray-50" title="Actualizar"><RefreshCw className="h-5 w-5" /></button>
           </div>
         </div>
@@ -156,7 +159,7 @@ function QueuePage() {
             {myQueue ? <>
               {myQueue.queue_status === 'called' && <div className="mb-6 animate-pulse rounded-2xl border-2 border-emerald-400 bg-emerald-50 px-5 py-4 text-emerald-800 shadow-lg shadow-emerald-100"><div className="flex items-center justify-center gap-2 text-lg font-black"><Megaphone className="h-6 w-6 animate-bounce" /> ¡Es tu turno!</div><p className="mt-1 text-sm font-semibold">Dirígete al consultorio. El médico te está esperando.</p></div>}
               {myQueue.queue_status === 'in-consultation' && <div className="mb-6 animate-pulse rounded-2xl border-2 border-blue-400 bg-blue-50 px-5 py-4 text-blue-800"><p className="text-lg font-black">Tu atención ha comenzado</p></div>}
-              <p className="text-sm font-semibold uppercase text-gray-500">Tu turno</p><p className={`my-3 text-6xl font-black text-blue-600 ${myQueue.queue_status === 'called' ? 'animate-bounce' : ''}`}>#{myQueue.queue_number}</p><p className="font-semibold">{labels[myQueue.queue_status] || myQueue.queue_status}</p><p className="mt-2 text-sm text-gray-500">Dr. {myQueue.doctor_first_name} {myQueue.doctor_last_name}</p>
+              <p className="text-sm font-semibold uppercase text-gray-500">Tu turno</p><p className={`my-3 text-6xl font-black text-blue-600 ${myQueue.queue_status === 'called' ? 'animate-bounce' : ''}`}>#{myQueue.queue_number}</p><p className="font-semibold">{labels[myQueue.queue_status] || myQueue.queue_status}</p><p className="mt-2 text-sm text-gray-500">{doctorDisplayName(myQueue.doctor_first_name, myQueue.doctor_last_name)}</p>
             </> : <p className="text-gray-500">No tienes un turno activo para esta fecha.</p>}
           </div>
         ) : (
