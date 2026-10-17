@@ -688,6 +688,7 @@ export const requestPasswordRecovery = async (req: Request, res: Response) => {
     );
 
     const accountExists = Boolean(user);
+    const recoveryRequestId = uuidv4();
     const name = user ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : 'No registrado';
     const phone = user?.phone || 'No registrado';
     const title = accountExists ? 'Solicitud de recuperación de contraseña' : 'Solicitud de recuperación de usuario no registrado';
@@ -703,6 +704,8 @@ export const requestPasswordRecovery = async (req: Request, res: Response) => {
         title,
         message,
         type: 'password_recovery_request',
+        entityType: 'password_recovery_request',
+        entityId: recoveryRequestId,
         priority: 'high',
         url: '/admin/users',
       }))
