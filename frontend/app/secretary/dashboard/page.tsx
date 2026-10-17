@@ -805,6 +805,10 @@ export default function SecretaryDashboardPage() {
                     <CalendarCheck className="w-5 h-5" />
                     Citas medicas
                   </Link>
+                  <Link href="/queue" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50">
+                    <Clock3 className="w-5 h-5" />
+                    Seguimiento de turnos
+                  </Link>
                 </nav>
 
                 <div className="p-3 border-t border-gray-100 shrink-0">

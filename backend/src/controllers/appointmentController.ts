@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
-import { query, queryOne, queryMany } from '../db';
+import { query, queryOne, queryMany, transaction } from '../db';
 import { v4 as uuidv4 } from 'uuid';
 import { notifyAppointmentUsers, notifyUser } from './notificationController';
 import jwt from 'jsonwebtoken';
 
-const validAppointmentStatuses = ['scheduled', 'confirmed', 'completed', 'cancelled', 'no-show'];
+const validAppointmentStatuses = ['scheduled', 'confirmed', 'waiting', 'completed', 'cancelled', 'no-show'];
 type TeleconsultationSignal = {
   id: number;
   roomId: string;
@@ -75,15 +75,42 @@ function isAppointmentTimeInsideAvailability(appointmentTime: string, availabili
 }
 
 async function ensureAppointmentStatusValue(status?: string) {
-  if (status !== 'confirmed') return;
+  if (!['confirmed', 'waiting'].includes(String(status || ''))) return;
 
   try {
     await query("ALTER TYPE appointment_status ADD VALUE IF NOT EXISTS 'confirmed'");
+    if (status === 'waiting') await query("ALTER TYPE appointment_status ADD VALUE IF NOT EXISTS 'waiting'");
   } catch (error: any) {
     if (error?.code !== '42710') {
       throw error;
     }
   }
+}
+
+async function ensureQueueFields() {
+  await ensureAppointmentStatusValue('waiting');
+  await query('ALTER TABLE appointments ADD COLUMN IF NOT EXISTS queue_number INTEGER').catch(() => null);
+  await query("ALTER TABLE appointments ADD COLUMN IF NOT EXISTS queue_status VARCHAR(30) DEFAULT 'not_checked_in'").catch(() => null);
+  await query('ALTER TABLE appointments ADD COLUMN IF NOT EXISTS checked_in_at TIMESTAMP').catch(() => null);
+  await query('ALTER TABLE appointments ADD COLUMN IF NOT EXISTS called_at TIMESTAMP').catch(() => null);
+  await query('ALTER TABLE appointments ADD COLUMN IF NOT EXISTS started_at TIMESTAMP').catch(() => null);
+  await query('CREATE INDEX IF NOT EXISTS idx_appointments_queue ON appointments(doctor_id, appointment_date, health_center_id, queue_status, queue_number)').catch(() => null);
+}
+
+function todayISO() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+async function authorizeQueueDoctor(req: Request, doctorId: string) {
+  const role = req.user?.role;
+  const userId = req.user?.id;
+  if (!userId || !doctorId) return false;
+  if (role === 'doctor') return userId === doctorId;
+  if (role === 'admin') return true;
+  if (role === 'secretary') {
+    return Boolean(await queryOne('SELECT 1 FROM secretaries WHERE id = $1 AND doctor_id = $2', [userId, doctorId]));
+  }
+  return false;
 }
 
 async function ensurePatientAppointmentFields() {
@@ -361,6 +388,137 @@ export const createAppointment = async (req: Request, res: Response) => {
       success: false,
       message: 'Error creating appointment',
     });
+  }
+};
+
+/** Register a patient's arrival in the daily queue. */
+export const checkInAppointment = async (req: Request, res: Response) => {
+  try {
+    await ensureQueueFields();
+    const appointment = await queryOne(
+      `SELECT id, doctor_id, health_center_id, appointment_date, status
+       FROM appointments WHERE id = $1`,
+      [req.params.id]
+    );
+    if (!appointment) return res.status(404).json({ success: false, message: 'Cita no encontrada.' });
+    if (!(await authorizeQueueDoctor(req, appointment.doctor_id))) return res.status(403).json({ success: false, message: 'No tienes permiso para gestionar esta cola.' });
+    if (['cancelled', 'completed', 'no-show'].includes(appointment.status)) return res.status(400).json({ success: false, message: 'Esta cita no puede entrar a la cola.' });
+
+    const result = await queryOne(
+      `WITH next_number AS (
+         SELECT COALESCE(MAX(queue_number), 0) + 1 AS number
+         FROM appointments
+         WHERE doctor_id = $1 AND appointment_date = $2 AND health_center_id = $3
+       )
+       UPDATE appointments
+       SET status = 'waiting', queue_status = 'waiting', queue_number = (SELECT number FROM next_number), checked_in_at = COALESCE(checked_in_at, NOW()), updated_at = NOW()
+       WHERE id = $4
+       RETURNING id, queue_number, queue_status, checked_in_at`,
+      [appointment.doctor_id, appointment.appointment_date, appointment.health_center_id, appointment.id]
+    );
+    return res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('Check-in appointment error:', error);
+    return res.status(500).json({ success: false, message: 'No se pudo registrar la llegada.' });
+  }
+};
+
+/** Get the queue for a doctor, health center and date. */
+export const getQueue = async (req: Request, res: Response) => {
+  try {
+    await ensureQueueFields();
+    const doctorId = String(req.query.doctorId || (req.user?.role === 'doctor' ? req.user.id : ''));
+    const date = String(req.query.date || todayISO());
+    if (!(await authorizeQueueDoctor(req, doctorId))) return res.status(403).json({ success: false, message: 'No tienes permiso para ver esta cola.' });
+    const healthCenterId = req.query.healthCenterId ? String(req.query.healthCenterId) : null;
+    const rows = await queryMany(
+      `SELECT a.id, a.appointment_date, a.appointment_time, a.status, a.queue_number, a.queue_status, a.checked_in_at, a.called_at, a.started_at,
+              a.doctor_id, a.health_center_id, u.first_name, u.last_name, u.email, u.phone, hc.name AS health_center_name
+       FROM appointments a
+       JOIN patients p ON p.id = a.patient_id
+       JOIN users u ON u.id = p.id
+       LEFT JOIN health_centers hc ON hc.id = a.health_center_id
+       WHERE a.doctor_id = $1 AND a.appointment_date = $2
+         AND ($3::uuid IS NULL OR a.health_center_id = $3)
+         AND a.status NOT IN ('cancelled', 'completed', 'no-show')
+       ORDER BY CASE COALESCE(a.queue_status, 'not_checked_in') WHEN 'in-consultation' THEN 1 WHEN 'called' THEN 2 WHEN 'waiting' THEN 3 WHEN 'not_checked_in' THEN 4 ELSE 5 END, a.queue_number NULLS LAST, a.appointment_time`,
+      [doctorId, date, healthCenterId]
+    );
+    return res.json({ success: true, data: rows });
+  } catch (error) {
+    console.error('Get appointment queue error:', error);
+    return res.status(500).json({ success: false, message: 'No se pudo cargar la cola.' });
+  }
+};
+
+/** Call the next waiting patient. */
+export const callNextInQueue = async (req: Request, res: Response) => {
+  try {
+    await ensureQueueFields();
+    const doctorId = String(req.body.doctorId || (req.user?.role === 'doctor' ? req.user.id : ''));
+    const date = String(req.body.date || todayISO());
+    const healthCenterId = req.body.healthCenterId ? String(req.body.healthCenterId) : null;
+    if (!(await authorizeQueueDoctor(req, doctorId))) return res.status(403).json({ success: false, message: 'No tienes permiso para gestionar esta cola.' });
+    const result = await transaction(async (client) => {
+      const next = await client.query(
+        `SELECT id FROM appointments
+         WHERE doctor_id = $1 AND appointment_date = $2 AND queue_status = 'waiting'
+           AND ($3::uuid IS NULL OR health_center_id = $3)
+         ORDER BY queue_number NULLS LAST, checked_in_at, appointment_time
+         FOR UPDATE SKIP LOCKED LIMIT 1`,
+        [doctorId, date, healthCenterId]
+      );
+      if (!next.rows[0]) return null;
+      const updated = await client.query(
+        `UPDATE appointments SET queue_status = 'called', called_at = NOW(), updated_at = NOW() WHERE id = $1
+         RETURNING id, queue_number, queue_status, called_at`,
+        [next.rows[0].id]
+      );
+      return updated.rows[0];
+    });
+    return res.json({ success: true, data: result, message: result ? 'Paciente llamado.' : 'No hay pacientes esperando.' });
+  } catch (error) {
+    console.error('Call next queue patient error:', error);
+    return res.status(500).json({ success: false, message: 'No se pudo llamar al siguiente paciente.' });
+  }
+};
+
+/** Move a queue item to its next clinical state. */
+export const updateQueueStatus = async (req: Request, res: Response) => {
+  try {
+    await ensureQueueFields();
+    const queueStatus = String(req.body.queueStatus || '');
+    if (!['waiting', 'called', 'in-consultation', 'completed', 'no-show'].includes(queueStatus)) return res.status(400).json({ success: false, message: 'Estado de turno inválido.' });
+    const appointment = await queryOne('SELECT id, doctor_id FROM appointments WHERE id = $1', [req.params.id]);
+    if (!appointment || !(await authorizeQueueDoctor(req, appointment.doctor_id))) return res.status(403).json({ success: false, message: 'No tienes permiso para actualizar este turno.' });
+    const appointmentStatus = queueStatus === 'completed' ? 'completed' : queueStatus === 'no-show' ? 'no-show' : queueStatus === 'waiting' ? 'waiting' : undefined;
+    await ensureAppointmentStatusValue(appointmentStatus);
+    const result = await queryOne(
+      `UPDATE appointments SET queue_status = $1, status = COALESCE($2::appointment_status, status), started_at = CASE WHEN $1 = 'in-consultation' THEN COALESCE(started_at, NOW()) ELSE started_at END, updated_at = NOW() WHERE id = $3 RETURNING id, queue_number, queue_status, status`,
+      [queueStatus, appointmentStatus || null, req.params.id]
+    );
+    return res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('Update queue status error:', error);
+    return res.status(500).json({ success: false, message: 'No se pudo actualizar el turno.' });
+  }
+};
+
+/** Get the authenticated patient's active queue item. */
+export const getMyQueue = async (req: Request, res: Response) => {
+  try {
+    await ensureQueueFields();
+    const row = await queryOne(
+      `SELECT a.id, a.appointment_date, a.appointment_time, a.queue_number, a.queue_status, a.doctor_id, du.first_name AS doctor_first_name, du.last_name AS doctor_last_name
+       FROM appointments a JOIN patients p ON p.id = a.patient_id JOIN users du ON du.id = a.doctor_id
+       WHERE p.id = $1 AND a.appointment_date = $2 AND a.queue_status IN ('waiting', 'called', 'in-consultation')
+       ORDER BY a.queue_number LIMIT 1`,
+      [req.user?.id, String(req.query.date || todayISO())]
+    );
+    return res.json({ success: true, data: row || null });
+  } catch (error) {
+    console.error('Get patient queue error:', error);
+    return res.status(500).json({ success: false, message: 'No se pudo cargar tu turno.' });
   }
 };
 
