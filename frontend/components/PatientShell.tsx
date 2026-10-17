@@ -10,9 +10,9 @@ import { useI18n } from '@/i18n';
 
 const navItems = [
   { href: '/patient/dashboard', label: 'Inicio', icon: Home },
+  { href: '/queue', label: 'Mi turno', icon: ListOrdered },
   { href: '/doctors', label: 'Médicos', icon: Stethoscope },
   { href: '/patient/appointments', label: 'Citas', icon: CalendarDays },
-  { href: '/queue', label: 'Mi turno', icon: ListOrdered },
   { href: '/patient/prescriptions', label: 'Recetas', icon: FileText },
   { href: '/patient/documents', label: 'Documentos', icon: FileText },
   { href: '/patient/profile', label: 'Perfil', icon: UserRound },
