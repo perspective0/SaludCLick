@@ -36,6 +36,9 @@ function mapMedicationNames(prescription: any) {
 }
 
 async function ensurePatientProfileColumns() {
+  // Older installations may not have this optional Google account column yet.
+  // The patient portal reads it to identify accounts created with Google.
+  await query('ALTER TABLE users ADD COLUMN IF NOT EXISTS google_subject VARCHAR(255)');
   await query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS document_number VARCHAR(30)');
   await query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS has_insurance BOOLEAN DEFAULT false');
   await query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS insurance_provider VARCHAR(255)');
