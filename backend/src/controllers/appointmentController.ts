@@ -494,7 +494,7 @@ export const updateQueueStatus = async (req: Request, res: Response) => {
     const appointmentStatus = queueStatus === 'completed' ? 'completed' : queueStatus === 'no-show' ? 'no-show' : queueStatus === 'waiting' ? 'waiting' : undefined;
     await ensureAppointmentStatusValue(appointmentStatus);
     const result = await queryOne(
-      `UPDATE appointments SET queue_status = $1, status = COALESCE($2::appointment_status, status), started_at = CASE WHEN $1 = 'in-consultation' THEN COALESCE(started_at, NOW()) ELSE started_at END, updated_at = NOW() WHERE id = $3 RETURNING id, queue_number, queue_status, status`,
+      `UPDATE appointments SET queue_status = $1::VARCHAR, status = COALESCE($2::appointment_status, status), started_at = CASE WHEN $1::VARCHAR = 'in-consultation'::VARCHAR THEN COALESCE(started_at, NOW()) ELSE started_at END, updated_at = NOW() WHERE id = $3 RETURNING id, queue_number, queue_status, status`,
       [queueStatus, appointmentStatus || null, req.params.id]
     );
     return res.json({ success: true, data: result });
