@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { CalendarDays, CheckCircle2, ChevronLeft, Clock3, Megaphone, Play, RefreshCw, UserRound } from 'lucide-react';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import PatientShell from '@/components/PatientShell';
 import { appointmentAPI, secretaryAPI } from '@/utils/api';
 
 type QueueItem = {
@@ -119,7 +120,7 @@ function QueuePage() {
     }
   };
 
-  return (
+  const page = (
     <main className="min-h-screen bg-[#f6f8fb] px-4 py-8 text-gray-950 md:px-8">
       <div className="mx-auto max-w-6xl">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
@@ -151,6 +152,19 @@ function QueuePage() {
       </div>
     </main>
   );
+
+  if (isPatient) {
+    return (
+      <PatientShell
+        title="Mi turno"
+        subtitle="Consulta tu posición y el estado de tu atención"
+      >
+        {page}
+      </PatientShell>
+    );
+  }
+
+  return page;
 }
 
 export default function QueueRoute() {
