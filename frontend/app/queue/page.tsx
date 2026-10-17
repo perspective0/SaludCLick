@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { CalendarDays, CheckCircle2, ChevronLeft, Clock3, Megaphone, Play, RefreshCw, UserRound } from 'lucide-react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import PatientShell from '@/components/PatientShell';
@@ -44,6 +44,7 @@ function QueuePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const previousQueueStatus = useRef<string | null>(null);
 
   const isPatient = user?.role === 'patient';
   const canManage = ['doctor', 'secretary', 'admin'].includes(user?.role);
@@ -65,14 +66,20 @@ function QueuePage() {
     }).catch(() => setError('No se pudieron cargar los médicos asignados.'));
   }, [user?.role]);
 
-  const load = async () => {
+  const load = async (silent = false) => {
     if (!user) return;
-    setLoading(true);
+    if (!silent) setLoading(true);
     setError('');
     try {
       if (isPatient) {
         const response = await appointmentAPI.myQueue(date);
-        setMyQueue(response.data || null);
+        const nextQueue = response.data || null;
+        const nextStatus = nextQueue?.queue_status || null;
+        if (nextStatus && nextStatus !== previousQueueStatus.current && nextStatus === 'called') {
+          setMessage('¡Es tu turno! Dirígete al consultorio.');
+        }
+        previousQueueStatus.current = nextStatus;
+        setMyQueue(nextQueue);
       } else {
         const selectedDoctorId = user.role === 'doctor' ? user.id : doctorId;
         if (!selectedDoctorId) return;
@@ -87,7 +94,10 @@ function QueuePage() {
   };
 
   useEffect(() => {
+    previousQueueStatus.current = null;
     load();
+    const refreshTimer = window.setInterval(() => load(true), 5000);
+    return () => window.clearInterval(refreshTimer);
   }, [user, date, doctorId]);
 
   const waitingCount = useMemo(() => queue.filter((item) => item.queue_status === 'waiting').length, [queue]);
@@ -133,7 +143,7 @@ function QueuePage() {
           </div>
           <div className="flex items-center gap-2">
             <label className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm"><CalendarDays className="h-4 w-4 text-gray-500" /><input type="date" value={date} onChange={(event) => setDate(event.target.value)} /></label>
-            <button type="button" onClick={load} className="rounded-xl border border-gray-200 bg-white p-3 text-gray-700 hover:bg-gray-50" title="Actualizar"><RefreshCw className="h-5 w-5" /></button>
+            <button type="button" onClick={() => load()} className="rounded-xl border border-gray-200 bg-white p-3 text-gray-700 hover:bg-gray-50" title="Actualizar"><RefreshCw className="h-5 w-5" /></button>
           </div>
         </div>
 
@@ -143,7 +153,11 @@ function QueuePage() {
 
         {isPatient ? (
           <div className="rounded-2xl bg-white p-8 text-center shadow-sm">
-            {myQueue ? <><p className="text-sm font-semibold uppercase text-gray-500">Tu turno</p><p className="my-3 text-6xl font-black text-blue-600">#{myQueue.queue_number}</p><p className="font-semibold">{labels[myQueue.queue_status] || myQueue.queue_status}</p><p className="mt-2 text-sm text-gray-500">Dr. {myQueue.doctor_first_name} {myQueue.doctor_last_name}</p></> : <p className="text-gray-500">No tienes un turno activo para esta fecha.</p>}
+            {myQueue ? <>
+              {myQueue.queue_status === 'called' && <div className="mb-6 animate-pulse rounded-2xl border-2 border-emerald-400 bg-emerald-50 px-5 py-4 text-emerald-800 shadow-lg shadow-emerald-100"><div className="flex items-center justify-center gap-2 text-lg font-black"><Megaphone className="h-6 w-6 animate-bounce" /> ¡Es tu turno!</div><p className="mt-1 text-sm font-semibold">Dirígete al consultorio. El médico te está esperando.</p></div>}
+              {myQueue.queue_status === 'in-consultation' && <div className="mb-6 animate-pulse rounded-2xl border-2 border-blue-400 bg-blue-50 px-5 py-4 text-blue-800"><p className="text-lg font-black">Tu atención ha comenzado</p></div>}
+              <p className="text-sm font-semibold uppercase text-gray-500">Tu turno</p><p className={`my-3 text-6xl font-black text-blue-600 ${myQueue.queue_status === 'called' ? 'animate-bounce' : ''}`}>#{myQueue.queue_number}</p><p className="font-semibold">{labels[myQueue.queue_status] || myQueue.queue_status}</p><p className="mt-2 text-sm text-gray-500">Dr. {myQueue.doctor_first_name} {myQueue.doctor_last_name}</p>
+            </> : <p className="text-gray-500">No tienes un turno activo para esta fecha.</p>}
           </div>
         ) : (
           <>
