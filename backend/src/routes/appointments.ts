@@ -10,6 +10,11 @@ import {
   getTeleconsultationRoom,
   getTeleconsultationSignals,
   postTeleconsultationSignal,
+  checkInAppointment,
+  getQueue,
+  callNextInQueue,
+  updateQueueStatus,
+  getMyQueue,
 } from '../controllers/appointmentController';
 import { authMiddleware, roleMiddleware } from '../middleware/auth';
 
@@ -36,6 +41,12 @@ router.post(
  * Get user's appointments
  */
 router.get('/', authMiddleware, getAppointments);
+
+router.get('/queue', authMiddleware, roleMiddleware(['doctor', 'secretary', 'admin']), getQueue);
+router.post('/queue/call-next', authMiddleware, roleMiddleware(['doctor', 'secretary', 'admin']), callNextInQueue);
+router.get('/queue/my', authMiddleware, roleMiddleware(['patient']), getMyQueue);
+router.post('/:id/check-in', authMiddleware, roleMiddleware(['doctor', 'secretary', 'admin']), checkInAppointment);
+router.put('/:id/queue-status', authMiddleware, roleMiddleware(['doctor', 'secretary', 'admin']), updateQueueStatus);
 
 router.get('/teleconsulta/:roomId', authMiddleware, getTeleconsultationRoom);
 router.get('/teleconsulta/:roomId/signals', authMiddleware, getTeleconsultationSignals);

@@ -315,7 +315,7 @@ export default function AdminFeedbackPage() {
                           <div className="text-sm text-gray-500 md:text-right md:min-w-44">
                             <p className="font-medium text-gray-700">{item.first_name ? `${item.first_name} ${item.last_name || ''}` : 'Usuario no disponible'}</p>
                             <p className="truncate">{item.email || 'Sin correo'}</p>
-                            <p>{new Date(item.created_at).toLocaleDateString('es-DO')}</p>
+                            <p>{new Date(item.created_at).toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
                           </div>
                         </div>
                       </button>

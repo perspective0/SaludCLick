@@ -526,6 +526,7 @@ export default function DoctorDashboardPage() {
                 <DoctorNavLink href="/doctor/feedback" icon={MessageSquare} label={en ? 'Feedback and suggestions' : 'Preguntas y recomendaciones'} />
 
                 <p className="px-2 mt-6 mb-2 text-[11px] font-semibold uppercase text-gray-400">{en ? 'Operations' : 'Operacion'}</p>
+                <DoctorNavLink href="/queue" icon={Clock3} label={en ? 'Queue' : 'Turnos'} />
                 <DoctorNavLink href="/secretary/dashboard" icon={Users} label={en ? 'Support team' : 'Equipo de apoyo'} />
                 <DoctorNavLink href="/doctor/profile" icon={Settings} label={en ? 'Professional profile' : 'Perfil profesional'} />
               </nav>

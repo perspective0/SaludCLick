@@ -141,6 +141,12 @@ export const authAPI = {
       body: JSON.stringify({ email, password }),
     }),
 
+  requestPasswordRecovery: (email: string) =>
+    apiRequest('/auth/password-recovery-request', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+
   logout: () =>
     apiRequest('/auth/logout', {
       method: 'POST',
@@ -313,6 +319,23 @@ export const appointmentAPI = {
       method: 'DELETE',
       body: JSON.stringify({ reason }),
     }),
+
+  queue: (params: Record<string, any> = {}) => {
+    const queryString = toQueryString(params);
+    return apiRequest(`/appointments/queue${queryString ? `?${queryString}` : ''}`);
+  },
+
+  checkIn: (id: string) =>
+    apiRequest(`/appointments/${id}/check-in`, { method: 'POST', body: JSON.stringify({}) }),
+
+  callNext: (data: { doctorId?: string; date?: string; healthCenterId?: string } = {}) =>
+    apiRequest('/appointments/queue/call-next', { method: 'POST', body: JSON.stringify(data) }),
+
+  updateQueueStatus: (id: string, queueStatus: string) =>
+    apiRequest(`/appointments/${id}/queue-status`, { method: 'PUT', body: JSON.stringify({ queueStatus }) }),
+
+  myQueue: (date?: string) =>
+    apiRequest(`/appointments/queue/my${date ? `?date=${encodeURIComponent(date)}` : ''}`),
 };
 
 /**

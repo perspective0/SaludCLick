@@ -156,5 +156,5 @@ function parseMedications(value: any) {
 }
 
 function formatDate(value: string) {
-  return value ? new Date(value).toLocaleDateString('es-DO', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Fecha pendiente';
+  return value ? new Date(value).toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Fecha pendiente';
 }

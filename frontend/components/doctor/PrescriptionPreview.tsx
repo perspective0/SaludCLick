@@ -73,7 +73,7 @@ export default function PrescriptionPreview({
           <p className="text-xs text-gray-500 mt-2">{en ? 'Digital prescription' : 'Receta médica digital'}</p>
         </div>
         <div className="text-right">
-          <p className="text-sm font-bold text-gray-900">{new Date().toLocaleDateString('es-DO')}</p>
+          <p className="text-sm font-bold text-gray-900">{new Date().toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
           <p className="text-xs text-gray-500">{validationCode || (en ? 'Code after saving' : 'Código al guardar')}</p>
         </div>
       </div>

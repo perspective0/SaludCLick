@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useI18n } from '@/i18n';
+import NotificationBell from './NotificationBell';
 import {
   BarChart3,
   Beaker,
@@ -78,6 +79,7 @@ export default function AdminSidebar() {
                 <p className="text-xs text-slate-500">{en ? 'Admin panel' : 'Panel Admin'}</p>
               </div>
             </Link>
+            <NotificationBell />
             <button type="button" onClick={() => setOpen(false)} className="rounded-lg p-2 hover:bg-slate-100 lg:hidden" aria-label="Cerrar menú administrativo">
               <X className="h-5 w-5" />
             </button>

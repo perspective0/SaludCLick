@@ -8,6 +8,7 @@ import { UserRole } from '../types';
 import { getSettings } from '../services/settingsService';
 import { notifyDoctorRequestTelegram } from '../utils/telegram';
 import { notifyDoctorRequestWhatsApp } from '../services/whatsappNotifications';
+import { notifyUser } from './notificationController';
 import crypto from 'crypto';
 import { clearCsrfCookie, setCsrfCookie } from '../middleware/csrf';
 
@@ -17,6 +18,7 @@ const DEFAULT_SESSION_MINUTES = 7 * 24 * 60;
 const isProduction = process.env.NODE_ENV === 'production';
 const cookieSameSite = isProduction ? 'none' : 'lax';
 const GOOGLE_STATE_COOKIE = 'saludclick_google_state';
+const passwordRecoveryAttempts = new Map<string, { count: number; resetAt: number }>();
 
 type GoogleProfile = {
   sub: string;
@@ -42,6 +44,22 @@ function safeRedirect(value: unknown) {
 
 function googleIsConfigured() {
   return Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
+}
+
+function getRequestAddress(req: Request) {
+  return String(req.ip || req.headers['x-forwarded-for'] || 'unknown').split(',')[0].trim();
+}
+
+function canRequestPasswordRecovery(key: string) {
+  const now = Date.now();
+  const previous = passwordRecoveryAttempts.get(key);
+  if (!previous || previous.resetAt <= now) {
+    passwordRecoveryAttempts.set(key, { count: 1, resetAt: now + 15 * 60 * 1000 });
+    return true;
+  }
+  if (previous.count >= 5) return false;
+  previous.count += 1;
+  return true;
 }
 
 async function ensureGoogleColumn() {
@@ -638,6 +656,71 @@ export const register = async (req: Request, res: Response) => {
       success: false,
       message: 'Error registering user',
     });
+  }
+};
+
+/**
+ * Notify administrators when a person requests password recovery.
+ * Passwords and recovery links are intentionally not sent to administrators.
+ */
+export const requestPasswordRecovery = async (req: Request, res: Response) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ success: false, errors: errors.array() });
+  }
+
+  const email = String(req.body.email || '').trim().toLowerCase();
+  const requestKey = `${getRequestAddress(req)}:${email}`;
+  if (!canRequestPasswordRecovery(requestKey)) {
+    return res.status(429).json({
+      success: false,
+      message: 'Has realizado demasiadas solicitudes. Intenta nuevamente más tarde.',
+    });
+  }
+
+  try {
+    const user = await queryOne(
+      `SELECT id, email, first_name, last_name, phone, role
+       FROM users
+       WHERE LOWER(email) = LOWER($1)
+       LIMIT 1`,
+      [email]
+    );
+
+    const accountExists = Boolean(user);
+    const recoveryRequestId = uuidv4();
+    const name = user ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : 'No registrado';
+    const phone = user?.phone || 'No registrado';
+    const title = accountExists ? 'Solicitud de recuperación de contraseña' : 'Solicitud de recuperación de usuario no registrado';
+    const message = accountExists
+      ? `El paciente ${name} solicitó ayuda para recuperar su contraseña. Correo: ${user.email}. Teléfono: ${phone}. Contacta al paciente para validar su identidad y asistirlo.`
+      : `Se solicitó recuperar una cuenta que no existe. Correo indicado: ${email}. La pantalla ofrecerá el registro al usuario.`;
+
+    const admins = await query(
+      `SELECT id FROM users WHERE role = 'admin' AND COALESCE(is_active, true) = true`
+    );
+    await Promise.all(
+      admins.rows.map((admin: { id: string }) => notifyUser(admin.id, {
+        title,
+        message,
+        type: 'password_recovery_request',
+        entityType: 'password_recovery_request',
+        entityId: recoveryRequestId,
+        priority: 'high',
+        url: '/admin/users',
+      }))
+    );
+
+    return res.json({
+      success: true,
+      data: { accountExists },
+      message: accountExists
+        ? 'La solicitud fue enviada a los administradores. Ellos se pondrán en contacto contigo.'
+        : 'No encontramos una cuenta con ese correo. Puedes registrarte para crear una cuenta.',
+    });
+  } catch (error: any) {
+    console.error('Password recovery request error:', error);
+    return res.status(500).json({ success: false, message: 'No se pudo procesar la solicitud.' });
   }
 };
 

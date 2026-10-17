@@ -154,7 +154,7 @@ export default function MedicalRecordsPage() {
                       </p>
                     </div>
                     <p className="text-sm text-gray-500">
-                      {new Date(record.created_at).toLocaleDateString('es-ES')}
+                      {new Date(record.created_at).toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                     </p>
                   </div>
 
