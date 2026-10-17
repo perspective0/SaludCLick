@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
-import { register, login, logout, getCurrentUser, startGoogleLogin, finishGoogleLogin } from '../controllers/authController';
+import { register, login, logout, getCurrentUser, startGoogleLogin, finishGoogleLogin, requestPasswordRecovery } from '../controllers/authController';
 import { authMiddleware } from '../middleware/auth';
 
 const router = Router();
@@ -35,6 +35,15 @@ router.post(
     body('password').notEmpty(),
   ],
   login
+);
+
+/**
+ * POST /api/auth/password-recovery-request
+ */
+router.post(
+  '/password-recovery-request',
+  [body('email').isEmail().normalizeEmail()],
+  requestPasswordRecovery
 );
 
 /**

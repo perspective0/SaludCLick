@@ -141,6 +141,12 @@ export const authAPI = {
       body: JSON.stringify({ email, password }),
     }),
 
+  requestPasswordRecovery: (email: string) =>
+    apiRequest('/auth/password-recovery-request', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+
   logout: () =>
     apiRequest('/auth/logout', {
       method: 'POST',
