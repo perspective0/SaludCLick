@@ -2,7 +2,7 @@ import DoctorsClient from './DoctorsClient';
 import { absoluteUrl, createPageMetadata } from '@/lib/seo';
 import { getDoctorsForSeo } from '@/lib/server-doctors';
 
-export const revalidate = 300;
+export const revalidate = 0;
 
 export const metadata = createPageMetadata({
   title: 'Médicos verificados',

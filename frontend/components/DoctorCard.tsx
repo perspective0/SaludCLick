@@ -34,7 +34,7 @@ export default function DoctorCard({
   en = false,
 }: DoctorCardProps) {
   const normalizedRating = Number(rating);
-  const displayRating = Number.isFinite(normalizedRating) ? normalizedRating.toFixed(1) : 'N/A';
+  const displayRating = Number.isFinite(normalizedRating) && normalizedRating > 0 ? normalizedRating.toFixed(1) : 'Sin valoraciones';
   const normalizedPrice = Number(consultationPrice);
   const displayPrice = Number.isFinite(normalizedPrice) ? normalizedPrice : 0;
   const normalizedExperience = Number(yearsExperience);

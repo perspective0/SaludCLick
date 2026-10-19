@@ -21,7 +21,7 @@ async function getPublicData<T>(path: string): Promise<T | null> {
 
   try {
     const response = await fetch(url, {
-      next: { revalidate: 300 },
+      cache: 'no-store',
       headers: { Accept: 'application/json' },
     });
 
