@@ -1,0 +1,32 @@
+
+> doctor
+> node run-hyperframes.mjs doctor
+
+
+hyperframes doctor
+
+  ✓ Version          0.8.45 (latest)
+  ✓ Node.js          v22.16.0 (win32 x64)
+  ✓ CPU              12 cores · AMD Ryzen 5 8645HS w/ Radeon 760M Graphics @ 4292MHz
+  ✗ Memory           7.3 GB total · 0.3 GB available
+                     Low memory — renders may fail. Close other apps or increase RAM.
+  ✓ Disk             130.4 GB free
+  ✓ Frames cache     C:\Users\falp0\AppData\Local\Temp\hyperframes-extract-cache-u · 130.4 GB free at C:\Users\falp0\AppData\Local\Temp · default
+  ✓ Archive extractor Built into Windows
+  ✓ Environment      non-TTY
+  ✗ whisper-cpp      Not found (optional — needed for transcription)
+                     Build with cmake: https://github.com/ggml-org/whisper.cpp#building
+  ✗ TTS (Kokoro)     Not installed (optional — local voice fallback)
+                     pip install kokoro-onnx soundfile
+  ✗ BGM (MusicGen)   Not installed (optional — local music fallback)
+                     pip install transformers torch soundfile numpy
+  ✓ FFmpeg           ffmpeg 6.1.1-essentials_build-www.gyan.dev at C:\xampp\htdocs\SaludClick\brag-output\composition\node_modules\ffmpeg-static\ffmpeg.exe
+  ✓ FFprobe          ffprobe 4.0.2 at C:\xampp\htdocs\SaludClick\brag-output\composition\node_modules\ffprobe-static\bin\win32\x64\ffprobe.exe
+  ✓ Chrome           cache: C:\Users\falp0\.cache\hyperframes\chrome\chrome-headless-shell\win64-152.0.7977.30\chrome-headless-shell-win64\chrome-headless-shell.exe
+  ✗ Docker           Not found
+                     https://docs.docker.com/get-docker/
+  ✗ Docker running   Not running
+                     Start Docker Desktop or run: sudo systemctl start docker
+
+  ◇  Some checks failed — see hints above
+

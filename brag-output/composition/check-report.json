@@ -1,0 +1,313 @@
+{
+  "ok": true,
+  "strict": false,
+  "lint": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 1,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "duplicate_media_discovery_risk",
+        "severity": "warning",
+        "message": "Detected 2 matching img entries with the same source/start/duration.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {},
+        "sourceFile": "C:\\xampp\\htdocs\\SaludClick\\brag-output\\composition\\index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Avoid duplicated media nodes that can be discovered twice during compilation."
+      }
+    ],
+    "filesScanned": 1
+  },
+  "runtime": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": []
+  },
+  "layout": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 3,
+    "infoCount": 4,
+    "findings": [
+      {
+        "code": "content_overlap",
+        "severity": "warning",
+        "time": 4.125,
+        "selector": "p.label.s1-label",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 80.63,
+          "top": 342,
+          "right": 552.22,
+          "bottom": 373,
+          "width": 471.59,
+          "height": 31
+        },
+        "containerSelector": "div.scene.s2 > div:nth-of-type(1) > p:nth-of-type(1)",
+        "text": "SALUD DIGITAL, MÁS SIMPLE",
+        "fixHint": "Give each block its own zone, or mark intentional layering with data-layout-allow-overlap.",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 80.63,
+          "y": 342,
+          "width": 471.59,
+          "height": 31
+        },
+        "firstSeen": 4.125,
+        "lastSeen": 4.25,
+        "occurrences": 2,
+        "heldMs": 125
+      },
+      {
+        "code": "content_overlap",
+        "severity": "warning",
+        "time": 8.875,
+        "selector": "div.scene.s2 > div:nth-of-type(1) > p:nth-of-type(1)",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 78.2,
+          "top": 334,
+          "right": 347.61,
+          "bottom": 365,
+          "width": 269.41,
+          "height": 31
+        },
+        "containerSelector": "div.scene.s3 > div:nth-of-type(1) > p:nth-of-type(1)",
+        "text": "01 / ENCUENTRA",
+        "fixHint": "Give each block its own zone, or mark intentional layering with data-layout-allow-overlap.",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 78.2,
+          "y": 334,
+          "width": 269.41,
+          "height": 31
+        },
+        "firstSeen": 8.875,
+        "lastSeen": 9,
+        "occurrences": 2,
+        "heldMs": 125
+      },
+      {
+        "code": "content_overlap",
+        "severity": "warning",
+        "time": 13.25,
+        "selector": "div.mode-row > div:nth-of-type(2)",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 435.6,
+          "top": 905.27,
+          "right": 591.52,
+          "bottom": 936.22,
+          "width": 155.92,
+          "height": 30.95
+        },
+        "containerSelector": "div.success > h3:nth-of-type(1)",
+        "text": "Teleconsulta",
+        "fixHint": "Give each block its own zone, or mark intentional layering with data-layout-allow-overlap.",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 435.6,
+          "y": 905.27,
+          "width": 155.92,
+          "height": 30.95
+        },
+        "firstSeen": 13.25,
+        "lastSeen": 13.375,
+        "occurrences": 2,
+        "heldMs": 125
+      },
+      {
+        "code": "content_overlap",
+        "severity": "info",
+        "time": 4.25,
+        "selector": "h1.headline.s1-title > span:nth-of-type(1)",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 33.8,
+          "top": 424,
+          "right": 593.94,
+          "bottom": 596,
+          "width": 560.14,
+          "height": 172
+        },
+        "containerSelector": "div.scene.s2 > div:nth-of-type(1) > h2:nth-of-type(1) > span:nth-of-type(1)",
+        "text": "Tu salud,",
+        "fixHint": "Give each block its own zone, or mark intentional layering with data-layout-allow-overlap.",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 33.8,
+          "y": 424,
+          "width": 560.14,
+          "height": 172
+        },
+        "firstSeen": 4.25,
+        "lastSeen": 4.25,
+        "occurrences": 1,
+        "heldMs": 0
+      },
+      {
+        "code": "content_overlap",
+        "severity": "info",
+        "time": 9,
+        "selector": "div.scene.s2 > div:nth-of-type(1) > h2:nth-of-type(1) > span:nth-of-type(1)",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 38.57,
+          "top": 393.39,
+          "right": 414.24,
+          "bottom": 500.39,
+          "width": 375.67,
+          "height": 107
+        },
+        "containerSelector": "div.scene.s3 > div:nth-of-type(1) > h2:nth-of-type(1) > span:nth-of-type(1)",
+        "text": "El médico",
+        "fixHint": "Give each block its own zone, or mark intentional layering with data-layout-allow-overlap.",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 38.57,
+          "y": 393.39,
+          "width": 375.67,
+          "height": 107
+        },
+        "firstSeen": 9,
+        "lastSeen": 9,
+        "occurrences": 1,
+        "heldMs": 0
+      },
+      {
+        "code": "content_overlap",
+        "severity": "info",
+        "time": 13.375,
+        "selector": "div.date-row > span:nth-of-type(1)",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 160.97,
+          "top": 1059.06,
+          "right": 545.66,
+          "bottom": 1093.52,
+          "width": 384.69,
+          "height": 34.46
+        },
+        "containerSelector": "div.success > div:nth-of-type(3)",
+        "text": "Miércoles, 23 de septiembre",
+        "fixHint": "Give each block its own zone, or mark intentional layering with data-layout-allow-overlap.",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 160.97,
+          "y": 1059.06,
+          "width": 384.69,
+          "height": 34.46
+        },
+        "firstSeen": 13.375,
+        "lastSeen": 13.375,
+        "occurrences": 1,
+        "heldMs": 0
+      },
+      {
+        "code": "content_overlap",
+        "severity": "info",
+        "time": 16,
+        "selector": "div.scene.s3 > div:nth-of-type(1) > h2:nth-of-type(1) > span:nth-of-type(1)",
+        "message": "Two text blocks overlap and may render unreadable.",
+        "rect": {
+          "left": 84,
+          "top": 375.89,
+          "right": 699.23,
+          "bottom": 482.89,
+          "width": 615.23,
+          "height": 107
+        },
+        "containerSelector": "p.label.outro-label",
+        "text": "Elige. Confirma.",
+        "fixHint": "Give each block its own zone, or mark intentional layering with data-layout-allow-overlap.",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 84,
+          "y": 375.89,
+          "width": 615.23,
+          "height": 107
+        },
+        "firstSeen": 16,
+        "lastSeen": 16,
+        "occurrences": 1,
+        "heldMs": 0
+      }
+    ],
+    "duration": 20,
+    "samples": [
+      1.111,
+      3.333,
+      5.556,
+      7.778,
+      10,
+      12.222,
+      14.444,
+      16.667,
+      18.889
+    ],
+    "transitionSamples": [],
+    "transitionSamplesDropped": 0,
+    "tolerance": 2,
+    "totalIssueCount": 7,
+    "truncated": false
+  },
+  "motion": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": true,
+    "specPath": "C:\\xampp\\htdocs\\SaludClick\\brag-output\\composition\\index.motion.json",
+    "samples": 300
+  },
+  "contrast": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": true,
+    "samples": [
+      1.111,
+      5.556,
+      10,
+      14.444,
+      18.889
+    ],
+    "checked": 74,
+    "passed": 74
+  },
+  "hdr": {
+    "autoPromotion": null,
+    "inspection": "available"
+  },
+  "snapshots": {
+    "enabled": false,
+    "files": [],
+    "times": [],
+    "findingFiles": []
+  },
+  "_meta": {
+    "version": "0.8.45",
+    "latestVersion": "0.8.45",
+    "updateAvailable": false
+  }
+}

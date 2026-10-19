@@ -1,0 +1,100 @@
+{
+  "ok": false,
+  "platform": "win32",
+  "arch": "x64",
+  "checks": [
+    {
+      "name": "Version",
+      "ok": true,
+      "detail": "0.8.45 (latest)"
+    },
+    {
+      "name": "Node.js",
+      "ok": true,
+      "detail": "v22.16.0 (win32 x64)"
+    },
+    {
+      "name": "CPU",
+      "ok": true,
+      "detail": "12 cores · AMD Ryzen 5 8645HS w/ Radeon 760M Graphics @ 4292MHz"
+    },
+    {
+      "name": "Memory",
+      "ok": false,
+      "detail": "7.3 GB total · 0.2 GB available",
+      "hint": "Low memory — renders may fail. Close other apps or increase RAM."
+    },
+    {
+      "name": "Disk",
+      "ok": true,
+      "detail": "130.4 GB free"
+    },
+    {
+      "name": "Frames cache",
+      "ok": true,
+      "detail": "$HOME\\AppData\\Local\\Temp\\hyperframes-extract-cache-u · 130.4 GB free at $HOME\\AppData\\Local\\Temp · default"
+    },
+    {
+      "name": "Archive extractor",
+      "ok": true,
+      "detail": "Built into Windows"
+    },
+    {
+      "name": "Environment",
+      "ok": true,
+      "detail": "non-TTY"
+    },
+    {
+      "name": "whisper-cpp",
+      "ok": false,
+      "detail": "Not found (optional — needed for transcription)",
+      "hint": "Build with cmake: https://github.com/ggml-org/whisper.cpp#building"
+    },
+    {
+      "name": "TTS (Kokoro)",
+      "ok": false,
+      "detail": "Not installed (optional — local voice fallback)",
+      "hint": "pip install kokoro-onnx soundfile"
+    },
+    {
+      "name": "BGM (MusicGen)",
+      "ok": false,
+      "detail": "Not installed (optional — local music fallback)",
+      "hint": "pip install transformers torch soundfile numpy"
+    },
+    {
+      "name": "FFmpeg",
+      "ok": false,
+      "detail": "FFmpeg is required to encode video.",
+      "hint": "winget install --id Gyan.FFmpeg -e, or download the 64-bit build from https://ffmpeg.org/download.html#build-windows and add its bin/ directory to PATH."
+    },
+    {
+      "name": "FFprobe",
+      "ok": false,
+      "detail": "FFprobe is required to probe media assets. It ships with FFmpeg but was not found on PATH.",
+      "hint": "winget install --id Gyan.FFmpeg -e, or download the 64-bit build from https://ffmpeg.org/download.html#build-windows and add its bin/ directory to PATH."
+    },
+    {
+      "name": "Chrome",
+      "ok": true,
+      "detail": "cache: $HOME\\.cache\\hyperframes\\chrome\\chrome-headless-shell\\win64-152.0.7977.30\\chrome-headless-shell-win64\\chrome-headless-shell.exe"
+    },
+    {
+      "name": "Docker",
+      "ok": false,
+      "detail": "Not found",
+      "hint": "https://docs.docker.com/get-docker/"
+    },
+    {
+      "name": "Docker running",
+      "ok": false,
+      "detail": "Not running",
+      "hint": "Start Docker Desktop or run: sudo systemctl start docker"
+    }
+  ],
+  "_meta": {
+    "version": "0.8.45",
+    "latestVersion": "0.8.45",
+    "updateAvailable": false
+  }
+}

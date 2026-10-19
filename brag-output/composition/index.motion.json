@@ -1,0 +1,11 @@
+{
+  "duration": 20,
+  "assertions": [
+    { "kind": "appearsBy", "selector": ".s1-title", "bySec": 0.7 },
+    { "kind": "appearsBy", "selector": ".search-app", "bySec": 5.2 },
+    { "kind": "appearsBy", "selector": ".success", "bySec": 13.7 },
+    { "kind": "appearsBy", "selector": ".outro-cta", "bySec": 18.1 },
+    { "kind": "staysInFrame", "selector": ".hero-card" },
+    { "kind": "staysInFrame", "selector": ".outro-logo" }
+  ]
+}
