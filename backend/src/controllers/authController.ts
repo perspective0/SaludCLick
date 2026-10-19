@@ -199,6 +199,12 @@ export const finishGoogleLogin = async (req: Request, res: Response) => {
       return res.redirect(`${getFrontendUrl()}/google/onboarding?token=${encodeURIComponent(onboardingToken)}`);
     } else {
       await query('UPDATE users SET google_subject = $1, avatar = COALESCE(avatar, $2), updated_at = NOW() WHERE id = $3', [profile.sub, profile.picture || null, user.id]);
+      if (user.role === 'doctor') {
+        // Older Google onboarding versions used a temporary GOOGLE-* value as
+        // license_number. It is not a professional license and must not be
+        // displayed or sent for medical verification.
+        await query("UPDATE doctors SET license_number = NULL WHERE id = $1 AND license_number LIKE 'GOOGLE-%'", [user.id]);
+      }
     }
 
     const security = await getSettings('security');

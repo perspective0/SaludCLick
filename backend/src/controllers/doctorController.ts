@@ -265,7 +265,7 @@ export const getDoctorById = async (req: Request, res: Response) => {
 
     const doctor = await queryOne(
       `SELECT 
-        d.id, d.license_number, d.bio, d.years_experience, d.consultation_price, d.insured_consultation_price,
+        d.id, CASE WHEN d.license_number LIKE 'GOOGLE-%' THEN NULL ELSE d.license_number END AS license_number, d.bio, d.years_experience, d.consultation_price, d.insured_consultation_price,
         d.consultation_duration, d.teleconsultation_enabled, d.vacation_mode,
         d.average_rating, d.specialties, d.health_center_id,
         d.accepted_insurances,
@@ -682,8 +682,8 @@ export const updateDoctorProfile = async (req: Request, res: Response) => {
        SET first_name = COALESCE(u.first_name, dr.first_name),
            last_name = COALESCE(u.last_name, dr.last_name),
            phone = COALESCE(u.phone, dr.phone),
-           license_number = COALESCE(d.license_number, dr.license_number),
-           exequatur = COALESCE(d.license_number, dr.exequatur),
+           license_number = CASE WHEN d.license_number LIKE 'GOOGLE-%' THEN dr.license_number ELSE COALESCE(d.license_number, dr.license_number) END,
+           exequatur = CASE WHEN d.license_number LIKE 'GOOGLE-%' THEN dr.exequatur ELSE COALESCE(d.license_number, dr.exequatur) END,
            specialty = COALESCE(d.specialties[1], dr.specialty),
            document_number = COALESCE(d.document_number, dr.document_number),
            id_front_image = COALESCE(d.id_front_image, dr.id_front_image),
