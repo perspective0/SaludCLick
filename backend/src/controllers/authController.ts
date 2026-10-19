@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
-import { hashPassword, comparePassword, generateToken } from '../utils/auth';
+import { hashPassword, comparePassword, generateToken, verifyToken } from '../utils/auth';
 import { query, queryOne, transaction } from '../db';
 import { v4 as uuidv4 } from 'uuid';
 import { ensureDoctorVerificationColumns, verifyDoctorExequatur } from '../utils/doctorVerification';
@@ -127,8 +127,7 @@ export const startGoogleLogin = (req: Request, res: Response) => {
 
   const state = crypto.randomBytes(32).toString('hex');
   const redirect = safeRedirect(req.query.redirect);
-  const requestedRole = req.query.role === 'doctor' ? 'doctor' : 'patient';
-  setGoogleStateCookie(res, `${state}|${Buffer.from(redirect).toString('base64url')}|${requestedRole}`);
+  setGoogleStateCookie(res, `${state}|${Buffer.from(redirect).toString('base64url')}`);
 
   const params = new URLSearchParams({
     client_id: process.env.GOOGLE_CLIENT_ID as string,
@@ -148,7 +147,7 @@ export const finishGoogleLogin = async (req: Request, res: Response) => {
   if (!googleIsConfigured()) return redirectToLogin(res, { google: 'error', message: 'Google no está configurado.' });
 
   const stateCookie = readCookie(req, GOOGLE_STATE_COOKIE);
-  const [savedState, encodedRedirect, requestedRole] = String(stateCookie || '').split('|');
+  const [savedState, encodedRedirect] = String(stateCookie || '').split('|');
   const redirect = encodedRedirect ? safeRedirect(Buffer.from(encodedRedirect, 'base64url').toString('utf8')) : frontendRedirect;
   clearGoogleStateCookie(res);
   if (!req.query.state || !savedState || req.query.state !== savedState) {
@@ -185,31 +184,17 @@ export const finishGoogleLogin = async (req: Request, res: Response) => {
     if (!user) user = await queryOne('SELECT id, email, first_name, last_name, role FROM users WHERE LOWER(email) = LOWER($1)', [email]);
 
     if (!user) {
-      const userId = uuidv4();
-      const firstName = (profile.given_name || profile.name || 'Paciente').trim().slice(0, 100);
+      const firstName = (profile.given_name || profile.name || 'Usuario').trim().slice(0, 100);
       const lastName = (profile.family_name || '').trim().slice(0, 100) || 'SaludClick';
-      const temporaryPassword = crypto.randomBytes(32).toString('base64url');
-      const password = await hashPassword(temporaryPassword);
-      await transaction(async (client) => {
-        if (requestedRole === 'doctor') {
-          const centerId = await getOrCreateDefaultCenter(client);
-          await client.query(
-            'INSERT INTO users (id, email, password, first_name, last_name, role, google_subject) VALUES ($1,$2,$3,$4,$5,$6,$7)',
-            [userId, email, password, firstName, lastName, 'doctor', profile.sub]
-          );
-          await client.query(
-            'INSERT INTO doctors (id, health_center_id, license_number, years_experience, bio, consultation_price, is_verified, specialties, average_rating) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)',
-            [userId, centerId, `GOOGLE-${userId}`, 0, 'Perfil creado con Google. Completa tus datos profesionales.', 0, false, [], 0]
-          );
-          return;
-        }
-        await client.query(
-          'INSERT INTO users (id, email, password, first_name, last_name, role, google_subject) VALUES ($1,$2,$3,$4,$5,$6,$7)',
-          [userId, email, password, firstName, lastName, 'patient', profile.sub]
-        );
-        await client.query('INSERT INTO patients (id, account_claimed_at) VALUES ($1, NOW())', [userId]);
-      });
-      user = { id: userId, email, first_name: firstName, last_name: lastName, role: requestedRole === 'doctor' ? 'doctor' : 'patient' };
+      const onboardingToken = generateToken({
+        id: 'google-onboarding',
+        email,
+        role: UserRole.PATIENT,
+        googleSubject: profile.sub,
+        firstName,
+        lastName,
+      } as any, '10m');
+      return res.redirect(`${getFrontendUrl()}/google/onboarding?token=${encodeURIComponent(onboardingToken)}`);
     } else {
       await query('UPDATE users SET google_subject = $1, updated_at = NOW() WHERE id = $2', [profile.sub, user.id]);
     }
@@ -226,6 +211,96 @@ export const finishGoogleLogin = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Google login error:', error);
     return redirectToLogin(res, { google: 'error', message: 'No se pudo completar el inicio de sesión con Google.' });
+  }
+};
+
+export const completeGoogleRegistration = async (req: Request, res: Response) => {
+  try {
+    const requestedRole = req.body?.role === 'doctor' ? 'doctor' : req.body?.role === 'patient' ? 'patient' : null;
+    if (!requestedRole) {
+      return res.status(400).json({ success: false, message: 'Selecciona si utilizarás SaludClick como paciente o médico.' });
+    }
+
+    const onboarding = verifyToken(String(req.body?.token || '')) as any;
+    if (onboarding.id !== 'google-onboarding' || !onboarding.googleSubject || !onboarding.email) {
+      return res.status(400).json({ success: false, message: 'La sesión de Google ya no es válida. Vuelve a intentarlo.' });
+    }
+
+    await ensureGoogleColumn();
+    const existing = await queryOne('SELECT id, email, first_name, last_name, role FROM users WHERE google_subject = $1 OR LOWER(email) = LOWER($2)', [onboarding.googleSubject, onboarding.email]);
+    if (existing) {
+      return res.status(409).json({ success: false, message: 'Esta cuenta de Google ya está asociada a SaludClick. Inicia sesión nuevamente.' });
+    }
+
+    const userId = uuidv4();
+    const password = await hashPassword(crypto.randomBytes(32).toString('base64url'));
+    const firstName = String(onboarding.firstName || 'Usuario').slice(0, 100);
+    const lastName = String(onboarding.lastName || 'SaludClick').slice(0, 100);
+
+    await ensureDoctorVerificationColumns();
+    await ensureDoctorHealthCentersTable();
+
+    await transaction(async (client) => {
+      await client.query(
+        'INSERT INTO users (id, email, password, first_name, last_name, role, google_subject) VALUES ($1,$2,$3,$4,$5,$6,$7)',
+        [userId, onboarding.email, password, firstName, lastName, requestedRole, onboarding.googleSubject]
+      );
+
+      if (requestedRole === 'doctor') {
+        const centerId = await getOrCreateDefaultCenter(client);
+        await client.query(
+          'INSERT INTO doctors (id, health_center_id, license_number, years_experience, bio, consultation_price, is_verified, specialties, average_rating) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)',
+          [userId, centerId, `GOOGLE-${userId}`, 0, 'Perfil creado con Google. Completa tus credenciales profesionales y solicita verificación.', 0, false, [], 0]
+        );
+        await client.query(
+          `INSERT INTO doctor_health_centers (doctor_id, health_center_id, is_primary)
+           VALUES ($1, $2, true)
+           ON CONFLICT (doctor_id, health_center_id) DO UPDATE SET is_primary = true`,
+          [userId, centerId]
+        );
+        await client.query(
+          `INSERT INTO doctor_requests (
+             name, first_name, last_name, email, clinic, requested_health_center_mode,
+             message, status, verification_status
+           ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', 'pending_review')`,
+          [
+            `${firstName} ${lastName}`.trim(),
+            firstName,
+            lastName,
+            onboarding.email,
+            null,
+            'other',
+            'Solicitud iniciada con Google. El médico debe completar sus credenciales profesionales para continuar la verificación.',
+          ]
+        );
+      } else {
+        await client.query('INSERT INTO patients (id, account_claimed_at) VALUES ($1, NOW())', [userId]);
+      }
+    });
+
+    const security = await getSettings('security');
+    const sessionMinutes = Number(security.sessionTimeout) || 30;
+    const token = generateToken({ id: userId, email: onboarding.email, role: requestedRole as UserRole }, `${sessionMinutes}m`);
+    setAuthCookie(res, token, sessionMinutes);
+    if (requestedRole === 'doctor') {
+      notifyDoctorRequestTelegram({ firstName, lastName, email: onboarding.email }).catch((error) => {
+        console.error('Telegram Google doctor request notification error:', error);
+      });
+      notifyDoctorRequestWhatsApp({ firstName, lastName, email: onboarding.email }).catch((error) => {
+        console.error('WhatsApp Google doctor request notification error:', error);
+      });
+    }
+    return res.json({
+      success: true,
+      data: {
+        user: { id: userId, email: onboarding.email, firstName, lastName, role: requestedRole },
+        token,
+        pendingApproval: requestedRole === 'doctor',
+      },
+    });
+  } catch (error: any) {
+    console.error('Google registration error:', error);
+    return res.status(400).json({ success: false, message: 'La sesión de Google expiró o no pudo completarse. Vuelve a intentarlo.' });
   }
 };
 

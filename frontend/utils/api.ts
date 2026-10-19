@@ -155,12 +155,16 @@ export const authAPI = {
   me: () =>
     apiRequest('/auth/me'),
 
-  googleLoginUrl: (redirect?: string, role: 'patient' | 'doctor' = 'patient') => {
-    const params = new URLSearchParams({ role });
-    if (redirect) params.set('redirect', redirect);
-    const query = `?${params.toString()}`;
+  googleLoginUrl: (redirect?: string) => {
+    const query = redirect ? `?redirect=${encodeURIComponent(redirect)}` : '';
     return `${API_URL}/auth/google${query}`;
   },
+
+  completeGoogleRegistration: (token: string, role: 'patient' | 'doctor') =>
+    apiRequest('/auth/google/register', {
+      method: 'POST',
+      body: JSON.stringify({ token, role }),
+    }),
 };
 
 /**

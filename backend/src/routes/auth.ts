@@ -1,12 +1,13 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
-import { register, login, logout, getCurrentUser, startGoogleLogin, finishGoogleLogin, requestPasswordRecovery } from '../controllers/authController';
+import { register, login, logout, getCurrentUser, startGoogleLogin, finishGoogleLogin, completeGoogleRegistration, requestPasswordRecovery } from '../controllers/authController';
 import { authMiddleware } from '../middleware/auth';
 
 const router = Router();
 
 router.get('/google', startGoogleLogin);
 router.get('/google/callback', finishGoogleLogin);
+router.post('/google/register', completeGoogleRegistration);
 
 /**
  * POST /api/auth/register
