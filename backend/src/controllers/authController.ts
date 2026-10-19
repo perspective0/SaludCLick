@@ -215,7 +215,7 @@ export const finishGoogleLogin = async (req: Request, res: Response) => {
     // (vercel.app and onrender.com). Return the short-lived session token so
     // the browser can authenticate API requests even when third-party cookies
     // are blocked. The login page removes it from the URL immediately.
-    const destination = frontendRedirect !== '/dashboard' ? frontendRedirect : dashboardForRole(user.role);
+    const destination = redirect !== '/dashboard' ? redirect : dashboardForRole(user.role);
     return res.redirect(`${getFrontendUrl()}${destination}?token=${encodeURIComponent(token)}`);
   } catch (error) {
     console.error('Google login error:', error);
