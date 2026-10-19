@@ -5,7 +5,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import DoctorShell from '@/components/DoctorShell';
 import { doctorAPI } from '@/utils/api';
 import { dominicanHealthInsurers } from '@/utils/dominicanInsurance';
-import { BadgeDollarSign, Building2, Camera, Clock, Eye, FileText, Save, Star, Trash2, Upload, Video } from 'lucide-react';
+import { BadgeDollarSign, Building2, Camera, Clock, Eye, FileText, Save, ShieldCheck, Star, Trash2, Upload, Video } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { maskDominicanId, maskPhone } from '@/utils/inputMasks';
 
@@ -120,6 +120,7 @@ export default function DoctorProfilePage() {
   });
   const [availability, setAvailability] = useState(buildDefaultAvailability());
   const [scheduleHealthCenterId, setScheduleHealthCenterId] = useState('');
+  const [profileTab, setProfileTab] = useState<'all' | 'general' | 'verification' | 'schedule' | 'settings'>('all');
 
   useEffect(() => {
     const stored = localStorage.getItem('user');
@@ -463,6 +464,33 @@ export default function DoctorProfilePage() {
             <Metric title={en ? 'Rating' : 'Valoración'} value={profile?.average_rating || (en ? 'No rating' : 'Sin valoración')} icon={Star} />
           </section>
 
+          <section className="rounded-2xl border border-gray-200 bg-white p-2 shadow-sm">
+            <div className="flex flex-wrap gap-2" role="tablist" aria-label={en ? 'Profile sections' : 'Secciones del perfil'}>
+              {[
+                { id: 'all', label: en ? 'Overview' : 'Resumen', icon: Eye },
+                { id: 'general', label: en ? 'Professional information' : 'Información profesional', icon: Building2 },
+                { id: 'verification', label: en ? 'Verification' : 'Validación', icon: ShieldCheck },
+                { id: 'schedule', label: en ? 'Availability' : 'Disponibilidad', icon: Clock },
+                { id: 'settings', label: en ? 'Settings' : 'Configuración', icon: Video },
+              ].map(({ id, label, icon: Icon }) => {
+                const selected = profileTab === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    role="tab"
+                    aria-selected={selected}
+                    onClick={() => setProfileTab(id as typeof profileTab)}
+                    className={`inline-flex min-h-10 items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition ${selected ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
           <section className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
             <div className="rounded-2xl bg-white border border-gray-200 p-5">
               <div className="flex items-center justify-between mb-3">
@@ -506,7 +534,7 @@ export default function DoctorProfilePage() {
               <p className="text-gray-500">Cargando perfil...</p>
             ) : (
               <form onSubmit={saveProfile} className="space-y-5">
-                <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
+                <div className={`grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 ${profileTab !== 'all' && profileTab !== 'general' ? 'hidden' : ''}`}>
                   <div className="rounded-2xl border border-gray-200 bg-gray-50 p-5">
                     <div className="aspect-square rounded-2xl bg-white border border-gray-200 overflow-hidden flex items-center justify-center">
                       {form.avatar ? (
@@ -691,7 +719,7 @@ export default function DoctorProfilePage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className={`grid grid-cols-1 md:grid-cols-3 gap-4 ${profileTab !== 'all' && profileTab !== 'general' ? 'hidden' : ''}`}>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1">Precio de consulta</label>
                     <input
@@ -734,7 +762,7 @@ export default function DoctorProfilePage() {
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5">
+                <div className={`rounded-2xl border border-emerald-100 bg-emerald-50 p-5 ${profileTab !== 'all' && profileTab !== 'general' ? 'hidden' : ''}`}>
                   <div className="mb-3">
                     <h3 className="text-base font-bold text-emerald-950">Seguros que aceptas</h3>
                     <p className="text-sm text-emerald-700">Esta información se mostrará a los pacientes antes de reservar.</p>
@@ -759,7 +787,7 @@ export default function DoctorProfilePage() {
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-blue-100 bg-blue-50 p-5">
+                <div className={`rounded-2xl border border-blue-100 bg-blue-50 p-5 ${profileTab !== 'all' && profileTab !== 'verification' ? 'hidden' : ''}`}>
                   <div className="mb-4 flex items-center gap-2">
                     <FileText className="h-5 w-5 text-blue-600" />
                     <div>
@@ -802,7 +830,7 @@ export default function DoctorProfilePage() {
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-gray-200 p-5">
+                <div className={`rounded-2xl border border-gray-200 p-5 ${profileTab !== 'all' && profileTab !== 'schedule' ? 'hidden' : ''}`}>
                   <div className="flex items-center justify-between gap-4 mb-4">
                     <div>
                       <h3 className="text-base font-bold text-gray-900">{en ? 'Schedule by center/clinic' : 'Horario por centro/clínica'}</h3>
@@ -874,7 +902,7 @@ export default function DoctorProfilePage() {
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-gray-200 p-5">
+                <div className={`rounded-2xl border border-gray-200 p-5 ${profileTab !== 'all' && profileTab !== 'settings' ? 'hidden' : ''}`}>
                   <div className="flex items-center gap-2 mb-4">
                     <Video className="w-5 h-5 text-blue-600" />
                     <h3 className="text-base font-bold text-gray-900">{en ? 'Professional settings' : 'Configuración profesional'}</h3>
