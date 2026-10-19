@@ -5,6 +5,7 @@ import crypto from 'crypto';
 import { hashPassword } from '../utils/auth';
 import { auditClinicalAction } from '../utils/audit';
 import { v2 as cloudinary } from 'cloudinary';
+import { ensureDoctorVerificationColumns } from '../utils/doctorVerification';
 
 const cloudinaryEnabled = Boolean(
   process.env.CLOUDINARY_CLOUD_NAME &&
@@ -257,6 +258,7 @@ export const getDoctors = async (req: Request, res: Response) => {
 export const getDoctorById = async (req: Request, res: Response) => {
   try {
     await ensureDoctorProfileDocumentColumns();
+    await ensureDoctorVerificationColumns();
     await ensureDoctorDisplayColumns();
     await ensureReviewsTable();
     const { id } = req.params;
@@ -478,6 +480,7 @@ export const associateDoctorPatient = async (req: Request, res: Response) => {
 export const updateDoctorProfile = async (req: Request, res: Response) => {
   try {
     await ensureDoctorProfileDocumentColumns();
+    await ensureDoctorVerificationColumns();
     await ensureDoctorDisplayColumns();
     const { id } = req.params;
     const {
@@ -499,6 +502,8 @@ export const updateDoctorProfile = async (req: Request, res: Response) => {
       idBackImage,
       exequaturImage,
       specialtyProofImage,
+      phone,
+      exequatur,
       prescriptionLogo,
       prescriptionSeal,
       acceptedInsurances,
@@ -525,15 +530,8 @@ export const updateDoctorProfile = async (req: Request, res: Response) => {
     const nextExequaturImage = exequaturImage ?? existingDocuments?.exequatur_image;
     const nextSpecialtyProofImage = specialtyProofImage ?? existingDocuments?.specialty_proof_image;
 
-    if (!nextDocumentNumber || !nextIdFrontImage || !nextIdBackImage || !nextExequaturImage || !nextSpecialtyProofImage) {
-      return res.status(400).json({
-        success: false,
-        message: 'Para completar tu perfil debes adjuntar cédula frontal, cédula reverso, exequatur y soporte de especialidad.',
-      });
-    }
-
     // Update doctor profile
-    if (bio !== undefined || consultationPrice !== undefined || insuredConsultationPrice !== undefined || yearsExperience !== undefined || specialties !== undefined || acceptedInsurances !== undefined || healthCenterId !== undefined || healthCenterIds !== undefined || newHealthCenter !== undefined || consultationDuration !== undefined || teleconsultationEnabled !== undefined || vacationMode !== undefined || documentNumber !== undefined || idFrontImage !== undefined || idBackImage !== undefined || exequaturImage !== undefined || specialtyProofImage !== undefined || prescriptionLogo !== undefined || prescriptionSeal !== undefined) {
+    if (bio !== undefined || consultationPrice !== undefined || insuredConsultationPrice !== undefined || yearsExperience !== undefined || specialties !== undefined || acceptedInsurances !== undefined || healthCenterId !== undefined || healthCenterIds !== undefined || newHealthCenter !== undefined || consultationDuration !== undefined || teleconsultationEnabled !== undefined || vacationMode !== undefined || documentNumber !== undefined || idFrontImage !== undefined || idBackImage !== undefined || exequaturImage !== undefined || specialtyProofImage !== undefined || prescriptionLogo !== undefined || prescriptionSeal !== undefined || exequatur !== undefined) {
       const updates: string[] = [];
       const params: any[] = [];
 
@@ -556,6 +554,10 @@ export const updateDoctorProfile = async (req: Request, res: Response) => {
       if (specialties !== undefined && Array.isArray(specialties)) {
         updates.push(`specialties = $${params.length + 1}`);
         params.push(specialties);
+      }
+      if (exequatur !== undefined) {
+        updates.push(`license_number = $${params.length + 1}`);
+        params.push(exequatur || null);
       }
       if (acceptedInsurances !== undefined && Array.isArray(acceptedInsurances)) {
         updates.push(`accepted_insurances = $${params.length + 1}`);
@@ -668,6 +670,33 @@ export const updateDoctorProfile = async (req: Request, res: Response) => {
         }
       }
     }
+
+    if (phone !== undefined) {
+      await query('UPDATE users SET phone = $1 WHERE id = $2', [phone || null, id]);
+    }
+
+    // Keep the pending request in sync with the professional profile. The admin review
+    // reads doctor_requests, while the doctor edits the doctors/users tables.
+    await query(
+      `UPDATE doctor_requests dr
+       SET first_name = COALESCE(u.first_name, dr.first_name),
+           last_name = COALESCE(u.last_name, dr.last_name),
+           phone = COALESCE(u.phone, dr.phone),
+           license_number = COALESCE(d.license_number, dr.license_number),
+           exequatur = COALESCE(d.license_number, dr.exequatur),
+           specialty = COALESCE(d.specialties[1], dr.specialty),
+           document_number = COALESCE(d.document_number, dr.document_number),
+           id_front_image = COALESCE(d.id_front_image, dr.id_front_image),
+           id_back_image = COALESCE(d.id_back_image, dr.id_back_image),
+           exequatur_image = COALESCE(d.exequatur_image, dr.exequatur_image),
+           specialty_proof_image = COALESCE(d.specialty_proof_image, dr.specialty_proof_image)
+       FROM users u
+       JOIN doctors d ON d.id = u.id
+       WHERE LOWER(dr.email) = LOWER(u.email)
+         AND u.id = $1
+         AND dr.status = 'pending'`,
+      [id]
+    );
 
     if (avatar !== undefined) {
       await query('UPDATE users SET avatar = $1 WHERE id = $2', [avatar || null, id]);

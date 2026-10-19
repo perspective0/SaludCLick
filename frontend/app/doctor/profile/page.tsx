@@ -101,6 +101,8 @@ export default function DoctorProfilePage() {
     newHealthCenterCity: '',
     newHealthCenterPhone: '',
     newHealthCenterEmail: '',
+    phone: '',
+    exequatur: '',
     documentNumber: '',
     idFrontImage: '',
     idBackImage: '',
@@ -171,6 +173,8 @@ export default function DoctorProfilePage() {
         newHealthCenterCity: '',
         newHealthCenterPhone: '',
         newHealthCenterEmail: '',
+        phone: data?.phone || '',
+        exequatur: data?.license_number || '',
         documentNumber: maskDominicanId(data?.document_number || ''),
         idFrontImage: '',
         idBackImage: '',
@@ -223,20 +227,6 @@ export default function DoctorProfilePage() {
     setError('');
     setSuccess('');
     try {
-      if (
-        !form.documentNumber.trim() ||
-        (!form.hasIdFrontImage && !form.idFrontImage) ||
-        (!form.hasIdBackImage && !form.idBackImage) ||
-        (!form.hasExequaturImage && !form.exequaturImage) ||
-        (requiresSpecialtyProof && !form.hasSpecialtyProofImage && !form.specialtyProofImage)
-      ) {
-        setError(en
-          ? `Upload the front and back of your ID, your professional license${requiresSpecialtyProof ? ' and specialty proof' : ''} to complete your profile.`
-          : `Debes adjuntar cédula frontal, cédula reverso, exequátur${requiresSpecialtyProof ? ' y soporte de especialidad' : ''} para completar tu perfil.`);
-        setSaving(false);
-        return;
-      }
-
       const activeAvailability = availability.filter((slot) => slot.enabled);
       const scheduleConflict = findAvailabilityConflict(activeAvailability, healthCenters);
       if (scheduleConflict) {
@@ -253,6 +243,8 @@ export default function DoctorProfilePage() {
         consultationDuration: Number(settings.consultationDuration || 30),
         teleconsultationEnabled: settings.teleconsultation,
         vacationMode: settings.vacationMode,
+        phone: form.phone.trim(),
+        exequatur: form.exequatur.trim(),
         avatar: form.avatar.trim(),
         prescriptionLogo: form.prescriptionLogo.trim(),
         prescriptionSeal: form.prescriptionSeal.trim(),
@@ -385,6 +377,20 @@ export default function DoctorProfilePage() {
     (form.hasExequaturImage || form.exequaturImage) &&
     (!requiresSpecialtyProof || form.hasSpecialtyProofImage || form.specialtyProofImage)
   );
+  const pendingItems = [
+    !form.phone.trim() && (en ? 'Phone number' : 'Teléfono'),
+    !form.exequatur.trim() && (en ? 'Professional license number' : 'Número de exequátur'),
+    !form.specialtiesText.trim() && (en ? 'Specialty' : 'Especialidad'),
+    !form.bio.trim() && (en ? 'Professional biography' : 'Biografía profesional'),
+    !form.avatar && (en ? 'Profile photo' : 'Foto de perfil'),
+    !form.selectedHealthCenterIds.length && (en ? 'Consultation center' : 'Consultorio o centro'),
+    !availability.some((slot) => slot.enabled) && (en ? 'Availability' : 'Horarios de atención'),
+    !form.documentNumber.trim() && (en ? 'Identity document number' : 'Número de documento'),
+    !(form.hasIdFrontImage || form.idFrontImage) && (en ? 'Front ID document' : 'Cédula frontal'),
+    !(form.hasIdBackImage || form.idBackImage) && (en ? 'Back ID document' : 'Cédula reverso'),
+    !(form.hasExequaturImage || form.exequaturImage) && (en ? 'Professional license document' : 'Documento de exequátur'),
+    requiresSpecialtyProof && !(form.hasSpecialtyProofImage || form.specialtyProofImage) && (en ? 'Specialty proof' : 'Soporte de especialidad'),
+  ].filter(Boolean) as string[];
   const assignedCenters = Array.isArray(profile?.health_centers) ? profile.health_centers : [];
   const assignedCenterLabel = assignedCenters.length
     ? assignedCenters.map((center: any) => `${center.name}${center.city ? ` · ${center.city}` : ''}`).join(', ')
@@ -476,6 +482,15 @@ export default function DoctorProfilePage() {
                 {!availability.some((slot) => slot.enabled) && <span>Faltan horarios</span>}
                 {!documentsComplete && <span>{en ? 'Documents missing' : 'Faltan documentos'}</span>}
               </div>
+              {pendingItems.length > 0 && (
+                <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                  <p className="text-sm font-bold text-amber-900">{en ? 'Recommended next steps' : 'Recomendaciones para completar tu perfil'}</p>
+                  <p className="mt-1 text-xs text-amber-800">{en ? 'Complete these items so the team can review your request and patients can find you.' : 'Completa estos puntos para que el equipo revise tu solicitud y los pacientes puedan encontrarte.'}</p>
+                  <ul className="mt-3 grid grid-cols-1 gap-2 text-sm text-amber-900 sm:grid-cols-2">
+                    {pendingItems.map((item) => <li key={item} className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-amber-500" />{item}</li>)}
+                  </ul>
+                </div>
+              )}
             </div>
 
             <div className="rounded-2xl bg-white border border-gray-200 p-5">
@@ -586,6 +601,16 @@ export default function DoctorProfilePage() {
                         Si no se sube una imagen, el documento mostrara el espacio de sello vacio.
                       </p>
                     </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <label>
+                      <span className="block text-sm font-semibold text-gray-700 mb-1">{en ? 'Phone number' : 'Teléfono'}</span>
+                      <input value={form.phone} onChange={(event) => setForm({ ...form, phone: maskPhone(event.target.value) })} className="w-full h-11 rounded-xl border border-gray-200 px-3 text-sm" placeholder="809-555-5555" />
+                    </label>
+                    <label>
+                      <span className="block text-sm font-semibold text-gray-700 mb-1">{en ? 'Professional license number' : 'Número de exequátur'}</span>
+                      <input value={form.exequatur} onChange={(event) => setForm({ ...form, exequatur: event.target.value })} className="w-full h-11 rounded-xl border border-gray-200 px-3 text-sm" placeholder="Ej: 12345" />
+                    </label>
                   </div>
 
                   <div className="space-y-5">

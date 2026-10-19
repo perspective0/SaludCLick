@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { JWTPayload } from '../types';
 import { verifyToken } from '../utils/auth';
+import { queryOne } from '../db';
 
 // Extend Express Request to include user
 declare global {
@@ -64,7 +65,7 @@ export const optionalAuthMiddleware = (req: Request, res: Response, next: NextFu
 };
 
 export const roleMiddleware = (allowedRoles: string[]) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -77,6 +78,26 @@ export const roleMiddleware = (allowedRoles: string[]) => {
         success: false,
         message: 'Access denied. Insufficient permissions.',
       });
+    }
+
+    if (req.user.role === 'doctor') {
+      try {
+        const doctor = await queryOne('SELECT COALESCE(is_verified, false) AS is_verified FROM doctors WHERE id = $1', [req.user.id]);
+        const isOwnProfileUpdate =
+          req.params.id === req.user.id &&
+          ['GET', 'PUT'].includes(req.method) &&
+          /^\/api\/doctors\/[^/]+$/.test(req.path);
+        if (!doctor?.is_verified && !isOwnProfileUpdate) {
+          return res.status(403).json({
+            success: false,
+            code: 'DOCTOR_PENDING_APPROVAL',
+            message: 'Tu cuenta de médico está pendiente de aprobación.',
+          });
+        }
+      } catch (error) {
+        console.error('Doctor approval check failed:', error);
+        return res.status(500).json({ success: false, message: 'No se pudo validar el estado de la cuenta médica.' });
+      }
     }
 
     next();

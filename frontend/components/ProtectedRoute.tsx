@@ -48,9 +48,15 @@ export default function ProtectedRoute({
           lastName: userData.last_name || userData.lastName,
           role: userData.role,
           avatar: userData.avatar,
+          isVerified: userData.doctor_verified !== false,
         }));
 
         const role = userData.role;
+        const canCompletePendingProfile = window.location.pathname.startsWith('/doctor/profile');
+        if (role === 'doctor' && userData.doctor_verified === false && !canCompletePendingProfile && !window.location.pathname.startsWith('/doctor/pending-approval')) {
+          router.replace('/doctor/pending-approval');
+          return;
+        }
         if (requiredRole) {
           const allowed = Array.isArray(requiredRole)
             ? requiredRole.includes(role)

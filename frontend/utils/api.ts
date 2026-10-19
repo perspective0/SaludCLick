@@ -160,10 +160,10 @@ export const authAPI = {
     return `${API_URL}/auth/google${query}`;
   },
 
-  completeGoogleRegistration: (token: string, role: 'patient' | 'doctor') =>
+  completeGoogleRegistration: (token: string, role: 'patient' | 'doctor', details?: { phone?: string; exequatur?: string; specialty?: string }) =>
     apiRequest('/auth/google/register', {
       method: 'POST',
-      body: JSON.stringify({ token, role }),
+      body: JSON.stringify({ token, role, ...details }),
     }),
 };
 

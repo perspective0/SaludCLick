@@ -147,6 +147,28 @@ async function syncPendingDoctorUsers() {
       AND d.id IS NULL
       AND dr.id IS NULL
   `);
+
+  // Older doctor profiles may already contain documents in doctors, while their
+  // pending request was created before the profile/request synchronization existed.
+  // Copy the latest values so the review screen always reflects the real profile.
+  await query(`
+    UPDATE doctor_requests dr
+    SET first_name = COALESCE(u.first_name, dr.first_name),
+        last_name = COALESCE(u.last_name, dr.last_name),
+        phone = COALESCE(u.phone, dr.phone),
+        license_number = COALESCE(d.license_number, dr.license_number),
+        exequatur = COALESCE(d.license_number, dr.exequatur),
+        specialty = COALESCE(d.specialties[1], dr.specialty),
+        document_number = COALESCE(d.document_number, dr.document_number),
+        id_front_image = COALESCE(d.id_front_image, dr.id_front_image),
+        id_back_image = COALESCE(d.id_back_image, dr.id_back_image),
+        exequatur_image = COALESCE(d.exequatur_image, dr.exequatur_image),
+        specialty_proof_image = COALESCE(d.specialty_proof_image, dr.specialty_proof_image)
+    FROM users u
+    JOIN doctors d ON d.id = u.id
+    WHERE LOWER(dr.email) = LOWER(u.email)
+      AND dr.status = 'pending'
+  `);
 }
 
 export const listDoctorRequests = async (req: Request, res: Response) => {

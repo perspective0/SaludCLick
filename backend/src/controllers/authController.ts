@@ -27,6 +27,7 @@ type GoogleProfile = {
   given_name?: string;
   family_name?: string;
   name?: string;
+  picture?: string;
 };
 
 function getFrontendUrl() {
@@ -193,10 +194,11 @@ export const finishGoogleLogin = async (req: Request, res: Response) => {
         googleSubject: profile.sub,
         firstName,
         lastName,
+        avatar: profile.picture || null,
       } as any, '10m');
       return res.redirect(`${getFrontendUrl()}/google/onboarding?token=${encodeURIComponent(onboardingToken)}`);
     } else {
-      await query('UPDATE users SET google_subject = $1, updated_at = NOW() WHERE id = $2', [profile.sub, user.id]);
+      await query('UPDATE users SET google_subject = $1, avatar = COALESCE(avatar, $2), updated_at = NOW() WHERE id = $3', [profile.sub, profile.picture || null, user.id]);
     }
 
     const security = await getSettings('security');
@@ -217,8 +219,14 @@ export const finishGoogleLogin = async (req: Request, res: Response) => {
 export const completeGoogleRegistration = async (req: Request, res: Response) => {
   try {
     const requestedRole = req.body?.role === 'doctor' ? 'doctor' : req.body?.role === 'patient' ? 'patient' : null;
+    const phone = String(req.body?.phone || '').trim();
+    const exequatur = String(req.body?.exequatur || '').trim();
+    const specialty = String(req.body?.specialty || '').trim();
     if (!requestedRole) {
       return res.status(400).json({ success: false, message: 'Selecciona si utilizarás SaludClick como paciente o médico.' });
+    }
+    if (requestedRole === 'doctor' && (!phone || !exequatur || !specialty)) {
+      return res.status(400).json({ success: false, message: 'Para solicitar acceso como médico debes indicar teléfono, exequátur y especialidad.' });
     }
 
     const onboarding = verifyToken(String(req.body?.token || '')) as any;
@@ -236,21 +244,30 @@ export const completeGoogleRegistration = async (req: Request, res: Response) =>
     const password = await hashPassword(crypto.randomBytes(32).toString('base64url'));
     const firstName = String(onboarding.firstName || 'Usuario').slice(0, 100);
     const lastName = String(onboarding.lastName || 'SaludClick').slice(0, 100);
+    const verification = requestedRole === 'doctor'
+      ? await verifyDoctorExequatur({
+          firstName,
+          lastName,
+          fullName: `${firstName} ${lastName}`.trim(),
+          exequatur,
+          specialty,
+        })
+      : null;
 
     await ensureDoctorVerificationColumns();
     await ensureDoctorHealthCentersTable();
 
     await transaction(async (client) => {
       await client.query(
-        'INSERT INTO users (id, email, password, first_name, last_name, role, google_subject) VALUES ($1,$2,$3,$4,$5,$6,$7)',
-        [userId, onboarding.email, password, firstName, lastName, requestedRole, onboarding.googleSubject]
+        'INSERT INTO users (id, email, password, first_name, last_name, role, avatar, google_subject) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)',
+        [userId, onboarding.email, password, firstName, lastName, requestedRole, onboarding.avatar || null, onboarding.googleSubject]
       );
 
       if (requestedRole === 'doctor') {
         const centerId = await getOrCreateDefaultCenter(client);
         await client.query(
           'INSERT INTO doctors (id, health_center_id, license_number, years_experience, bio, consultation_price, is_verified, specialties, average_rating) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)',
-          [userId, centerId, `GOOGLE-${userId}`, 0, 'Perfil creado con Google. Completa tus credenciales profesionales y solicita verificación.', 0, false, [], 0]
+          [userId, centerId, exequatur, 0, 'Perfil creado con Google. Completa tu perfil mientras validamos tus credenciales profesionales.', 0, false, [specialty], 0]
         );
         await client.query(
           `INSERT INTO doctor_health_centers (doctor_id, health_center_id, is_primary)
@@ -260,17 +277,27 @@ export const completeGoogleRegistration = async (req: Request, res: Response) =>
         );
         await client.query(
           `INSERT INTO doctor_requests (
-             name, first_name, last_name, email, clinic, requested_health_center_mode,
-             message, status, verification_status
-           ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', 'pending_review')`,
+             name, first_name, last_name, email, phone, clinic, requested_health_center_mode,
+             license_number, exequatur, specialty, message, status, verification_status,
+             verification_score, verification_source, verification_message,
+             verification_checked_at, verification_payload
+           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $8, $9, $10, 'pending', $11, $12, $13, $14, $15, $16)`,
           [
             `${firstName} ${lastName}`.trim(),
             firstName,
             lastName,
             onboarding.email,
-            null,
+            phone,
             'other',
-            'Solicitud iniciada con Google. El médico debe completar sus credenciales profesionales para continuar la verificación.',
+            exequatur,
+            specialty,
+            `Solicitud iniciada con Google. ${verification?.status === 'verified' ? 'La identidad profesional fue validada automáticamente y queda pendiente de aprobación administrativa.' : 'La solicitud requiere revisión administrativa.'}`,
+            verification?.status || 'pending_review',
+            verification?.score ?? null,
+            verification?.source || null,
+            verification?.message || null,
+            verification?.checkedAt || null,
+            verification ? JSON.stringify(verification) : null,
           ]
         );
       } else {
@@ -283,17 +310,17 @@ export const completeGoogleRegistration = async (req: Request, res: Response) =>
     const token = generateToken({ id: userId, email: onboarding.email, role: requestedRole as UserRole }, `${sessionMinutes}m`);
     setAuthCookie(res, token, sessionMinutes);
     if (requestedRole === 'doctor') {
-      notifyDoctorRequestTelegram({ firstName, lastName, email: onboarding.email }).catch((error) => {
+      notifyDoctorRequestTelegram({ firstName, lastName, email: onboarding.email, specialty, phone, exequatur }).catch((error) => {
         console.error('Telegram Google doctor request notification error:', error);
       });
-      notifyDoctorRequestWhatsApp({ firstName, lastName, email: onboarding.email }).catch((error) => {
+      notifyDoctorRequestWhatsApp({ firstName, lastName, email: onboarding.email, specialty, phone, exequatur }).catch((error) => {
         console.error('WhatsApp Google doctor request notification error:', error);
       });
     }
     return res.json({
       success: true,
       data: {
-        user: { id: userId, email: onboarding.email, firstName, lastName, role: requestedRole },
+        user: { id: userId, email: onboarding.email, firstName, lastName, phone, avatar: onboarding.avatar || null, role: requestedRole, isVerified: requestedRole !== 'doctor' },
         token,
         pendingApproval: requestedRole === 'doctor',
       },
@@ -929,7 +956,11 @@ export const getCurrentUser = async (req: Request, res: Response) => {
     }
 
     const user = await queryOne(
-      'SELECT id, email, first_name, last_name, role, avatar FROM users WHERE id = $1',
+      `SELECT u.id, u.email, u.first_name, u.last_name, u.role, u.avatar,
+              CASE WHEN u.role = 'doctor' THEN COALESCE(d.is_verified, false) ELSE true END AS doctor_verified
+       FROM users u
+       LEFT JOIN doctors d ON d.id = u.id
+       WHERE u.id = $1`,
       [req.user.id]
     );
 

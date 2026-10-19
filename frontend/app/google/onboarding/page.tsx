@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useMemo, useState } from 'react';
+import { FormEvent, Suspense, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowRight, CheckCircle2, ShieldCheck, Sparkles, Stethoscope, UserRound } from 'lucide-react';
 import { authAPI, saveToken } from '@/utils/api';
@@ -19,9 +19,16 @@ function GoogleOnboardingContent() {
   const en = locale === 'en';
   const token = useMemo(() => params.get('token') || '', [params]);
   const [loadingRole, setLoadingRole] = useState<'patient' | 'doctor' | ''>('');
+  const [doctorFormOpen, setDoctorFormOpen] = useState(false);
+  const [doctorDetails, setDoctorDetails] = useState({ phone: '', exequatur: '', specialty: '' });
   const [error, setError] = useState('');
 
   const chooseRole = async (role: 'patient' | 'doctor') => {
+    if (role === 'doctor' && !doctorFormOpen) {
+      setDoctorFormOpen(true);
+      setError('');
+      return;
+    }
     if (!token) {
       setError(en ? 'Your Google session expired. Please sign in again.' : 'La sesión de Google expiró. Vuelve a iniciar sesión.');
       return;
@@ -30,7 +37,7 @@ function GoogleOnboardingContent() {
     setLoadingRole(role);
     setError('');
     try {
-      const response = await authAPI.completeGoogleRegistration(token, role);
+      const response = await authAPI.completeGoogleRegistration(token, role, role === 'doctor' ? doctorDetails : undefined);
       const user = response.data?.user;
       if (!user) throw new Error(en ? 'The account could not be created.' : 'No se pudo crear la cuenta.');
       if (response.data.token) saveToken(response.data.token);
@@ -82,10 +89,21 @@ function GoogleOnboardingContent() {
 
             {error && <p className="mt-6 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-400/30 dark:bg-red-400/10 dark:text-red-200">{error}</p>}
 
-            <div className="mt-9 grid gap-4 sm:grid-cols-2">
-              <RoleCard role="patient" loading={loadingRole === 'patient'} disabled={Boolean(loadingRole)} onClick={() => chooseRole('patient')} en={en} />
-              <RoleCard role="doctor" loading={loadingRole === 'doctor'} disabled={Boolean(loadingRole)} onClick={() => chooseRole('doctor')} en={en} />
-            </div>
+            {doctorFormOpen ? (
+              <DoctorDetailsForm
+                details={doctorDetails}
+                en={en}
+                loading={loadingRole === 'doctor'}
+                onChange={(next) => setDoctorDetails(next)}
+                onBack={() => { setDoctorFormOpen(false); setError(''); }}
+                onSubmit={(event) => { event.preventDefault(); chooseRole('doctor'); }}
+              />
+            ) : (
+              <div className="mt-9 grid gap-4 sm:grid-cols-2">
+                <RoleCard role="patient" loading={loadingRole === 'patient'} disabled={Boolean(loadingRole)} onClick={() => chooseRole('patient')} en={en} />
+                <RoleCard role="doctor" loading={false} disabled={Boolean(loadingRole)} onClick={() => chooseRole('doctor')} en={en} />
+              </div>
+            )}
             <p className="mt-7 flex items-center gap-2 text-xs leading-5 text-slate-500 dark:text-slate-400"><ShieldCheck className="h-4 w-4 shrink-0 text-emerald-500" />{en ? 'Your Google identity is used only to create and secure your SaludClick account.' : 'Tu identidad de Google se usa únicamente para crear y proteger tu cuenta de SaludClick.'}</p>
           </div>
         </div>
@@ -108,4 +126,28 @@ function RoleCard({ role, loading, disabled, onClick, en }: { role: 'patient' | 
     <p className="relative mt-2 min-h-12 text-sm leading-6 text-slate-600 dark:text-slate-400">{description}</p>
     <span className={`relative mt-5 inline-flex items-center gap-2 text-sm font-bold ${patient ? 'text-blue-600 dark:text-blue-300' : 'text-cyan-600 dark:text-cyan-300'}`}>{action}<ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" /></span>
   </button>;
+}
+
+function DoctorDetailsForm({ details, en, loading, onChange, onBack, onSubmit }: {
+  details: { phone: string; exequatur: string; specialty: string };
+  en: boolean;
+  loading: boolean;
+  onChange: (details: { phone: string; exequatur: string; specialty: string }) => void;
+  onBack: () => void;
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+}) {
+  return (
+    <form onSubmit={onSubmit} className="mt-8 rounded-2xl border border-cyan-200 bg-cyan-50/60 p-5 dark:border-cyan-900/80 dark:bg-cyan-950/20 sm:p-6">
+      <div className="mb-5 flex items-start gap-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-100 text-cyan-700 dark:bg-cyan-500/15 dark:text-cyan-300"><Stethoscope className="h-5 w-5" /></div>
+        <div><h2 className="font-bold text-slate-950 dark:text-white">{en ? 'Professional details' : 'Datos profesionales'}</h2><p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">{en ? 'These details are required to submit your doctor application.' : 'Estos datos son necesarios para enviar tu solicitud como médico.'}</p></div>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="block sm:col-span-2"><span className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">{en ? 'Phone number' : 'Teléfono'}</span><input required type="tel" value={details.phone} onChange={(event) => onChange({ ...details, phone: event.target.value })} placeholder={en ? '+1 809 000 0000' : '+1 809 000 0000'} className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 dark:border-slate-700 dark:bg-slate-950 dark:text-white" /></label>
+        <label className="block"><span className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">{en ? 'Professional license / exequatur' : 'Exequátur'}</span><input required value={details.exequatur} onChange={(event) => onChange({ ...details, exequatur: event.target.value })} className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 dark:border-slate-700 dark:bg-slate-950 dark:text-white" /></label>
+        <label className="block"><span className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">{en ? 'Specialty' : 'Especialidad'}</span><input required value={details.specialty} onChange={(event) => onChange({ ...details, specialty: event.target.value })} placeholder={en ? 'e.g. Cardiology' : 'Ej. Cardiología'} className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 dark:border-slate-700 dark:bg-slate-950 dark:text-white" /></label>
+      </div>
+      <div className="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><button type="button" onClick={onBack} disabled={loading} className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">{en ? 'Back' : 'Volver'}</button><button type="submit" disabled={loading} className="h-11 rounded-xl bg-cyan-600 px-5 text-sm font-bold text-white shadow-lg shadow-cyan-600/20 transition hover:-translate-y-0.5 hover:bg-cyan-700 disabled:cursor-wait disabled:opacity-60">{loading ? (en ? 'Submitting application…' : 'Enviando solicitud…') : (en ? 'Submit doctor application' : 'Enviar solicitud médica')}</button></div>
+    </form>
+  );
 }
