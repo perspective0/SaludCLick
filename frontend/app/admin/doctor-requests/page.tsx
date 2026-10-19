@@ -860,11 +860,30 @@ function DocumentLink({ label, value }: { label: string; value?: string }) {
     );
   }
 
+  const openDocument = async () => {
+    const popup = window.open('', '_blank');
+    if (!popup) return;
+
+    try {
+      // Opening a large base64 data URL directly is unreliable in production.
+      // Convert it to a temporary blob URL first so the browser renders it normally.
+      if (value.startsWith('data:')) {
+        const response = await fetch(value);
+        const blobUrl = URL.createObjectURL(await response.blob());
+        popup.location.href = blobUrl;
+        window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+      } else {
+        popup.location.href = value;
+      }
+    } catch {
+      popup.location.href = value;
+    }
+  };
+
   return (
-    <a
-      href={value}
-      target="_blank"
-      rel="noreferrer"
+    <button
+      type="button"
+      onClick={openDocument}
       className="group rounded-xl border border-blue-100 bg-blue-50 p-3 text-sm text-blue-700 transition-colors hover:bg-blue-100"
     >
       <p className="font-semibold">{label}</p>
@@ -877,6 +896,6 @@ function DocumentLink({ label, value }: { label: string; value?: string }) {
         />
       </div>
       <p className="mt-1">Abrir imagen</p>
-    </a>
+    </button>
   );
 }
