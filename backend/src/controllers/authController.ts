@@ -345,7 +345,7 @@ export const completeGoogleRegistration = async (req: Request, res: Response) =>
       message: tokenError
         ? 'La sesión de Google expiró. Vuelve a iniciar el proceso.'
         : duplicateError
-          ? 'Ese número de exequátur o correo ya está registrado. Verifica los datos e inténtalo nuevamente.'
+          ? 'Ese número de exequátur ya está registrado. Verifica el número e inténtalo nuevamente.'
           : 'No se pudo crear la solicitud médica. Verifica los datos e inténtalo nuevamente.',
     });
   }
