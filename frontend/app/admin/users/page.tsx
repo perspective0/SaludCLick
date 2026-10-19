@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { adminAPI } from '@/utils/api';
+import { adminAPI, saveToken } from '@/utils/api';
 import { maskPhone } from '@/utils/inputMasks';
 import { useI18n } from '@/i18n';
 import { 
@@ -175,9 +175,17 @@ export default function AdminUsersPage() {
     if (!selectedUser) return;
 
     try {
-      await adminAPI.updateUser(selectedUser.id, editForm);
+      const response = await adminAPI.updateUser(selectedUser.id, editForm);
       setShowEditModal(false);
       setSelectedUser(null);
+      const currentUser = JSON.parse(localStorage.getItem('user') || 'null');
+      if (currentUser?.id === selectedUser.id && response?.data?.token) {
+        saveToken(response.data.token);
+        const nextUser = { ...currentUser, ...editForm, role: response.data.role || editForm.role };
+        localStorage.setItem('user', JSON.stringify(nextUser));
+        router.replace(response.data.role === 'doctor' ? '/doctor/dashboard' : response.data.role === 'patient' ? '/patient/dashboard' : response.data.role === 'secretary' ? '/secretary/dashboard' : '/admin/dashboard');
+        return;
+      }
       await loadUsers();
     } catch (err: any) {
       console.error(err);

@@ -155,8 +155,10 @@ export const authAPI = {
   me: () =>
     apiRequest('/auth/me'),
 
-  googleLoginUrl: (redirect?: string) => {
-    const query = redirect ? `?redirect=${encodeURIComponent(redirect)}` : '';
+  googleLoginUrl: (redirect?: string, role: 'patient' | 'doctor' = 'patient') => {
+    const params = new URLSearchParams({ role });
+    if (redirect) params.set('redirect', redirect);
+    const query = `?${params.toString()}`;
     return `${API_URL}/auth/google${query}`;
   },
 };

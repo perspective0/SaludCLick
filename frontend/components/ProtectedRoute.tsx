@@ -2,7 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { authAPI } from '@/utils/api';
+import { authAPI, saveToken } from '@/utils/api';
+
+function dashboardForRole(role: string) {
+  if (role === 'doctor') return '/doctor/dashboard';
+  if (role === 'admin') return '/admin/dashboard';
+  if (role === 'secretary') return '/secretary/dashboard';
+  return '/patient/dashboard';
+}
 
 export default function ProtectedRoute({
   children,
@@ -20,6 +27,12 @@ export default function ProtectedRoute({
 
     async function verifySession() {
       try {
+        const token = new URLSearchParams(window.location.search).get('token');
+        if (token) {
+          saveToken(token);
+          const cleanUrl = `${window.location.pathname}${window.location.hash}`;
+          window.history.replaceState({}, document.title, cleanUrl);
+        }
         const response = await authAPI.me();
         const userData = response?.data;
 
@@ -43,7 +56,7 @@ export default function ProtectedRoute({
             ? requiredRole.includes(role)
             : role === requiredRole;
           if (!allowed) {
-            router.push('/dashboard');
+            router.replace(dashboardForRole(role));
             return;
           }
         }

@@ -76,9 +76,9 @@ function LoginContent() {
     return () => { active = false; };
   }, [redirect, router, searchParams]);
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = (role: 'patient' | 'doctor') => {
     const currentRedirect = redirect && redirect.startsWith('/') ? redirect : '';
-    window.location.assign(authAPI.googleLoginUrl(currentRedirect));
+    window.location.assign(authAPI.googleLoginUrl(currentRedirect, role));
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -333,10 +333,11 @@ function LoginContent() {
               <div className="relative flex justify-center"><span className="bg-white px-3 text-sm text-gray-500">o continúa con</span></div>
             </div>
 
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
               type="button"
-              onClick={handleGoogleLogin}
-              className="w-full flex items-center justify-center gap-3 rounded-xl border border-gray-300 bg-white py-3 font-semibold text-gray-700 transition hover:bg-gray-50 hover:border-gray-400"
+              onClick={() => handleGoogleLogin('patient')}
+              className="flex items-center justify-center gap-2 rounded-xl border border-blue-200 bg-white py-3 font-semibold text-blue-700 transition hover:bg-blue-50 hover:border-blue-300"
             >
               <svg aria-hidden="true" className="h-5 w-5" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M21.35 12.27c0-.72-.06-1.42-.18-2.09H12v3.96h5.24a4.48 4.48 0 0 1-1.95 2.94v2.45h3.15c1.84-1.7 2.91-4.2 2.91-7.26Z" />
@@ -344,8 +345,17 @@ function LoginContent() {
                 <path fill="#FBBC05" d="M6.53 13.77A5.85 5.85 0 0 1 6.22 12c0-.62.11-1.22.31-1.77V7.7H3.28A9.74 9.74 0 0 0 2.25 12c0 1.57.38 3.05 1.03 4.3l3.25-2.53Z" />
                 <path fill="#EA4335" d="M12 6.2c1.43 0 2.72.49 3.73 1.46l2.8-2.8C16.84 3.27 14.63 2.3 12 2.3a9.74 9.74 0 0 0-8.72 5.4l3.25 2.53C7.3 7.92 9.46 6.2 12 6.2Z" />
               </svg>
-              Continuar con Google
+              Google · Paciente
             </button>
+            <button
+              type="button"
+              onClick={() => handleGoogleLogin('doctor')}
+              className="flex items-center justify-center gap-2 rounded-xl border border-cyan-200 bg-white py-3 font-semibold text-cyan-700 transition hover:bg-cyan-50 hover:border-cyan-300"
+            >
+              <Stethoscope className="h-5 w-5" />
+              Google · Médico
+            </button>
+            </div>
 
             <div className="mt-6 text-center">
               <p className="text-gray-600">

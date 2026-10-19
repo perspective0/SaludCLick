@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { hashPassword } from '../utils/auth';
+import { hashPassword, generateToken } from '../utils/auth';
 import { query, queryOne, transaction } from '../db';
 import { v4 as uuidv4 } from 'uuid';
 import { sendEmail } from '../utils/mailer';
@@ -545,6 +545,19 @@ export const updateUser = async (req: Request, res: Response) => {
         }
       }
     });
+
+    if (req.user?.id === id) {
+      const sessionMinutes = Number((await getRuntimeSettings('security')).sessionTimeout) || 30;
+      const token = generateToken({ id, email, role }, `${sessionMinutes}m`);
+      res.cookie('saludclick_session', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        path: '/',
+        maxAge: sessionMinutes * 60 * 1000,
+      });
+      return res.json({ success: true, message: 'User updated successfully', data: { token, role } });
+    }
 
     return res.json({ success: true, message: 'User updated successfully' });
   } catch (err: any) {

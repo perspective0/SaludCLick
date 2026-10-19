@@ -42,6 +42,13 @@ function safeRedirect(value: unknown) {
   return redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/dashboard';
 }
 
+function dashboardForRole(role: string) {
+  if (role === 'doctor') return '/doctor/dashboard';
+  if (role === 'admin') return '/admin/dashboard';
+  if (role === 'secretary') return '/secretary/dashboard';
+  return '/patient/dashboard';
+}
+
 function googleIsConfigured() {
   return Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
 }
@@ -120,7 +127,8 @@ export const startGoogleLogin = (req: Request, res: Response) => {
 
   const state = crypto.randomBytes(32).toString('hex');
   const redirect = safeRedirect(req.query.redirect);
-  setGoogleStateCookie(res, `${state}|${Buffer.from(redirect).toString('base64url')}`);
+  const requestedRole = req.query.role === 'doctor' ? 'doctor' : 'patient';
+  setGoogleStateCookie(res, `${state}|${Buffer.from(redirect).toString('base64url')}|${requestedRole}`);
 
   const params = new URLSearchParams({
     client_id: process.env.GOOGLE_CLIENT_ID as string,
@@ -140,7 +148,7 @@ export const finishGoogleLogin = async (req: Request, res: Response) => {
   if (!googleIsConfigured()) return redirectToLogin(res, { google: 'error', message: 'Google no está configurado.' });
 
   const stateCookie = readCookie(req, GOOGLE_STATE_COOKIE);
-  const [savedState, encodedRedirect] = String(stateCookie || '').split('|');
+  const [savedState, encodedRedirect, requestedRole] = String(stateCookie || '').split('|');
   const redirect = encodedRedirect ? safeRedirect(Buffer.from(encodedRedirect, 'base64url').toString('utf8')) : frontendRedirect;
   clearGoogleStateCookie(res);
   if (!req.query.state || !savedState || req.query.state !== savedState) {
@@ -183,13 +191,25 @@ export const finishGoogleLogin = async (req: Request, res: Response) => {
       const temporaryPassword = crypto.randomBytes(32).toString('base64url');
       const password = await hashPassword(temporaryPassword);
       await transaction(async (client) => {
+        if (requestedRole === 'doctor') {
+          const centerId = await getOrCreateDefaultCenter(client);
+          await client.query(
+            'INSERT INTO users (id, email, password, first_name, last_name, role, google_subject) VALUES ($1,$2,$3,$4,$5,$6,$7)',
+            [userId, email, password, firstName, lastName, 'doctor', profile.sub]
+          );
+          await client.query(
+            'INSERT INTO doctors (id, health_center_id, license_number, years_experience, bio, consultation_price, is_verified, specialties, average_rating) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)',
+            [userId, centerId, `GOOGLE-${userId}`, 0, 'Perfil creado con Google. Completa tus datos profesionales.', 0, false, [], 0]
+          );
+          return;
+        }
         await client.query(
           'INSERT INTO users (id, email, password, first_name, last_name, role, google_subject) VALUES ($1,$2,$3,$4,$5,$6,$7)',
           [userId, email, password, firstName, lastName, 'patient', profile.sub]
         );
         await client.query('INSERT INTO patients (id, account_claimed_at) VALUES ($1, NOW())', [userId]);
       });
-      user = { id: userId, email, first_name: firstName, last_name: lastName, role: 'patient' };
+      user = { id: userId, email, first_name: firstName, last_name: lastName, role: requestedRole === 'doctor' ? 'doctor' : 'patient' };
     } else {
       await query('UPDATE users SET google_subject = $1, updated_at = NOW() WHERE id = $2', [profile.sub, user.id]);
     }
@@ -202,7 +222,7 @@ export const finishGoogleLogin = async (req: Request, res: Response) => {
     // (vercel.app and onrender.com). Return the short-lived session token so
     // the browser can authenticate API requests even when third-party cookies
     // are blocked. The login page removes it from the URL immediately.
-    return redirectToLogin(res, { google: 'success', redirect, token });
+    return res.redirect(`${getFrontendUrl()}${dashboardForRole(user.role)}?token=${encodeURIComponent(token)}`);
   } catch (error) {
     console.error('Google login error:', error);
     return redirectToLogin(res, { google: 'error', message: 'No se pudo completar el inicio de sesión con Google.' });
