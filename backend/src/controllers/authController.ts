@@ -335,11 +335,12 @@ export const completeGoogleRegistration = async (req: Request, res: Response) =>
   } catch (error: any) {
     console.error('Google registration error:', error);
     const tokenError = ['TokenExpiredError', 'JsonWebTokenError', 'NotBeforeError'].includes(String(error?.name || ''));
+    const databaseCode = String(error?.code || '');
     return res.status(tokenError ? 400 : 500).json({
       success: false,
       message: tokenError
         ? 'La sesión de Google expiró. Vuelve a iniciar el proceso.'
-        : 'No se pudo crear la solicitud médica. Verifica los datos e inténtalo nuevamente.',
+        : `No se pudo crear la solicitud médica. Verifica los datos e inténtalo nuevamente.${databaseCode ? ` Código: ${databaseCode}` : ''}`,
     });
   }
 };
