@@ -37,7 +37,8 @@ export default function ProtectedRoute({
         const userData = response?.data;
 
         if (!userData) {
-          router.push('/login');
+          const redirect = `${window.location.pathname}${window.location.search}`;
+          router.push(`/login?redirect=${encodeURIComponent(redirect)}`);
           return;
         }
 
@@ -71,7 +72,8 @@ export default function ProtectedRoute({
       } catch (error) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        router.push('/login');
+        const redirect = `${window.location.pathname}${window.location.search}`;
+        router.push(`/login?redirect=${encodeURIComponent(redirect)}`);
       } finally {
         if (active) setIsLoading(false);
       }

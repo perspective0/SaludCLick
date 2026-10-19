@@ -18,7 +18,9 @@ import {
 export default function DoctorPendingApprovalPage() {
   const { locale } = useI18n();
   const en = locale === 'en';
-  const loginToProfile = '/login?redirect=%2Fdoctor%2Fprofile';
+  // ProtectedRoute will send unauthenticated visitors to login while keeping
+  // the profile destination. Authenticated doctors can go straight there.
+  const profileHref = '/doctor/profile';
   const steps = [
     { title: en ? 'Request received' : 'Solicitud recibida', text: en ? 'Your professional information is registered for review.' : 'Tus datos profesionales quedaron registrados para revisión.', icon: FileSearch },
     { title: en ? 'License validation' : 'Validación de exequátur', text: en ? 'We verify your license with your full name and specialty.' : 'Verificamos tu exequátur junto a tu nombre completo y especialidad.', icon: BadgeCheck },
@@ -42,7 +44,7 @@ export default function DoctorPendingApprovalPage() {
             />
           </Link>
           <Link
-            href={loginToProfile}
+            href={profileHref}
             className="inline-flex h-10 items-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-white/15 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
           >
             {en ? 'Sign in' : 'Iniciar sesión'}
@@ -64,7 +66,7 @@ export default function DoctorPendingApprovalPage() {
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
-                href={loginToProfile}
+                href={profileHref}
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-bold text-white shadow-sm hover:bg-blue-700"
               >
                 {en ? 'Complete my profile' : 'Completar mi perfil'}
@@ -107,7 +109,7 @@ export default function DoctorPendingApprovalPage() {
               })}
             </div>
 
-            <Link href={loginToProfile} className="mt-6 flex items-center gap-3 rounded-2xl border border-cyan-200 bg-cyan-50 p-4 text-left hover:bg-cyan-100 dark:border-cyan-300/20 dark:bg-cyan-300/10 dark:hover:bg-cyan-300/15">
+            <Link href={profileHref} className="mt-6 flex items-center gap-3 rounded-2xl border border-cyan-200 bg-cyan-50 p-4 text-left hover:bg-cyan-100 dark:border-cyan-300/20 dark:bg-cyan-300/10 dark:hover:bg-cyan-300/15">
               <FileCheck className="h-6 w-6 shrink-0 text-cyan-700 dark:text-cyan-300" />
               <span>
                 <span className="flex items-center gap-2 font-semibold text-cyan-900 dark:text-cyan-100">{en ? 'Complete your professional information' : 'Completa tus datos profesionales'} <Sparkles className="h-4 w-4" /></span>

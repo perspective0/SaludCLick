@@ -50,6 +50,8 @@ const navItems = [
   { href: '/doctor/profile', label: 'Perfil profesional', icon: Settings },
 ];
 
+const pendingDoctorNavItems = navItems.filter((item) => item.href === '/doctor/profile');
+
 export default function DoctorShell({ title, subtitle, children, actions, backHref, backLabel = 'Volver', hideBack = false }: DoctorShellProps) {
   const { locale } = useI18n();
   const en = locale === 'en';
@@ -92,6 +94,8 @@ export default function DoctorShell({ title, subtitle, children, actions, backHr
   const defaultBackHref = getDoctorBackHref(pathname);
   const resolvedBackHref = backHref || defaultBackHref;
   const showBack = !hideBack && Boolean(resolvedBackHref);
+  const isPendingDoctor = user?.role === 'doctor' && user?.isVerified === false;
+  const visibleNavItems = isPendingDoctor ? pendingDoctorNavItems : navItems;
 
   return (
     <div className="dashboard-shell min-h-screen text-gray-950 dark:text-slate-100">
@@ -115,7 +119,7 @@ export default function DoctorShell({ title, subtitle, children, actions, backHr
 
             <nav className="flex-1 min-h-0 p-3 space-y-1 overflow-y-auto">
               <p className="px-2 mb-2 text-[11px] font-semibold uppercase text-gray-400">{en ? 'Doctor portal' : 'Portal medico'}</p>
-              {navItems.map((item) => {
+              {visibleNavItems.map((item) => {
                 const Icon = item.icon;
                 const active = pathname === item.href;
                 return (
