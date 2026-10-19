@@ -865,9 +865,17 @@ function DocumentLink({ label, value }: { label: string; value?: string }) {
       href={value}
       target="_blank"
       rel="noreferrer"
-      className="rounded-xl border border-blue-100 bg-blue-50 p-3 text-sm text-blue-700 hover:bg-blue-100"
+      className="group rounded-xl border border-blue-100 bg-blue-50 p-3 text-sm text-blue-700 transition-colors hover:bg-blue-100"
     >
       <p className="font-semibold">{label}</p>
+      <div className="mt-2 flex h-32 items-center justify-center overflow-hidden rounded-lg border border-blue-100 bg-white">
+        {/* Documents may be stored as data URLs or regular image URLs. */}
+        <img
+          src={value}
+          alt={label}
+          className="h-full w-full object-contain transition-transform group-hover:scale-[1.02]"
+        />
+      </div>
       <p className="mt-1">Abrir imagen</p>
     </a>
   );
