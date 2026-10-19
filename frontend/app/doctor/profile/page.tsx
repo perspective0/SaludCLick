@@ -630,7 +630,8 @@ export default function DoctorProfilePage() {
                       </p>
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="space-y-5">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <label>
                       <span className="block text-sm font-semibold text-gray-700 mb-1">{en ? 'Phone number' : 'Teléfono'}</span>
                       <input value={form.phone} onChange={(event) => setForm({ ...form, phone: maskPhone(event.target.value) })} className="w-full h-11 rounded-xl border border-gray-200 px-3 text-sm" placeholder="809-555-5555" />
@@ -639,7 +640,7 @@ export default function DoctorProfilePage() {
                       <span className="block text-sm font-semibold text-gray-700 mb-1">{en ? 'Professional license number' : 'Número de exequátur'}</span>
                       <input value={form.exequatur} onChange={(event) => setForm({ ...form, exequatur: event.target.value })} className="w-full h-11 rounded-xl border border-gray-200 px-3 text-sm" placeholder="Ej: 12345" />
                     </label>
-                  </div>
+                    </div>
 
                   <div className="space-y-5">
                     <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 space-y-3">
@@ -716,6 +717,7 @@ export default function DoctorProfilePage() {
                         placeholder={en ? 'Describe your experience, clinical approach and services...' : 'Describe tu experiencia, enfoque clínico y servicios...'}
                       />
                     </div>
+                  </div>
                   </div>
                 </div>
 
