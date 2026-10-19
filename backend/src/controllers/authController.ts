@@ -294,6 +294,7 @@ export const completeGoogleRegistration = async (req: Request, res: Response) =>
             lastName,
             onboarding.email,
             phone,
+            null,
             'other',
             exequatur,
             specialty,
@@ -333,7 +334,13 @@ export const completeGoogleRegistration = async (req: Request, res: Response) =>
     });
   } catch (error: any) {
     console.error('Google registration error:', error);
-    return res.status(400).json({ success: false, message: 'La sesión de Google expiró o no pudo completarse. Vuelve a intentarlo.' });
+    const tokenError = ['TokenExpiredError', 'JsonWebTokenError', 'NotBeforeError'].includes(String(error?.name || ''));
+    return res.status(tokenError ? 400 : 500).json({
+      success: false,
+      message: tokenError
+        ? 'La sesión de Google expiró. Vuelve a iniciar el proceso.'
+        : 'No se pudo crear la solicitud médica. Verifica los datos e inténtalo nuevamente.',
+    });
   }
 };
 
