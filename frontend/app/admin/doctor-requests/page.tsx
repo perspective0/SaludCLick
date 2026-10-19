@@ -851,6 +851,8 @@ export default function AdminDoctorRequestsPage() {
 }
 
 function DocumentLink({ label, value }: { label: string; value?: string }) {
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
   if (!value) {
     return (
       <div className="rounded-xl border border-gray-100 bg-gray-50 p-3 text-sm text-gray-500">
@@ -860,42 +862,41 @@ function DocumentLink({ label, value }: { label: string; value?: string }) {
     );
   }
 
-  const openDocument = async () => {
-    const popup = window.open('', '_blank');
-    if (!popup) return;
-
-    try {
-      // Opening a large base64 data URL directly is unreliable in production.
-      // Convert it to a temporary blob URL first so the browser renders it normally.
-      if (value.startsWith('data:')) {
-        const response = await fetch(value);
-        const blobUrl = URL.createObjectURL(await response.blob());
-        popup.location.href = blobUrl;
-        window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
-      } else {
-        popup.location.href = value;
-      }
-    } catch {
-      popup.location.href = value;
-    }
-  };
-
   return (
-    <button
-      type="button"
-      onClick={openDocument}
-      className="group rounded-xl border border-blue-100 bg-blue-50 p-3 text-sm text-blue-700 transition-colors hover:bg-blue-100"
-    >
-      <p className="font-semibold">{label}</p>
-      <div className="mt-2 flex h-32 items-center justify-center overflow-hidden rounded-lg border border-blue-100 bg-white">
-        {/* Documents may be stored as data URLs or regular image URLs. */}
-        <img
-          src={value}
-          alt={label}
-          className="h-full w-full object-contain transition-transform group-hover:scale-[1.02]"
-        />
-      </div>
-      <p className="mt-1">Abrir imagen</p>
-    </button>
+    <>
+      <button
+        type="button"
+        onClick={() => setIsPreviewOpen(true)}
+        className="group w-full rounded-xl border border-blue-100 bg-blue-50 p-3 text-left text-sm text-blue-700 transition-colors hover:bg-blue-100"
+      >
+        <p className="font-semibold">{label}</p>
+        <div className="mt-2 flex h-32 items-center justify-center overflow-hidden rounded-lg border border-blue-100 bg-white">
+          <img src={value} alt={label} className="h-full w-full object-contain transition-transform group-hover:scale-[1.02]" />
+        </div>
+        <p className="mt-1">Ver imagen</p>
+      </button>
+
+      {isPreviewOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label={label}
+          onClick={() => setIsPreviewOpen(false)}
+        >
+          <div className="relative max-h-[92vh] max-w-5xl rounded-2xl bg-white p-3 shadow-2xl" onClick={(event) => event.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => setIsPreviewOpen(false)}
+              className="absolute right-3 top-3 z-10 rounded-full bg-black/70 px-3 py-1 text-lg leading-none text-white hover:bg-black"
+              aria-label="Cerrar vista previa"
+            >
+              ×
+            </button>
+            <img src={value} alt={label} className="max-h-[86vh] max-w-full rounded-xl object-contain" />
+          </div>
+        </div>
+      )}
+    </>
   );
 }
