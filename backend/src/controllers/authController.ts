@@ -263,6 +263,10 @@ export const completeGoogleRegistration = async (req: Request, res: Response) =>
     await ensureDoctorVerificationColumns();
     await ensureDoctorHealthCentersTable();
 
+    if (requestedRole === 'doctor' && await findExequaturConflict(exequatur)) {
+      return res.status(409).json({ success: false, message: 'Ese número de exequátur ya está registrado. Verifica el número e inténtalo nuevamente.' });
+    }
+
     await transaction(async (client) => {
       await client.query(
         'INSERT INTO users (id, email, password, first_name, last_name, role, avatar, google_subject) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)',
@@ -335,14 +339,14 @@ export const completeGoogleRegistration = async (req: Request, res: Response) =>
   } catch (error: any) {
     console.error('Google registration error:', error);
     const tokenError = ['TokenExpiredError', 'JsonWebTokenError', 'NotBeforeError'].includes(String(error?.name || ''));
-    const databaseCode = String(error?.code || '');
-    const errorName = String(error?.name || 'Error');
-    const errorMessage = String(error?.message || '').replace(/[\r\n]+/g, ' ').slice(0, 180);
+    const duplicateError = String(error?.code || '') === '23505';
     return res.status(tokenError ? 400 : 500).json({
       success: false,
       message: tokenError
         ? 'La sesión de Google expiró. Vuelve a iniciar el proceso.'
-        : `No se pudo crear la solicitud médica. Verifica los datos e inténtalo nuevamente.${databaseCode ? ` Código: ${databaseCode}` : ` [${errorName}: ${errorMessage}]`}`,
+        : duplicateError
+          ? 'Ese número de exequátur o correo ya está registrado. Verifica los datos e inténtalo nuevamente.'
+          : 'No se pudo crear la solicitud médica. Verifica los datos e inténtalo nuevamente.',
     });
   }
 };
@@ -367,6 +371,37 @@ async function getOrCreateDefaultCenter(client: any) {
     ['SaludClick Network', 'No asignada', 'Virtual', '000-000-0000', 'admin@saludclick.com', 'Centro médico predeterminado para doctores pendientes']
   );
   return insertResult.rows[0].id;
+}
+
+function normalizeExequatur(value: string) {
+  return String(value || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+}
+
+async function findExequaturConflict(exequatur: string, email?: string) {
+  const normalized = normalizeExequatur(exequatur);
+  if (!normalized) return false;
+
+  const doctor = await queryOne(
+    `SELECT d.id
+     FROM doctors d
+     JOIN users u ON u.id = d.id
+     WHERE regexp_replace(upper(COALESCE(d.license_number, '')), '[^A-Z0-9]', '', 'g') = $1
+       AND ($2::text IS NULL OR lower(u.email) <> lower($2))
+     LIMIT 1`,
+    [normalized, email || null]
+  );
+  if (doctor) return true;
+
+  const request = await queryOne(
+    `SELECT id
+     FROM doctor_requests
+     WHERE status <> 'rejected'
+       AND regexp_replace(upper(COALESCE(exequatur, license_number, '')), '[^A-Z0-9]', '', 'g') = $1
+       AND ($2::text IS NULL OR lower(email) <> lower($2))
+     LIMIT 1`,
+    [normalized, email || null]
+  );
+  return Boolean(request);
 }
 
 async function ensureDoctorHealthCentersTable() {
@@ -540,6 +575,10 @@ export const register = async (req: Request, res: Response) => {
           success: false,
           message: 'El exequatur es obligatorio para solicitar acceso como médico',
         });
+      }
+
+      if (await findExequaturConflict(exequatur, email)) {
+        return res.status(409).json({ success: false, message: 'Ese número de exequátur ya está registrado. Verifica el número e inténtalo nuevamente.' });
       }
 
       const existingRequest = await queryOne('SELECT id FROM doctor_requests WHERE LOWER(email) = LOWER($1)', [email]);
